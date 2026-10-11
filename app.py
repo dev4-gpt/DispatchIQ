@@ -132,7 +132,7 @@ def research_runs() -> None:
     if not consistent:
         st.warning("Run files disagree on the reference scores; showing the first one found.")
 
-    rows = scoreboard.with_improvement(scoreboard.scoreboard(runs))
+    rows = scoreboard.with_improvement(scoreboard.scoreboard(runs, scoreboard.load_backfill(ROOT / "runs")))
     st.subheader("Headline: improvement over naive")
     saved = [r for r in rows if r["val_vs_naive_pct"] is not None and r["policy"] != "naive (reference)"]
     if saved:
@@ -171,12 +171,17 @@ def research_runs() -> None:
         "policy": r["policy"], "status": r["status"], "validation cost": r["val_cost"],
         "vs naive %": r["val_vs_naive_pct"], "on-time %": r["on_time_pct"],
         "missed promises": None if r["missed_promises"] is None else f"{r['missed_promises']}/{r['emergencies']}",
+        "booked customers bumped": r["bumped_booked"], "moved between healthy techs": r["moved_healthy"],
         "agents": r.get("agents"), "rounds": r.get("rounds"), "proposals": r.get("proposals"),
         "proposer tokens": r.get("proposer_tokens"), "critic tokens": r.get("critic_tokens"),
     } for r in rows])
     st.dataframe(table, use_container_width=True, hide_index=True)
     st.caption("Missed promises: emergencies that started after their promised latest start, out of all "
                "emergencies on validation days. Reported only; the checker does not treat them as a hard rule.")
+    st.caption("Booked customers bumped: jobs booked with a healthy technician this morning but left unscheduled. "
+               "Moved between healthy techs: jobs reassigned from one healthy technician to another. Totals over the "
+               "30 validation days, reporting only: the cost charges every unscheduled job the same and 20 per move. "
+               "Older run files get these counts from `python rescore.py --backfill`, used only while it matches the run.")
 
     st.subheader("Missed promises per policy (validation days)")
     missed = pd.DataFrame([{"policy": r["policy"], "missed promises": r["missed_promises"]}

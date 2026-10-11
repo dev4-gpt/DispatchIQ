@@ -60,16 +60,37 @@ def references(runs: dict[str, dict | None]) -> tuple[dict, bool]:
     return refs[0], all(r == refs[0] for r in refs)
 
 
-def _row(policy: str, val: dict | None, **extra) -> dict:
+REPORT_FIELDS = ("bumped_booked", "moved_healthy")  # reporting only; not part of the checker's cost
+
+
+def load_backfill(runs_dir: Path = RUNS) -> dict:
+    """runs/backfill_metrics.json from `python rescore.py --backfill`, or empty."""
+    try:
+        doc = json.loads((runs_dir / "backfill_metrics.json").read_text(encoding="utf-8"))
+        return doc if isinstance(doc, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def _row(policy: str, val: dict | None, fallback: dict | None = None, **extra) -> dict:
+    """Fields missing from an older run file come from a matching backfill entry (re-scored, no LLM)."""
     val = val or {}
     missed, emerg = val.get("missed_promises"), val.get("emergencies")
+    report = {k: val.get(k) for k in REPORT_FIELDS}
+    source = "run file" if all(v is not None for v in report.values()) else None
+    if source is None and fallback:
+        report = {k: fallback.get(k) for k in REPORT_FIELDS}
+        source = "re-scored (rescore.py --backfill)" if all(v is not None for v in report.values()) else None
     return {"policy": policy, "val_cost": val.get("mean_cost"), "on_time_pct": val.get("on_time_pct"),
-            "missed_promises": missed, "emergencies": emerg, "infeasible_days": val.get("infeasible"), **extra}
+            "missed_promises": missed, "emergencies": emerg, "infeasible_days": val.get("infeasible"),
+            **report, "report_source": source, **extra}
 
 
-def scoreboard(runs: dict[str, dict | None]) -> list[dict]:
+def scoreboard(runs: dict[str, dict | None], backfill: dict | None = None) -> list[dict]:
     refs, _ = references(runs)
-    rows = [_row(f"{name} (reference)", refs.get(name, {}).get("val"), status="reference" if name in refs else "missing")
+    backfill = backfill or {}
+    rows = [_row(f"{name} (reference)", refs.get(name, {}).get("val"), (backfill.get("references") or {}).get(name),
+                 status="reference" if name in refs else "missing")
             for name in ("naive", "insertion")]
     for label, run in runs.items():
         if run is None:
@@ -78,7 +99,9 @@ def scoreboard(runs: dict[str, dict | None]) -> list[dict]:
         rounds = run["rounds"]
         last = rounds[-1] if rounds else {}
         critic = [r["critic"] for r in rounds if isinstance(r.get("critic"), dict)]
-        rows.append(_row(label, last.get("champion"), status=run_status(run),
+        entry = (backfill.get("runs") or {}).get(RUN_NAMES[label]) or {}
+        matches = entry.get("champion_val") == last.get("champion_val") and entry.get("rounds") == len(rounds)
+        rows.append(_row(label, last.get("champion"), entry.get("val") if matches else None, status=run_status(run),
                          agents=run.get("agents"), rounds=len(rounds),
                          proposals=(run.get("agents") or 0) * len(rounds), start=run.get("start"),
                          proposer_tokens=last.get("tokens"),
@@ -231,14 +254,18 @@ def _fmt(x, spec):
 def main() -> None:
     runs = load_runs()
     _, consistent = references(runs)
-    print(f"{'Policy':34s} {'val cost':>9s} {'vs naive':>9s} {'on-time':>8s} {'missed':>8s} {'agents':>6s} {'rounds':>6s} {'props':>6s}  status")
-    for r in with_improvement(scoreboard(runs)):
+    print(f"{'Policy':34s} {'val cost':>9s} {'vs naive':>9s} {'on-time':>8s} {'missed':>8s} {'bumped':>7s} {'moved':>6s} "
+          f"{'agents':>6s} {'rounds':>6s} {'props':>6s}  status")
+    for r in with_improvement(scoreboard(runs, load_backfill())):
         missed = "-" if r["missed_promises"] is None else f"{r['missed_promises']}/{r['emergencies']}"
         vs = "-" if r["val_vs_naive_pct"] is None else f"{r['val_vs_naive_pct']:+.1f}%"
         print(f"{r['policy']:34s} {_fmt(r['val_cost'], '9.1f')} {vs:>9s} {_fmt(r['on_time_pct'], '7.1f')}{'%' if r['on_time_pct'] is not None else ' '} {missed:>8s} "
+              f"{_fmt(r['bumped_booked'], '7d')} {_fmt(r['moved_healthy'], '6d')} "
               f"{_fmt(r.get('agents'), '6d')} {_fmt(r.get('rounds'), '6d')} {_fmt(r.get('proposals'), '6d')}  {r['status']}")
     print("\nValidation days 100-129. vs naive = % lower cost than naive. "
           "missed = emergencies starting after their promised latest start / emergencies.")
+    print("bumped = customers booked with a healthy technician this morning but left unscheduled; moved = jobs moved\n"
+          "between healthy technicians (totals over 30 days). Reporting only: not part of the checker's cost.")
     if not consistent:
         print("WARNING: run files disagree on reference scores; the table uses the first one found.")
 

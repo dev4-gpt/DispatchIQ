@@ -148,3 +148,29 @@ def test_final_pick_follows_readme_rule(tmp_path):
     pick = scoreboard.final_pick(scoreboard.load_runs(tmp_path))
     assert pick["run"] == "LLM team" and pick["file"] == "runs/llm-team.json" and pick["val_cost"] == 1400.0
     assert scoreboard.final_pick({}) is None
+
+
+def test_bumped_and_moved_counts_and_backfill(tmp_path):
+    from dispatchiq.generator import split
+    from dispatchiq.sandbox import evaluate
+    # Counted from routes by the summary; cost unchanged.
+    s = evaluate((ROOT / "dispatchiq/policies/naive.py").read_text(), split("validation")[:3]).summary()
+    assert isinstance(s["bumped_booked"], int) and s["moved_healthy"] == 0
+
+    old = run(6, [190.0])  # older run file: champion summary has no bumped/moved fields
+    write(tmp_path, "llm-plain", old)
+    runs = scoreboard.load_runs(tmp_path)
+    fresh = {"runs": {"llm-plain": {"champion_val": 190.0, "rounds": 1, "val": {"bumped_booked": 7, "moved_healthy": 3}}},
+             "references": {"naive": {"bumped_booked": 18, "moved_healthy": 0}}}
+    rows = {r["policy"]: r for r in scoreboard.scoreboard(runs, fresh)}
+    assert (rows["LLM plain"]["bumped_booked"], rows["LLM plain"]["moved_healthy"]) == (7, 3)
+    assert rows["LLM plain"]["report_source"].startswith("re-scored")
+    assert rows["naive (reference)"]["bumped_booked"] == 18
+    stale = {"runs": {"llm-plain": {"champion_val": 999.0, "rounds": 1, "val": {"bumped_booked": 7, "moved_healthy": 3}}}}
+    row = {r["policy"]: r for r in scoreboard.scoreboard(runs, stale)}["LLM plain"]
+    assert row["bumped_booked"] is None and row["report_source"] is None  # stale backfill is never used
+    new = run(6, [190.0])
+    new["rounds"][0]["champion"].update(bumped_booked=5, moved_healthy=2)
+    write(tmp_path, "llm-plain", new)
+    row = {r["policy"]: r for r in scoreboard.scoreboard(scoreboard.load_runs(tmp_path), fresh)}["LLM plain"]
+    assert (row["bumped_booked"], row["report_source"]) == (5, "run file")  # run file wins over backfill

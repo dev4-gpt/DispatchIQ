@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 # Files in runs/ that are not evolve runs (or duplicate one).
-NOT_RUNS = {"latest.json", "operations-state.json", "heldout_result.json"}
+NOT_RUNS = {"latest.json", "operations-state.json", "heldout_result.json", "backfill_metrics.json"}
 
 
 def _num(x):

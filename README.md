@@ -112,4 +112,5 @@ Random search over `parametric.py`, 6 rounds × 6 proposals, scored on 50 held-o
 - Days are generated, not from a real shop. Travel is Manhattan distance at 2 min/km.
 - The morning plan is fixed and identical for all policies. Only the re-plan is evolved.
 - The cost weights (150, 20, 1) are product choices, published above. Changing them changes the "best" policy.
+- The cost doesn't tell a booked customer apart from an unbooked one. A booked customer bumped off a healthy technician costs the same 150 × priority as a job that was never scheduled, and moving a job between healthy technicians costs only 20. A policy can trade booked customers for other jobs and still score better. We report both counts (`bumped`, `moved`) beside the cost but do not penalise them.
 - The market claims come from search extracts and vendor marketing. Verify before putting them on slides.

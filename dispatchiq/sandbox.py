@@ -74,7 +74,19 @@ class Evaluation:
                 "on_time_pct": avg("on_time_pct"), "emergency_response": avg("emergency_response"),
                 "travel": avg("travel"), "moved": avg("moved"), "unassigned": avg("unassigned"),
                 # Totals over feasible days: emergencies that started after their promised latest start.
-                "emergencies": sum(s.emergencies for s in ok), "missed_promises": sum(s.missed_promises for s in ok)}
+                "emergencies": sum(s.emergencies for s in ok), "missed_promises": sum(s.missed_promises for s in ok),
+                # Reporting only (not in the cost): customers booked with a healthy tech this morning who are
+                # left unscheduled, and jobs moved from one healthy tech to another.
+                "bumped_booked": sum(_bumped_booked(seed, s) for seed, s in self.per_seed.items() if s.feasible),
+                "moved_healthy": sum(s.moved for s in ok)}
+
+
+def _bumped_booked(seed: int, score: Score) -> int:
+    st = state(seed)
+    sick = {t["id"] for t in st["techs"] if t["sick"]}
+    assigned = {stop["job"] for stops in score.routes.values() for stop in stops}
+    return sum(1 for jid, j in st["jobs"].items()
+               if j["morning_tech"] and j["morning_tech"] not in sick and jid not in assigned)
 
 
 def evaluate(code: str, seeds: list[int], timeout: float = 60.0) -> Evaluation:
