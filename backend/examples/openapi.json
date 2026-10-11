@@ -1,0 +1,2121 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "DispatchIQ Operations API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/scenario": {
+      "get": {
+        "summary": "Scenario",
+        "operationId": "scenario_api_scenario_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Snapshot"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/technicians": {
+      "get": {
+        "summary": "Technicians",
+        "operationId": "technicians_api_technicians_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TechniciansResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/jobs": {
+      "get": {
+        "summary": "Jobs",
+        "operationId": "jobs_api_jobs_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schedule": {
+      "get": {
+        "summary": "Schedule",
+        "operationId": "schedule_api_schedule_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/metrics": {
+      "get": {
+        "summary": "Metrics",
+        "operationId": "metrics_api_metrics_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/preview": {
+      "post": {
+        "summary": "Preview",
+        "operationId": "preview_api_events_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/optimize": {
+      "post": {
+        "summary": "Optimize",
+        "operationId": "optimize_api_optimize_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OptimizeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/commit": {
+      "post": {
+        "summary": "Commit",
+        "operationId": "commit_api_events_commit_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Snapshot"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/reject": {
+      "post": {
+        "summary": "Reject",
+        "operationId": "reject_api_events_reject_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RejectResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reset": {
+      "post": {
+        "summary": "Reset",
+        "operationId": "reset_api_reset_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BaseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Snapshot"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Assignment": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Job Id"
+          },
+          "technician_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Technician Id"
+          },
+          "sequence": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Sequence"
+          },
+          "start_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Start Min"
+          },
+          "end_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "End Min"
+          },
+          "travel_min": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Travel Min"
+          },
+          "frozen": {
+            "type": "boolean",
+            "title": "Frozen"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "job_id",
+          "technician_id",
+          "sequence",
+          "start_min",
+          "end_min",
+          "travel_min",
+          "frozen"
+        ],
+        "title": "Assignment"
+      },
+      "BaseRequest": {
+        "properties": {
+          "scenario_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Id"
+          },
+          "scenario_epoch": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Epoch"
+          },
+          "base_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Base Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "scenario_id",
+          "scenario_epoch",
+          "base_revision"
+        ],
+        "title": "BaseRequest"
+      },
+      "Candidate": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Id"
+          },
+          "technician_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Technician Id"
+          },
+          "insertion_position": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Insertion Position"
+          },
+          "eligible": {
+            "type": "boolean",
+            "title": "Eligible"
+          },
+          "valid": {
+            "type": "boolean",
+            "title": "Valid"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          },
+          "ranking": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Ranking"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "emergency_start_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1440.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emergency Start Min"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "technician_id",
+          "insertion_position",
+          "eligible",
+          "valid"
+        ],
+        "title": "Candidate"
+      },
+      "Change": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Job Id"
+          },
+          "before": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Position"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "after": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Position"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "added",
+              "reassigned",
+              "shifted",
+              "unassigned"
+            ],
+            "title": "Kind"
+          },
+          "forced": {
+            "type": "boolean",
+            "title": "Forced"
+          },
+          "reason_code": {
+            "type": "string",
+            "title": "Reason Code"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          },
+          "evidence_candidate_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Candidate Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "job_id",
+          "before",
+          "after",
+          "kind",
+          "forced",
+          "reason_code",
+          "explanation"
+        ],
+        "title": "Change"
+      },
+      "Comparison": {
+        "properties": {
+          "strategy": {
+            "type": "string",
+            "enum": [
+              "stable_insertion",
+              "first_feasible"
+            ],
+            "title": "Strategy"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "no_feasible_plan"
+            ],
+            "title": "Status"
+          },
+          "metrics": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Metrics"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "diff_metrics": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DiffMetrics"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "runtime_ms": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Runtime Ms"
+          },
+          "validation": {
+            "$ref": "#/components/schemas/Validation"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "strategy",
+          "status",
+          "metrics",
+          "diff_metrics",
+          "runtime_ms",
+          "validation"
+        ],
+        "title": "Comparison"
+      },
+      "Customer": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "site_name": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Site Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "site_name"
+        ],
+        "title": "Customer"
+      },
+      "DiffMetrics": {
+        "properties": {
+          "forced_reassignments": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Forced Reassignments",
+            "default": 0
+          },
+          "voluntary_reassignments": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Voluntary Reassignments",
+            "default": 0
+          },
+          "changed_existing_jobs": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Changed Existing Jobs",
+            "default": 0
+          },
+          "start_changed_jobs": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Start Changed Jobs",
+            "default": 0
+          },
+          "absolute_start_shift_min": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Absolute Start Shift Min",
+            "default": 0
+          },
+          "new_jobs": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "New Jobs",
+            "default": 0
+          },
+          "newly_unassigned_jobs": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Newly Unassigned Jobs",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DiffMetrics"
+      },
+      "EmergencyEvent": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "emergency",
+            "title": "Type",
+            "default": "emergency"
+          },
+          "at_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "At Min"
+          },
+          "job": {
+            "$ref": "#/components/schemas/JobInput"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "at_min",
+          "job"
+        ],
+        "title": "EmergencyEvent"
+      },
+      "EmergencyMetric": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Job Id"
+          },
+          "response_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response Min"
+          },
+          "deadline_met": {
+            "type": "boolean",
+            "title": "Deadline Met"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "job_id",
+          "response_min",
+          "deadline_met"
+        ],
+        "title": "EmergencyMetric"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status",
+            "default": "ok"
+          },
+          "schema_version": {
+            "type": "string",
+            "const": "1",
+            "title": "Schema Version",
+            "default": "1"
+          },
+          "optimizer": {
+            "type": "string",
+            "const": "feasible_insertion",
+            "title": "Optimizer",
+            "default": "feasible_insertion"
+          },
+          "state_ready": {
+            "type": "boolean",
+            "const": true,
+            "title": "State Ready",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "HealthResponse"
+      },
+      "Job": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Id"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/Customer"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "required_skills": {
+            "items": {
+              "type": "string",
+              "maxLength": 64,
+              "minLength": 1,
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Required Skills"
+          },
+          "priority": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3,
+              5
+            ],
+            "title": "Priority"
+          },
+          "duration_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Duration Min"
+          },
+          "earliest_start_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Earliest Start Min"
+          },
+          "latest_start_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Latest Start Min"
+          },
+          "window_end_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Window End Min"
+          },
+          "soft_promised_start_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1440.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Soft Promised Start Min"
+          },
+          "deadline_start_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1440.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline Start Min"
+          },
+          "release_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Release Min",
+            "default": 0
+          },
+          "emergency": {
+            "type": "boolean",
+            "title": "Emergency",
+            "default": false
+          },
+          "locked": {
+            "type": "boolean",
+            "title": "Locked",
+            "default": false
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "scheduled",
+              "completed",
+              "in_progress",
+              "unassigned",
+              "cancelled"
+            ],
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "customer",
+          "location",
+          "required_skills",
+          "priority",
+          "duration_min",
+          "earliest_start_min",
+          "latest_start_min",
+          "window_end_min",
+          "status"
+        ],
+        "title": "Job"
+      },
+      "JobInput": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Id"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/Customer"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "required_skills": {
+            "items": {
+              "type": "string",
+              "maxLength": 64,
+              "minLength": 1,
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Required Skills"
+          },
+          "priority": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3,
+              5
+            ],
+            "title": "Priority"
+          },
+          "duration_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Duration Min"
+          },
+          "earliest_start_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Earliest Start Min"
+          },
+          "latest_start_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Latest Start Min"
+          },
+          "window_end_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Window End Min"
+          },
+          "soft_promised_start_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1440.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Soft Promised Start Min"
+          },
+          "deadline_start_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1440.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline Start Min"
+          },
+          "release_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Release Min",
+            "default": 0
+          },
+          "emergency": {
+            "type": "boolean",
+            "title": "Emergency",
+            "default": false
+          },
+          "locked": {
+            "type": "boolean",
+            "title": "Locked",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "customer",
+          "location",
+          "required_skills",
+          "priority",
+          "duration_min",
+          "earliest_start_min",
+          "latest_start_min",
+          "window_end_min"
+        ],
+        "title": "JobInput"
+      },
+      "JobsResponse": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1",
+            "title": "Schema Version"
+          },
+          "scenario_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Id"
+          },
+          "scenario_epoch": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Epoch"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/Job"
+            },
+            "type": "array",
+            "title": "Jobs"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "schema_version",
+          "scenario_id",
+          "scenario_epoch",
+          "revision",
+          "jobs"
+        ],
+        "title": "JobsResponse"
+      },
+      "Location": {
+        "properties": {
+          "x_km": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "X Km"
+          },
+          "y_km": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Y Km"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 90.0,
+                "minimum": -90.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 180.0,
+                "minimum": -180.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "x_km",
+          "y_km"
+        ],
+        "title": "Location"
+      },
+      "Metrics": {
+        "properties": {
+          "scope": {
+            "type": "string",
+            "const": "future_from_now",
+            "title": "Scope",
+            "default": "future_from_now"
+          },
+          "travel_min": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Travel Min",
+            "default": 0
+          },
+          "unassigned_jobs": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Unassigned Jobs",
+            "default": 0
+          },
+          "soft_sla_violations": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Soft Sla Violations",
+            "default": 0
+          },
+          "soft_sla_lateness_min": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Soft Sla Lateness Min",
+            "default": 0
+          },
+          "hard_constraint_violations": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Hard Constraint Violations",
+            "default": 0
+          },
+          "overtime_min": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Overtime Min",
+            "default": 0
+          },
+          "emergencies": {
+            "items": {
+              "$ref": "#/components/schemas/EmergencyMetric"
+            },
+            "type": "array",
+            "title": "Emergencies"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Metrics"
+      },
+      "MetricsResponse": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1",
+            "title": "Schema Version"
+          },
+          "scenario_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Id"
+          },
+          "scenario_epoch": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Epoch"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/Metrics"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "schema_version",
+          "scenario_id",
+          "scenario_epoch",
+          "revision",
+          "metrics"
+        ],
+        "title": "MetricsResponse"
+      },
+      "OptimizeRequest": {
+        "properties": {
+          "scenario_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Id"
+          },
+          "scenario_epoch": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Epoch"
+          },
+          "base_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Base Revision"
+          },
+          "strategy": {
+            "type": "string",
+            "enum": [
+              "stable_insertion",
+              "first_feasible"
+            ],
+            "title": "Strategy",
+            "default": "stable_insertion"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "scenario_id",
+          "scenario_epoch",
+          "base_revision"
+        ],
+        "title": "OptimizeRequest"
+      },
+      "Position": {
+        "properties": {
+          "technician_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Technician Id"
+          },
+          "start_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Start Min"
+          },
+          "end_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "End Min"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "technician_id",
+          "start_min",
+          "end_min"
+        ],
+        "title": "Position"
+      },
+      "PreviewRequest": {
+        "properties": {
+          "scenario_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Id"
+          },
+          "scenario_epoch": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Epoch"
+          },
+          "base_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Base Revision"
+          },
+          "event": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/EmergencyEvent"
+              },
+              {
+                "$ref": "#/components/schemas/UnavailableEvent"
+              }
+            ],
+            "title": "Event",
+            "discriminator": {
+              "propertyName": "type",
+              "mapping": {
+                "emergency": "#/components/schemas/EmergencyEvent",
+                "technician_unavailable": "#/components/schemas/UnavailableEvent"
+              }
+            }
+          },
+          "strategy": {
+            "type": "string",
+            "enum": [
+              "stable_insertion",
+              "first_feasible"
+            ],
+            "title": "Strategy",
+            "default": "stable_insertion"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "scenario_id",
+          "scenario_epoch",
+          "base_revision",
+          "event"
+        ],
+        "title": "PreviewRequest"
+      },
+      "Proposal": {
+        "properties": {
+          "proposal_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Proposal Id"
+          },
+          "scenario_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Id"
+          },
+          "scenario_epoch": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Epoch"
+          },
+          "base_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Base Revision"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "no_feasible_plan",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "event": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/EmergencyEvent"
+                  },
+                  {
+                    "$ref": "#/components/schemas/UnavailableEvent"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "type",
+                  "mapping": {
+                    "emergency": "#/components/schemas/EmergencyEvent",
+                    "technician_unavailable": "#/components/schemas/UnavailableEvent"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event"
+          },
+          "proposed_snapshot": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Snapshot"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/Change"
+            },
+            "type": "array",
+            "title": "Changes"
+          },
+          "validation": {
+            "$ref": "#/components/schemas/Validation"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/Candidate"
+            },
+            "type": "array",
+            "title": "Candidates"
+          },
+          "selected_candidate_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected Candidate Id"
+          },
+          "comparison": {
+            "items": {
+              "$ref": "#/components/schemas/Comparison"
+            },
+            "type": "array",
+            "title": "Comparison"
+          },
+          "runtime_ms": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Runtime Ms"
+          },
+          "search": {
+            "$ref": "#/components/schemas/Search"
+          },
+          "expires_at_utc": {
+            "type": "string",
+            "title": "Expires At Utc"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "proposal_id",
+          "scenario_id",
+          "scenario_epoch",
+          "base_revision",
+          "status",
+          "event",
+          "proposed_snapshot",
+          "changes",
+          "validation",
+          "candidates",
+          "selected_candidate_id",
+          "comparison",
+          "runtime_ms",
+          "search",
+          "expires_at_utc",
+          "explanation"
+        ],
+        "title": "Proposal"
+      },
+      "ProposalRequest": {
+        "properties": {
+          "scenario_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Id"
+          },
+          "scenario_epoch": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Epoch"
+          },
+          "base_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Base Revision"
+          },
+          "proposal_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Proposal Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "scenario_id",
+          "scenario_epoch",
+          "base_revision",
+          "proposal_id"
+        ],
+        "title": "ProposalRequest"
+      },
+      "Ranking": {
+        "properties": {
+          "unassigned_existing": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Unassigned Existing"
+          },
+          "voluntary_reassignments": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Voluntary Reassignments"
+          },
+          "changed_existing_jobs": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Changed Existing Jobs"
+          },
+          "absolute_start_shift_min": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Absolute Start Shift Min"
+          },
+          "emergency_response_min": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Emergency Response Min"
+          },
+          "added_travel_min": {
+            "type": "integer",
+            "title": "Added Travel Min"
+          },
+          "overtime_min": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Overtime Min"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "unassigned_existing",
+          "voluntary_reassignments",
+          "changed_existing_jobs",
+          "absolute_start_shift_min",
+          "emergency_response_min",
+          "added_travel_min",
+          "overtime_min"
+        ],
+        "title": "Ranking"
+      },
+      "RejectResponse": {
+        "properties": {
+          "proposal_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Proposal Id"
+          },
+          "status": {
+            "type": "string",
+            "const": "rejected",
+            "title": "Status"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "proposal_id",
+          "status",
+          "revision"
+        ],
+        "title": "RejectResponse"
+      },
+      "Schedule": {
+        "properties": {
+          "assignments": {
+            "items": {
+              "$ref": "#/components/schemas/Assignment"
+            },
+            "type": "array",
+            "title": "Assignments"
+          },
+          "unassigned_job_ids": {
+            "items": {
+              "type": "string",
+              "maxLength": 120,
+              "minLength": 1,
+              "pattern": "^\\S+$"
+            },
+            "type": "array",
+            "title": "Unassigned Job Ids"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Schedule"
+      },
+      "ScheduleResponse": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1",
+            "title": "Schema Version"
+          },
+          "scenario_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Id"
+          },
+          "scenario_epoch": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Epoch"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/Schedule"
+          },
+          "validation": {
+            "$ref": "#/components/schemas/Validation"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "schema_version",
+          "scenario_id",
+          "scenario_epoch",
+          "revision",
+          "schedule",
+          "validation"
+        ],
+        "title": "ScheduleResponse"
+      },
+      "Search": {
+        "properties": {
+          "termination": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "budget_exhausted",
+              "error"
+            ],
+            "title": "Termination"
+          },
+          "candidates_evaluated": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Candidates Evaluated"
+          },
+          "feasibility_proven_impossible": {
+            "type": "boolean",
+            "title": "Feasibility Proven Impossible",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "termination",
+          "candidates_evaluated"
+        ],
+        "title": "Search"
+      },
+      "Snapshot": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1",
+            "title": "Schema Version",
+            "default": "1"
+          },
+          "scenario_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Id"
+          },
+          "scenario_epoch": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Epoch"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "date": {
+            "type": "string",
+            "title": "Date",
+            "default": "2026-10-11"
+          },
+          "timezone": {
+            "type": "string",
+            "const": "America/New_York",
+            "title": "Timezone",
+            "default": "America/New_York"
+          },
+          "now_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Now Min"
+          },
+          "travel_model": {
+            "$ref": "#/components/schemas/TravelModel"
+          },
+          "technicians": {
+            "items": {
+              "$ref": "#/components/schemas/Technician"
+            },
+            "type": "array",
+            "title": "Technicians"
+          },
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/Job"
+            },
+            "type": "array",
+            "title": "Jobs"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/Schedule"
+          },
+          "validation": {
+            "$ref": "#/components/schemas/Validation"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/Metrics"
+          },
+          "events": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/EmergencyEvent"
+                },
+                {
+                  "$ref": "#/components/schemas/UnavailableEvent"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "emergency": "#/components/schemas/EmergencyEvent",
+                  "technician_unavailable": "#/components/schemas/UnavailableEvent"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Events"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "scenario_id",
+          "scenario_epoch",
+          "revision",
+          "now_min",
+          "technicians",
+          "jobs",
+          "schedule"
+        ],
+        "title": "Snapshot"
+      },
+      "Technician": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "skills": {
+            "items": {
+              "type": "string",
+              "maxLength": 64,
+              "minLength": 1,
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Skills"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "shift_start_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Shift Start Min"
+          },
+          "shift_end_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Shift End Min"
+          },
+          "max_overtime_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Max Overtime Min",
+            "default": 0
+          },
+          "max_service_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Max Service Min"
+          },
+          "availability": {
+            "type": "string",
+            "enum": [
+              "available",
+              "unavailable"
+            ],
+            "title": "Availability",
+            "default": "available"
+          },
+          "assigned_job_ids": {
+            "items": {
+              "type": "string",
+              "maxLength": 120,
+              "minLength": 1,
+              "pattern": "^\\S+$"
+            },
+            "type": "array",
+            "title": "Assigned Job Ids"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "skills",
+          "location",
+          "shift_start_min",
+          "shift_end_min",
+          "max_service_min"
+        ],
+        "title": "Technician"
+      },
+      "TechniciansResponse": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1",
+            "title": "Schema Version"
+          },
+          "scenario_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Id"
+          },
+          "scenario_epoch": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Scenario Epoch"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "technicians": {
+            "items": {
+              "$ref": "#/components/schemas/Technician"
+            },
+            "type": "array",
+            "title": "Technicians"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "schema_version",
+          "scenario_id",
+          "scenario_epoch",
+          "revision",
+          "technicians"
+        ],
+        "title": "TechniciansResponse"
+      },
+      "TravelModel": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "manhattan_grid",
+            "title": "Type",
+            "default": "manhattan_grid"
+          },
+          "min_per_km": {
+            "type": "integer",
+            "const": 2,
+            "title": "Min Per Km",
+            "default": 2
+          },
+          "rounding": {
+            "type": "string",
+            "const": "ceil",
+            "title": "Rounding",
+            "default": "ceil"
+          },
+          "synthetic": {
+            "type": "boolean",
+            "const": true,
+            "title": "Synthetic",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "TravelModel"
+      },
+      "UnavailableEvent": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "technician_unavailable",
+            "title": "Type",
+            "default": "technician_unavailable"
+          },
+          "at_min": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "At Min"
+          },
+          "technician_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "title": "Technician Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "at_min",
+          "technician_id"
+        ],
+        "title": "UnavailableEvent"
+      },
+      "Validation": {
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "title": "Valid"
+          },
+          "violations": {
+            "items": {
+              "$ref": "#/components/schemas/Violation"
+            },
+            "type": "array",
+            "title": "Violations"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "valid"
+        ],
+        "title": "Validation"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "Violation": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "job_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Id"
+          },
+          "technician_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Technician Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "Violation"
+      }
+    }
+  }
+}

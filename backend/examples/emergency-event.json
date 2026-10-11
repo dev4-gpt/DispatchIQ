@@ -1,0 +1,31 @@
+{
+  "type": "emergency",
+  "at_min": 690,
+  "job": {
+    "id": "E01",
+    "customer": {
+      "id": "C99",
+      "name": "Civic Clinic",
+      "site_name": "Plant room"
+    },
+    "location": {
+      "x_km": 4.0,
+      "y_km": 2.0,
+      "latitude": null,
+      "longitude": null
+    },
+    "required_skills": [
+      "hvac"
+    ],
+    "priority": 5,
+    "duration_min": 45,
+    "earliest_start_min": 690,
+    "latest_start_min": 730,
+    "window_end_min": 840,
+    "soft_promised_start_min": null,
+    "deadline_start_min": 730,
+    "release_min": 690,
+    "emergency": true,
+    "locked": false
+  }
+}

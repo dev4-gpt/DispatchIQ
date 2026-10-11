@@ -1,0 +1,137 @@
+{
+  "captured_at_utc": "2026-10-11T18:01:22.727944+00:00",
+  "methodology": "Single local HTTP preview; same committed post-event input for both strategies; algorithm timing and HTTP round-trip measured separately; no schedule committed.",
+  "health": {
+    "status": "ok",
+    "schema_version": "1",
+    "optimizer": "feasible_insertion",
+    "state_ready": true
+  },
+  "baseline": {
+    "technicians": 10,
+    "jobs": 25,
+    "revision": 0,
+    "validation": {
+      "valid": true,
+      "violations": []
+    },
+    "metrics": {
+      "scope": "future_from_now",
+      "travel_min": 60,
+      "unassigned_jobs": 0,
+      "soft_sla_violations": 0,
+      "soft_sla_lateness_min": 0,
+      "hard_constraint_violations": 0,
+      "overtime_min": 0,
+      "emergencies": []
+    }
+  },
+  "comparison": [
+    {
+      "strategy": "stable_insertion",
+      "status": "ready",
+      "metrics": {
+        "scope": "future_from_now",
+        "travel_min": 64,
+        "unassigned_jobs": 0,
+        "soft_sla_violations": 1,
+        "soft_sla_lateness_min": 17,
+        "hard_constraint_violations": 0,
+        "overtime_min": 0,
+        "emergencies": [
+          {
+            "job_id": "E01",
+            "response_min": 28,
+            "deadline_met": true
+          }
+        ]
+      },
+      "diff_metrics": {
+        "forced_reassignments": 0,
+        "voluntary_reassignments": 0,
+        "changed_existing_jobs": 1,
+        "start_changed_jobs": 1,
+        "absolute_start_shift_min": 17,
+        "new_jobs": 1,
+        "newly_unassigned_jobs": 0
+      },
+      "runtime_ms": 12.699100014287978,
+      "validation": {
+        "valid": true,
+        "violations": []
+      }
+    },
+    {
+      "strategy": "first_feasible",
+      "status": "ready",
+      "metrics": {
+        "scope": "future_from_now",
+        "travel_min": 64,
+        "unassigned_jobs": 0,
+        "soft_sla_violations": 1,
+        "soft_sla_lateness_min": 38,
+        "hard_constraint_violations": 0,
+        "overtime_min": 0,
+        "emergencies": [
+          {
+            "job_id": "E01",
+            "response_min": 4,
+            "deadline_met": true
+          }
+        ]
+      },
+      "diff_metrics": {
+        "forced_reassignments": 0,
+        "voluntary_reassignments": 0,
+        "changed_existing_jobs": 1,
+        "start_changed_jobs": 1,
+        "absolute_start_shift_min": 38,
+        "new_jobs": 1,
+        "newly_unassigned_jobs": 0
+      },
+      "runtime_ms": 2.207300014561042,
+      "validation": {
+        "valid": true,
+        "violations": []
+      }
+    }
+  ],
+  "preview_http_round_trip_ms": 18.068499979563057,
+  "selected_runtime_ms": 12.699100014287978,
+  "changes": [
+    {
+      "job_id": "E01",
+      "before": null,
+      "after": {
+        "technician_id": "T00",
+        "start_min": 718,
+        "end_min": 763
+      },
+      "kind": "added",
+      "forced": false,
+      "reason_code": "EMERGENCY_INSERTION",
+      "explanation": "John has hvac certification(s) and starts 28 minutes after release. The response deadline and hard windows are satisfied.",
+      "evidence_candidate_id": "CAND-E01-T00-2"
+    },
+    {
+      "job_id": "J03",
+      "before": {
+        "technician_id": "T00",
+        "start_min": 750,
+        "end_min": 810
+      },
+      "after": {
+        "technician_id": "T00",
+        "start_min": 767,
+        "end_min": 827
+      },
+      "kind": "shifted",
+      "forced": false,
+      "reason_code": "TRAVEL_AFTER_INSERTION",
+      "explanation": "J03 shifts +17 minutes to accommodate the revised route and 4 minutes of incoming travel, within its hard window.",
+      "evidence_candidate_id": "CAND-E01-T00-2"
+    }
+  ],
+  "no_plan_status": "no_feasible_plan",
+  "preview_preserved_committed_state": true
+}
