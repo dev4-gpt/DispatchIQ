@@ -1,88 +1,207 @@
 # DispatchIQ
 
-**When a technician calls out sick and emergencies come in, re-plan the whole crew in one click.**
+**A team of LLM agents keeps rewriting a field-service re-planning policy; a deterministic checker, not the AI, decides what is better.**
 
-A team of AI agents writes and keeps improving the re-planning logic. A deterministic rule checker scores every schedule, and the AI never decides what is "best". Entry for c0mpiled-15 **Track 1** (self-improving agent team on Luminal). It fits YC's "New OS for the Physical World" request.
+Entry for **c0mpiled-15, Track 1, Challenge A**. LLM: **`deepseek-ai/DeepSeek-V4.1-Flash`** on Luminal (`https://flash.luminal.cloud/v1`, OpenAI-compatible, streamed).
 
-## The problem
-Small HVAC, plumbing and electrical shops (2–15 techs) on Jobber or Housecall Pro re-plan by hand when the day breaks.
-- **Housecall Pro:** "Optimize by Drive Time" only reorders jobs within one tech's day. It cannot move jobs between techs, and it is in alpha.
-- **ServiceTitan:** costs about $245–500 per tech per month, plus setup (third-party estimates).
+## Results at a glance
 
-Competitors, market gap and sources: [MARKET.md](MARKET.md).
+All numbers below are read from the saved run files in `runs/` by `python -m dispatchiq.scoreboard`. Validation means 30 fixed days (seeds 100–129) that pick the champion; lower cost is better.
 
-## How it works
+| Policy | Validation cost | vs naive | On-time | Missed promises | Booked bumped | Moved | Agents × rounds |
+|---|---|---|---|---|---|---|---|
+| naive (reference) | 2039.7 | +0.0% | 52.3% | 5/57 | 18 | 0 | fixed policy |
+| insertion (reference) | 1801.2 | +11.7% | 57.9% | 6/57 | 4 | 0 | fixed policy |
+| random search | 1717.7 | +15.8% | 58.1% | 6/57 | 18 | 49 | 6 × 8 |
+| LLM plain | 1301.9 | +36.2% | 69.0% | 1/57 | 52 | 71 | 6 × 8 |
+| **LLM team v1** | **1251.2** | **+38.7%** | 69.4% | 1/57 | 41 | 96 | 6 × 8 |
+| LLM team v2 | 1308.7 | +35.8% | 69.2% | 2/57 | 46 | 54 | 6 × 8 |
+
+- **Headline (validation):** the best LLM run, LLM team v1, costs **1251.2**. That is **38.7% lower than the naive baseline**, 30.5% lower than textbook cheapest insertion and 27.2% lower than random search with the same 48-proposal budget.
+- **Missed promises:** emergencies that started after their 2-hour promise, out of all emergencies on those days.
+- **Booked bumped / Moved:** customers booked with a healthy technician but left unscheduled, and jobs moved between healthy technicians. Totals over 30 days, reported but not part of the cost (see [Honest limits](#honest-limits)).
+
+**Held-out (50 days no one tuned on, scored once at 18:30).** The run with the lowest validation cost among 6-agent LLM runs is the final solution. It is named before scoring (rule in [Reproduce](#final-solution-rule-fixed-2026-10-11-before-any-held-out-scoring)).
+
+<!-- BEGIN heldout-headline -->
+**Held-out headline: _pending — filled from `runs/heldout_result.json` after the 18:30 run._**
+<!-- END heldout-headline -->
+
+<!-- BEGIN heldout-table -->
+| Policy | Held-out cost | vs naive | On-time | Missed promises | Booked bumped | Moved | Infeasible days | Validation cost |
+|---|---|---|---|---|---|---|---|---|
+| naive (reference) | _pending_ | | | | | | | |
+| insertion (reference) | _pending_ | | | | | | | |
+| random search | _pending_ | | | | | | | |
+| LLM plain | _pending_ | | | | | | | |
+| LLM team v1 | _pending_ | | | | | | | |
+| LLM team v2 | _pending_ | | | | | | | |
+<!-- END heldout-table -->
+
+## The problem, and why it is hard
+
+A small HVAC, plumbing and electrical shop has its day planned. Between 11:00 and 14:00 one or two technicians call in sick and one to three emergencies arrive, each promised a technician within 2 hours. Someone has to re-plan the whole crew, now.
+
+Each simulated day (`dispatchiq/generator.py`) has:
+- **Technicians:** 8–12, with one or two of three skills (hvac, plumbing, electrical) and a 08:00–17:00 shift.
+- **Booked jobs:** 30–50, each needing one skill, with a 2–4 hour arrival window and priority 1, 2 or 3.
+- **A disruption:** 1–2 technicians out sick and 1–3 priority-5 emergencies, all at one moment between 11:00 and 14:00. Work already started stays where it is.
+
+A re-plan policy gets that moment's state and returns, for each technician, an ordered list of jobs. The checker (`dispatchiq/simulate.py`) then decides.
+
+**Hard rules:** any violation makes the **whole day infeasible**, and a policy with an infeasible validation day is never promoted.
+- A sick technician gets no jobs.
+- Every job's skill matches its technician.
+- No job is assigned twice.
+- Every emergency is assigned.
+- No technician finishes more than 90 minutes past shift end.
+
+**Cost** (published weights): travel minutes, plus lateness minutes × priority, plus overtime minutes, plus 150 × priority for each job left for tomorrow, plus 20 per job moved between healthy technicians, plus minutes from each emergency call to its start.
+
+What makes it hard:
+- Every term pulls against another. Moving a job to fit an emergency adds travel, makes later customers late, can push overtime past the cap, and may leave a job unscheduled.
+- Skills limit who can take what.
+- One bad assignment fails the whole day.
+
+## How the loop works
+
 ```
-generator.py   seeded day: 8-12 techs (skills, shifts), 30-50 booked jobs (windows, priority),
-               then at 11:00-14:00: 1-2 techs out sick + 1-3 emergencies (2-hour promise)
-simulate.py    fixed morning plan -> freeze jobs already started -> re-plan state -> CHECKER
-               hard rules: no sick tech, skill match, each job once, every emergency assigned,
-                           max overtime per tech
-               cost = travel + Σ lateness×priority + overtime + 150×priority per job postponed
-                      + 20 per customer moved between healthy techs + emergency wait minutes
-sandbox.py     runs candidate code in a separate process (timeout, memory cap); scoring happens
-               outside it, so a candidate cannot score itself
-evolve.py      N agents per round write new replan() code (different strategy hints each);
-               best on DEV days is promoted only if it also beats the champion on VALIDATION days
-heldout.py     run once at the end on 50 HELD-OUT days whose hash is committed (HELDOUT_HASH.txt)
-app.py         Streamlit: before/after schedule chart, metrics, improvement curve, held-out table
+evolve.py   each round: N agents each write a full replan() module (LLM, Luminal)
+            -> sandbox.py runs each candidate in a separate process on the 30 DEV days
+            -> simulate.py (the checker) scores every day; the candidate never scores itself
+            -> best candidate with 0 infeasible dev days is promoted only if it ALSO beats the
+               champion on the 30 VALIDATION days with 0 infeasible days
+            -> team mode: a critic (one extra LLM call) reads the round's results and writes
+               lessons and hints for the next round; a shared memory of attempts goes into
+               every agent's prompt
+heldout.py  once, at the end: 50 HELD-OUT days, never seen during search
 ```
 
-Policies:
-- `policies/naive.py`: round-0 seed (what a busy dispatcher does).
-- `policies/insertion.py`: textbook cheapest-insertion reference (non-AI).
-- `policies/parametric.py`: knobs used by the no-LLM random-search baseline.
+- **Three sets of days**, fixed by seed in `generator.py`: dev 0–29 (agents search on these), validation 100–129 (decides promotion and the final solution), held-out 1000–1049 (scored once).
+- **Committed held-out hash.** `HELDOUT_HASH.txt` holds the SHA-256 of every held-out day (`cd2ba1f9b2a8…`). It was committed in the first commit (`0e8fbc4`, 12:38). `evolve.py` and `heldout.py` refuse to run if the days no longer match it.
+- **Agents start from the same champion.** Each round every agent receives the current champion code, the checker's feedback on the champion's three worst dev days, and its own approach hint. Six hints exist (`dispatchiq/proposers.py`): emergency start time, local search, regret insertion, re-sequencing, bumping low-priority jobs, and load balancing.
 
-## Run
+## Evidence
+
+### Measurable improvement
+- **Validation:** every LLM run beat both non-LLM references after its first round. Round-1 validation costs were 1389.0 (plain), 1486.6 (team v1) and 1374.2 (team v2), against insertion at 1801.2 and random search's final 1717.7. The best run ends at 1251.2, 38.7% below naive.
+- **Improvement curves** (validation cost after each round, round 0 = naive):
+
+| Round | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|---|---|---|---|---|---|---|---|---|---|
+| random search | 2039.7 | 1755.1 | 1752.2 | 1752.2 | 1732.2 | 1728.8 | 1728.8 | 1728.8 | 1717.7 |
+| LLM plain | 2039.7 | 1389.0 | 1386.1 | 1360.1 | 1349.6 | 1349.6 | 1345.9 | 1344.9 | 1301.9 |
+| LLM team v1 | 2039.7 | 1486.6 | 1426.6 | 1356.0 | 1325.5 | 1286.6 | 1286.6 | 1251.2 | 1251.2 |
+| LLM team v2 | 2039.7 | 1374.2 | 1359.8 | 1340.2 | 1335.9 | 1330.8 | 1325.8 | 1308.7 | 1308.7 |
+
+- **Held-out:** see the table at the top, filled after the single 18:30 run.
+
+### Improvement-loop design
+- **Six approach families.** The six hints above give the agents different starting angles. Promotion is decided only by the checker, on dev and then validation days.
+- **Critic v1 (`llm-team`).** The critic could rewrite every hint each round. What the run file shows:
+  - It rewrote the hints in all 8 rounds, writing 8 hints each time for 6 agents, so 2 per round were never used.
+  - After round 2, five of the six hints in use aimed at the same thing: fewer unscheduled jobs. The six approaches had collapsed into one.
+  - Five of its six accepted champions came from critic-written hints.
+  - It still finished with the lowest validation cost of any run (1251.2).
+- **Critic v2 (`llm-team-v2`, `dispatchiq/team_v2.py`).** It enforces these rules in code:
+  - One fixed family per agent slot, which the critic cannot delete.
+  - Exactly one refinement line per family per round.
+  - A single wildcard slot: only the weakest family, after 2 rounds, may be replaced, by an approach that differs from the other five.
+  - Coding fixes go into shared lessons, never into a hint slot.
+  - The critic sees the champion's dev-day cost breakdown.
+- **What v2's run file shows:**
+  - All 48 candidates were feasible (team v1: 3 failed, plain: 5).
+  - The critic wrote 6 of 6 refinements in every round, with no critic errors.
+  - New champions came from three families: local search 4 times, re-sequencing twice and regret insertion once.
+  - The wildcard slot replaced the emergency-start family after round 2. Each wildcard was then itself replaced after 2 rounds: beam search, then route-pool selection, then an auction. The fourth, multi-start rebuilding, was chosen after round 8 and never ran. So no wildcard had more than two rounds.
+  - By round 8 every family scored within 1231.3–1233.5 on dev days. All agents edit the same champion code, so outcomes converge even when the hints differ.
+  - v2 ended at 1308.7, so it did not beat v1 in this one run.
+- **Families per round, team v2** (dev cost of each agent's attempt; bold ✓ = promoted to champion; W = wildcard):
+
+| Round | Agent 0 | Agent 1 | Agent 2 | Agent 3 | Agent 4 | Agent 5 |
+|---|---|---|---|---|---|---|
+| 1 | F1 emergency-start: 1459.1 | F2 local-search: 1310.4 | F3 regret-insertion: 1456.5 | **F4 resequence: 1257.1** ✓ | F5 bump-low-priority: 1377.2 | F6 load-balance: 1378.6 |
+| 2 | F1 emergency-start: 1289.9 | F2 local-search: 1261.8 | F3 regret-insertion: 1360.8 | **F4 resequence: 1253.8** ✓ | F5 bump-low-priority: 1266.8 | F6 load-balance: 1254.9 |
+| 3 | W2 wildcard: 1273.6 | **F2 local-search: 1241.9** ✓ | F3 regret-insertion: 1264.1 | F4 resequence: 1253.8 | F5 bump-low-priority: 1254.8 | F6 load-balance: 1251.7 |
+| 4 | W2 wildcard: 1256.5 | **F2 local-search: 1241.2** ✓ | F3 regret-insertion: 1267.1 | F4 resequence: 1241.9 | F5 bump-low-priority: 1241.9 | F6 load-balance: 1241.9 |
+| 5 | W4 wildcard: 1241.4 | **F2 local-search: 1239.3** ✓ | F3 regret-insertion: 1253.1 | F4 resequence: 1270.3 | F5 bump-low-priority: 1241.2 | F6 load-balance: 1243.9 |
+| 6 | W4 wildcard: 1239.3 | **F2 local-search: 1238.0** ✓ | F3 regret-insertion: 1239.7 | F4 resequence: 1239.3 | F5 bump-low-priority: 1239.3 | F6 load-balance: 1239.3 |
+| 7 | W6 wildcard: 1238.8 | F2 local-search: 1238.6 | **F3 regret-insertion: 1231.3** ✓ | F4 resequence: 1238.0 | F5 bump-low-priority: 1238.0 | F6 load-balance: 1243.5 |
+| 8 | W6 wildcard: 1231.3 | F2 local-search: 1233.5 | F3 regret-insertion: 1232.2 | F4 resequence: 1231.3 | F5 bump-low-priority: 1231.3 | F6 load-balance: 1231.3 |
+
+- **Cost of the loop** (tokens):
+  - LLM plain: 1,368,714 proposer tokens.
+  - Team v1: 1,550,887 proposer tokens plus 47,883 critic tokens.
+  - Team v2: 1,237,322 proposer tokens plus 52,876 critic tokens.
+
+### Effective parallelism
+Six agents per round against one agent working alone (the same critic v2, rotating through the six families by round). The single-agent run has a 48-round cap and stops at 18:30.
+- **Team v2, 6 agents:** beat insertion and random search after its first round, at 215 s. It finished 8 rounds in 1,312 s of wall-clock time.
+- **Single agent:** results below.
+
+<!-- BEGIN single-agent -->
+_Pending: the single-agent run (`runs/llm-team-v2-1agent.json`) stops at 18:30; this table is filled from that file (validation at round 8 and at the stop, wall-clock time, first time it beat insertion and random search)._
+<!-- END single-agent -->
+
+### Demo and clarity
 ```bash
-pip install -r requirements.txt
-pytest -q                                          # 11 tests: checker math, rules, malformed input, sandbox, splits, LLM stub, research app
-
-# Agents (Luminal first; any OpenAI-compatible provider works, fallbacks tried in order)
-export LLM_BASE_URL=... LLM_API_KEY=... LLM_MODEL=...          # Luminal (get at check-in)
-export FALLBACK_1_BASE_URL=https://api.groq.com/openai/v1 FALLBACK_1_API_KEY=... FALLBACK_1_MODEL=...
-export MONGODB_URI=...                                          # optional: rounds logged to Atlas
-python evolve.py --rounds 8 --agents 6
-python evolve.py --rounds 8 --agents 6 --mode random            # no-LLM ablation / offline test
-python heldout.py                                               # ONCE, at the end
-streamlit run app.py
+streamlit run app.py            # open http://localhost:8501, then the "Research runs" tab
+python -m dispatchiq.scoreboard # the same numbers as text
 ```
+The "Research runs" tab reads only saved run files. It shows:
+- the headline percentages;
+- the improvement curves;
+- the comparison table with missed promises, bumped and moved counts;
+- the six-agent vs single-agent chart;
+- where each new champion came from (agent, family, whether the critic had refined its hint);
+- the families-per-round table;
+- the critic's lessons for every round;
+- the held-out table, once it exists.
+
+The "Held-out day" tab replays one held-out day before and after the disruption.
+
+## Honest limits
+- **Simulated days.** Days are generated, not taken from a real shop. Travel is Manhattan distance at 2 minutes per km. The morning plan is fixed and identical for all policies; only the re-plan is evolved.
+- **Cost-model gap.** The cost doesn't tell a booked customer apart from an unbooked one. A booked customer bumped off a healthy technician costs the same 150 × priority as a job that was never scheduled, and a move between healthy technicians costs only 20. The LLM champions bump 41–52 booked customers over 30 validation days, where insertion bumps 4. We report these counts but do not penalise them.
+- **Time-budgeted champion.** Team v1's champion stops its search on a 0.42 s-per-day wall clock, so its score depends slightly on machine speed and load: 1251.2 on validation during the run, 1250.98 when re-scored on a quieter machine. `rescore.py` reports such differences. `heldout.py` is run with nothing else running.
+- **One run per configuration.** LLM sampling is random (temperature 0.7). The gaps between plain, team v1 and team v2 (1251.2–1308.7) are single samples, not a measured ranking of the methods.
+- **The live dispatch app still uses insertion.** The live re-plan in `backend/` uses validated feasible insertion. It never loads evolved code.
+- **Late emergencies are soft in the research checker.** An emergency that starts after its 2-hour promise is penalised, not rejected; we report it as "missed promises". The live app's validator treats the deadline as a hard rule.
+- **The sandbox is not a security boundary.** Candidates run in a separate process with a timeout and a stripped environment. They can still read files, and on Windows there is no memory cap.
+- **Product choices.** The cost weights (150, 20, 1) are product choices. Different weights could pick a different "best" policy.
+- **Market notes are unverified.** [MARKET.md](MARKET.md) collects search extracts and vendor claims that have not been checked.
 
 ## Reproduce
 
-Every result is a file in `runs/<name>.json`, and `--name` refuses to overwrite one. Provider used for the LLM runs: Luminal, `deepseek-ai/DeepSeek-V4.1-Flash` (OpenAI-compatible, streamed; the gateway drops non-streamed requests that run past about 20 s).
+Every result is a file in `runs/<name>.json`, and `--name` refuses to overwrite one. The LLM runs used Luminal, `deepseek-ai/DeepSeek-V4.1-Flash`, with streamed responses: the gateway drops non-streamed requests that run longer than about 20 s.
 
 ```bash
+python -m venv .venv && .venv/Scripts/python -m pip install -r requirements.txt -r backend/requirements.txt
 export LLM_BASE_URL=https://flash.luminal.cloud/v1 LLM_MODEL=deepseek-ai/DeepSeek-V4.1-Flash LLM_API_KEY=...
 # PowerShell: $env:LLM_BASE_URL="https://flash.luminal.cloud/v1"; $env:LLM_MODEL="deepseek-ai/DeepSeek-V4.1-Flash"; $env:LLM_API_KEY="..."
 
 python evolve.py --mode random --rounds 8 --agents 6 --name random              # no LLM
 python evolve.py               --rounds 8 --agents 6 --name llm-plain
-python evolve.py --team        --rounds 8 --agents 6 --name llm-team                    # critic v1 ("LLM team v1")
+python evolve.py --team        --rounds 8 --agents 6 --name llm-team           # critic v1 ("LLM team v1")
 python evolve.py --team --critic v2 --rounds 8  --agents 6 --name llm-team-v2
 python evolve.py --team --critic v2 --rounds 48 --agents 1 --name llm-team-v2-1agent \
                  --stop-at 18:30                                              # single agent, rotates families
 
 python -m dispatchiq.scoreboard        # comparison table from the saved files (runs nothing)
-streamlit run app.py                   # "Research runs" tab: same data as charts
+pytest -q                              # tests: checker, sandbox, team/critic v1+v2, scoreboard, held-out rules, backend
 ```
+
+`runs/llm-step1*.json` are one-round provider checks from setup, not results.
 
 - **Random search is deterministic.** With the same `--seed` (default 0) it reproduces exactly.
 - **LLM runs are not.** Sampling uses temperature 0.7, so a rerun writes different code and gets different scores. The saved file is the record.
-
-**Critic v1 vs v2.** In `llm-team` (v1) the critic was free to rewrite every agent's hint. Within two rounds it had turned six different approaches into variations of one idea (fewer unscheduled jobs), and its hints outnumbered the agents. `--critic v2` (`dispatchiq/team_v2.py`) enforces these rules in code:
-- **Six fixed families.** The six original approaches stay, one per agent slot. A single agent rotates through them by round.
-- **One refinement each.** Every round the critic writes one refinement line per family, from that family's own results. It cannot delete a family.
-- **One wildcard.** Only the weakest family, after at least 2 rounds, may be replaced by a new approach. The new approach must differ from the other five.
-- **Coding fixes are lessons.** Fixes for crashes and similar bugs go into the shared lessons, never into a hint slot.
-- **Numbers, not guesses.** The critic sees the champion's cost breakdown on dev days.
-- **Recorded.** Each round's family per agent is saved in the run file and shown in the "Families per round" table.
 
 **Re-score a saved champion without any LLM.** The code saved in the run file is run through the same sandbox and checker. Dev and validation days are fixed, so the scores must match the file; a mismatch exits non-zero.
 
 ```bash
 python rescore.py runs/llm-team.json                 # champion on dev + validation
 python rescore.py runs/llm-team.json --code round0   # the starting policy
+python rescore.py --backfill                         # bumped/moved counts for older run files
 ```
 
 **Held-out days are not in `rescore.py`.** `python heldout.py` scores every saved champion on the 50 held-out days once and writes `runs/heldout_result.json` (rules below).
@@ -100,29 +219,43 @@ The **final solution** is **the 6-agent LLM run with the lowest validation cost 
 ```bash
 python heldout.py --dry-run         # names the final solution and lists the rows; scores nothing
 python heldout.py                   # the held-out run, at 18:30, with no evolve process running
+python fill_readme.py --check       # then fill the marked blanks in this README from the result files
 ```
 
 **What "once" means:**
 - **Not a run:** a crash or timeout that prints no held-out scores, and it may be retried. `heldout.py` scores every policy before printing anything and prints no table if any policy fails to complete all 50 days.
 - **Final:** any invocation that prints held-out scores. It writes `runs/heldout_result.json`, and `heldout.py` refuses to run again while that file exists.
 
-## Results so far (offline, no LLM)
-Random search over `parametric.py`, 6 rounds × 6 proposals, scored on 50 held-out days:
+## What was built during the hackathon
 
-| Policy | Mean cost | On time |
-|---|---|---|
-| Dispatcher-style baseline (round 0) | 1589 | 58.9% |
-| Textbook cheapest insertion | 1377 | 62.9% |
-| Random-search champion | 1397 | 63.5% |
+All times are local (America/New_York) on 2026-10-11, from `git log`.
 
-- Random search improves 12.1% on round 0, but **does not beat the textbook reference**.
-- The bar for the LLM agent team on the day: beat **both** on the held-out days.
-- If it doesn't, report that honestly. Judges reward a real number over a staged one.
+| Time | Commit | Who | What |
+|---|---|---|---|
+| 12:38 | `0e8fbc4` | Claude Code | Research prototype: generator, checker, sandbox, proposers, evolve, held-out split and committed hash, Streamlit app |
+| 13:08 | `ddfd622` | HetPatel1978 | Audit, API contract and execution plan (`docs/`) |
+| 13:24–13:25 | `466510e`, `3f47934` | Claude Code | Windows runner fix; promotion requires zero infeasible validation days |
+| 13:42–14:05 | `dd5502f`, `6642555` | Claude Code | React dispatch frontend and its static demo build |
+| 14:10 | `7892101` | HetPatel1978 | FastAPI dispatch backend with strict validator and preview/approve lifecycle |
+| 14:11, 14:27 | `90d67d4`, `5fe575e` | Aryaman Singh Dev | Merged the frontend and the worker-types proposal into `main` |
+| 14:24 | `9f35479` | Claude Code | Worker-types contract proposal (frontend only) |
+| 14:58, 15:22 | `bef7193`, `c9acda4` | HetPatel1978 | Dispatch workspace redesign |
+| 16:15 | `f181c1a` | HetPatel1978 | Team mode with critic, scoreboard, event-intake endpoint, streamed LLM calls, first saved runs |
+| 16:35 | `b184ad9` | HetPatel1978 | Bumped / moved reporting |
+| 16:50 | `9aadc05` | HetPatel1978 | Critic v2 (fixed approach families) |
+| 17:08, 17:15 | `740e4f9`, `479ad99` | HetPatel1978 | Re-score backfill; held-out run preparation |
 
-## Honest limits
-- Days are generated, not from a real shop. Travel is Manhattan distance at 2 min/km.
-- The morning plan is fixed and identical for all policies. Only the re-plan is evolved.
-- The cost weights (150, 20, 1) are product choices, published above. Changing them changes the "best" policy.
-- An evolved policy may stop its search on a wall-clock budget. v1's final champion uses 0.42 s per day, so its score depends slightly on machine speed and load: 1251.2 on validation during the run, 1250.98 when re-scored on a quieter machine. `rescore.py` shows any such difference instead of hiding it. Run `heldout.py` with nothing else running.
-- The cost doesn't tell a booked customer apart from an unbooked one. A booked customer bumped off a healthy technician costs the same 150 × priority as a job that was never scheduled, and moving a job between healthy technicians costs only 20. A policy can trade booked customers for other jobs and still score better. We report both counts (`bumped`, `moved`) beside the cost but do not penalise them.
-- The market claims come from search extracts and vendor marketing. Verify before putting them on slides.
+Later commits (this README, final run files) are in `git log`. **AI coding tools were used throughout.** Commits authored "Claude" were made by Claude Code sessions, and the other commits from 16:15 on were also written with Claude Code (`Co-Authored-By` trailers). The agents inside the product use the Luminal model named above.
+
+## The dispatch app
+
+The dispatch app is the product a dispatcher would use. It loads a synthetic day (10 technicians, 25 jobs, at 11:30) on a map and timeline, and lets you add an emergency. The backend proposes a validated insertion that the dispatcher approves or rejects before anything changes. A strict validator protects skills, travel, time windows, shifts and work already started, and stale proposals are refused by revision checks.
+
+On Windows (PowerShell), from the repository root:
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt -r backend\requirements.txt
+.\.venv\Scripts\python.exe -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
+# second terminal
+cd frontend; npm.cmd ci; npm.cmd run dev        # then open http://127.0.0.1:5173
+```

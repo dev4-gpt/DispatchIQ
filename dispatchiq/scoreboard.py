@@ -61,7 +61,12 @@ def references(runs: dict[str, dict | None]) -> tuple[dict, bool]:
     refs = [r["references"] for r in runs.values() if r and r.get("references")]
     if not refs:
         return {}, True
-    return refs[0], all(r == refs[0] for r in refs)
+
+    def costs(ref):  # compare scores only: newer run files also carry extra reporting fields
+        return {name: {split: (ref[name].get(split) or {}).get("mean_cost") for split in ("dev", "val")} for name in ref}
+
+    # Prefer the newest file's references (most reporting fields); costs must agree across all of them.
+    return refs[-1], all(costs(r) == costs(refs[0]) for r in refs)
 
 
 REPORT_FIELDS = ("bumped_booked", "moved_healthy")  # reporting only; not part of the checker's cost
@@ -341,6 +346,8 @@ def main() -> None:
             continue
         for e in loop_evidence(run):
             crit = ("" if e["hint_rewritten_by_critic"] is None else
+                    f"  family {e['family']}, refined by critic" if e.get("family") and e["hint_rewritten_by_critic"] else
+                    f"  family {e['family']}, original hint" if e.get("family") else
                     f"  critic hint (set round {e['hints_set_in_round']})" if e["hint_rewritten_by_critic"] else "  original hint")
             print(f"  {label:32s} round {e['round']:2d} agent {e['agent']}  val {e['champion_val']:.1f}  "
                   f"[{e['strategy'][:70]}]{crit}")
