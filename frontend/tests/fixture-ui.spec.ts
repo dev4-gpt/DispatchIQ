@@ -68,7 +68,7 @@ test("reject preserves committed state", async ({ page }) => {
 });
 
 test("impossible event shows an honest no-plan result that cannot be approved", async ({ page }) => {
-  await introduceEmergency(page, "Elevator fault (no qualified tech)");
+  await introduceEmergency(page, "Elevator fault (no qualified worker)");
   await expect(page.getByTestId("proposal-panel")).toContainText("No feasible plan");
   await expect(page.getByTestId("proposal-explanation")).toContainText("No technician has the required skill");
   await expect(page.getByTestId("approve")).toBeDisabled();
@@ -109,6 +109,42 @@ test("stale approval is refused and the committed board is kept", async ({ page 
   await expect(page.getByTestId("bar-E01")).toHaveCount(0);
   await page.getByRole("button", { name: /Refresh committed schedule/ }).click();
   await expect(page.getByTestId("announce")).toContainText("revision 1");
+});
+
+test("workforce mix: people, robots and an AI agent are listed and measured", async ({ page }) => {
+  await expect(page.getByTestId("mix-human")).toContainText("7 people");
+  await expect(page.getByTestId("mix-robot")).toContainText("2 robots");
+  await expect(page.getByTestId("mix-agent")).toContainText("1 AI agent");
+  await expect(page.getByRole("region", { name: "Robots" })).toContainText("Rover-1");
+  await expect(page.getByTestId("wf-robot")).toBeVisible();
+  await expect(page.getByTestId("wf-agent")).toBeVisible();
+});
+
+test("inspection is routed to a robot; people and the agent are excluded with reasons", async ({ page }) => {
+  await introduceEmergency(page, "Sewer camera inspection");
+  await expect(page.getByTestId("proposal-explanation")).toContainText("(robot)");
+  const insp = page.getByTestId("job-inspector");
+  await expect(insp).toContainText("Who can do itRobots, People");
+  await expect(insp).toContainText("Job needs robot or person; this is an AI agent");
+});
+
+test("rush quote is routed to the AI agent with no travel", async ({ page }) => {
+  await introduceEmergency(page, "Rush quote: rooftop unit");
+  await expect(page.getByTestId("proposal-explanation")).toContainText("Quote Agent (AI agent)");
+  await expect(page.getByTestId("work-record")).toContainText("Assigned to Quote Agent");
+  await expect(page.getByTestId("work-record")).not.toContainText("min drive");
+  await page.getByTestId("approve").click();
+  await expect(page.getByTestId("announce")).toContainText("revision 1");
+});
+
+test("human-robot safety: uncertified people are rejected beside a working robot", async ({ page }) => {
+  await introduceEmergency(page, "Gas smell beside a working robot");
+  const insp = page.getByTestId("job-inspector");
+  await expect(insp).toContainText(/Safety: \w+ would work beside robot/);
+  // The proposal goes to a co-work certified person.
+  const chosen = (await page.getByTestId("proposal-explanation").textContent())!.match(/to (\w+) \(person\)/)![1];
+  const worker = page.locator('[data-testid^="tech-"]', { hasText: chosen }).first();
+  await expect(worker.getByLabel("Robot co-work certified")).toHaveCount(1);
 });
 
 test.describe("responsive", () => {

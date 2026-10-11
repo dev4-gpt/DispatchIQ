@@ -30,12 +30,13 @@ On Windows PowerShell use `npm.cmd` / `npx.cmd`. Set `DISPATCHIQ_API` to point t
 | Typed client + contract types (`src/api/types.ts`, `client.ts`) | Done; frozen from CONTRACTS.md v1 |
 | Shell, metrics strip, technician list, map, timeline, job inspector, proposal panel, scenario controls | Done |
 | Emergency preview → approve / reject / reset, stale and no-plan handling | Done; tested against the **development fixture** |
+| **Three worker types: people, robots, AI agents** (contract v1.1 proposal, `docs/CONTRACTS_WORKER_TYPES.md`) | Done in UI + fixture: routing by `allowed_worker_types`, agents remote (no travel), human-robot co-presence safety rule, workforce panel, work record. **Backend not yet implemented** |
 | Responsive 1440 / 1024 (drawer) / 390 (tabs) | Done; screenshots in `test-results/screenshots/` |
 | No silent fallback when the API is down | Tested (`api-unavailable`): error + retry, no fixture data |
 | **Integration with the real backend** | **Not yet verified.** The backend did not exist when this was built. `tests/integration.spec.ts` skips itself until `GET 127.0.0.1:8000/api/health` answers |
 
 Test projects (`playwright.config.ts`):
-- `fixture-ui`: 10 UI workflow tests against the labeled development fixture. They check UI behaviour and contract handling, **not** backend integration.
+- `fixture-ui`: 14 UI workflow tests against the labeled development fixture. They check UI behaviour and contract handling, **not** backend integration.
 - `api-unavailable`: real-API mode with nothing behind the proxy.
 - `integration`: the real FastAPI service. Start it first, then run `npx playwright test --project=integration`.
 

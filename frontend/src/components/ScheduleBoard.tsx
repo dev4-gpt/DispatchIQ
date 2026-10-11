@@ -3,6 +3,7 @@ import type { Change } from "@/api/types";
 import { hhmm } from "@/state/dispatch";
 import { type Indexed, skillText, timeDomain } from "@/lib/schedule";
 import { cn } from "@/lib/utils";
+import { WORKER, workerType } from "@/lib/workers";
 
 interface Props {
   view: Indexed;
@@ -47,9 +48,11 @@ export function ScheduleBoard({ view, committed, changes, showChanges, selectedT
                   style={{ width: NAME_COL }}
                   onClick={() => onSelectTech(t.id)}
                   aria-pressed={sel}
-                  aria-label={`${t.name}, skills ${t.skills.map(skillText).join(", ")}${t.availability !== "available" ? ", unavailable" : ""}`}
+                  aria-label={`${t.name}, ${WORKER[workerType(t)].label}, skills ${t.skills.map(skillText).join(", ")}${t.availability !== "available" ? ", unavailable" : ""}`}
                 >
-                  <span className={cn("text-[13px] font-medium", sel && "text-committed")}>{t.name}
+                  <span className={cn("flex items-center gap-1 text-[13px] font-medium", sel && "text-committed")}>
+                    {(() => { const I = WORKER[workerType(t)].icon; return <I className="size-3.5 shrink-0 text-muted" aria-hidden />; })()}
+                    {t.name}
                     {t.availability !== "available" && <span className="ml-1 text-[11px] text-emergency">(out)</span>}</span>
                   <span className="flex flex-wrap gap-1">
                     {t.skills.map((k) => (

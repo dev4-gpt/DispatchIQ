@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { hhmm, type Busy } from "@/state/dispatch";
 import type { Indexed } from "@/lib/schedule";
+import { WORKER, workerType } from "@/lib/workers";
 
 interface Props {
   proposal: Proposal;
@@ -113,11 +114,13 @@ export function ProposalPanel({ proposal: p, strategy, committed, stale, busy, o
         </summary>
         <div className="max-h-56 overflow-auto px-2 pb-2">
           <table className="w-full text-left text-[11.5px]">
-            <thead className="text-muted"><tr><th className="py-1">Technician</th><th>Slot</th><th>Start</th><th>Changed</th><th>Shift</th></tr></thead>
+            <thead className="text-muted"><tr><th className="py-1">Worker</th><th>Slot</th><th>Start</th><th>Changed</th><th>Shift</th></tr></thead>
             <tbody className="tabular">
               {validCands.map((c) => (
                 <tr key={c.id} className={c.id === p.selected_candidate_id ? "font-semibold text-committed" : ""}>
-                  <td className="py-0.5">{committed.techs.get(c.technician_id)?.name ?? c.technician_id}{c.id === p.selected_candidate_id && " ✓"}</td>
+                  <td className="py-0.5">{committed.techs.get(c.technician_id)?.name ?? c.technician_id}
+                    <span className="font-normal text-muted"> · {committed.techs.get(c.technician_id) ? WORKER[workerType(committed.techs.get(c.technician_id)!)].label : ""}</span>
+                    {c.id === p.selected_candidate_id && " ✓"}</td>
                   <td>{c.insertion_position}</td>
                   <td>{c.emergency_start_min !== null ? hhmm(c.emergency_start_min) : "—"}</td>
                   <td>{c.ranking!.changed_existing_jobs}</td>

@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import type { Change } from "@/api/types";
 import { hhmm } from "@/state/dispatch";
 import type { Indexed } from "@/lib/schedule";
+import { workerType } from "@/lib/workers";
 
 interface Props {
   view: Indexed;
@@ -61,7 +62,7 @@ export function RouteMap({ view, changes, showChanges, selectedTech, selectedJob
     // Routes: home -> jobs in schedule order. Selected technician on top in blue.
     for (const t of view.snap.technicians) {
       const route = view.routes.get(t.id) ?? [];
-      if (!route.length) continue;
+      if (!route.length || workerType(t) === "agent") continue; // agents work remotely: no route
       const path = [ll(t.location), ...route.map((a) => ll(view.jobs.get(a.job_id)!.location))];
       const sel = selectedTech === t.id;
       const changed = showChanges && route.some((a) => changes.has(a.job_id));
@@ -85,15 +86,17 @@ export function RouteMap({ view, changes, showChanges, selectedTech, selectedJob
       marker.on("click", () => onSelectJob(j.id)).addTo(g);
     }
 
-    // Technician start locations.
+    // Worker start locations (people square, robots round). AI agents are remote and not drawn.
     for (const t of view.snap.technicians) {
+      if (workerType(t) === "agent") continue;
+      const robot = workerType(t) === "robot";
       const sel = selectedTech === t.id;
       const icon = L.divIcon({
         className: "",
-        html: `<div style="width:22px;height:22px;border-radius:5px;background:${sel ? BLUE : "#fff"};color:${sel ? "#fff" : INK};border:1.5px solid ${t.availability === "available" ? BLUE : RED};display:flex;align-items:center;justify-content:center;font:600 10px system-ui">${t.name.slice(0, 2)}</div>`,
+        html: `<div style="width:22px;height:22px;border-radius:${robot ? "11px" : "5px"};${robot ? "outline:2px dashed #475569;outline-offset:1px;" : ""}background:${sel ? BLUE : "#fff"};color:${sel ? "#fff" : INK};border:1.5px solid ${t.availability === "available" ? BLUE : RED};display:flex;align-items:center;justify-content:center;font:600 10px system-ui">${t.name.slice(0, 2)}</div>`,
         iconSize: [22, 22], iconAnchor: [11, 11],
       });
-      L.marker(ll(t.location), { icon, keyboard: true, title: `${t.name} start location` })
+      L.marker(ll(t.location), { icon, keyboard: true, title: `${t.name} (${robot ? "robot" : "person"}) start location` })
         .on("click", () => onSelectTech(t.id)).addTo(g);
     }
   }, [view, changes, showChanges, selectedTech, selectedJob, onSelectTech, onSelectJob]);
@@ -101,8 +104,9 @@ export function RouteMap({ view, changes, showChanges, selectedTech, selectedJob
   return (
     <div className="relative h-full min-h-[200px]">
       <div ref={el} className="absolute inset-0" role="application" aria-label="Synthetic city map of technicians and jobs" data-testid="route-map" />
-      <div className="pointer-events-none absolute right-2 top-2 z-[500] max-w-[60%] rounded bg-panel/90 px-2 py-1 text-[11px] text-muted shadow-sm">
-        Synthetic city · 1 km grid · estimated travel, not road routing
+      <div className="pointer-events-none absolute bottom-2 right-2 z-[500] max-w-[70%] rounded bg-panel/90 px-2 py-1 text-right text-[11px] leading-snug text-muted shadow-sm">
+        <span className="block">▢ person · ◯ robot · AI agents work remotely (not on map)</span>
+        Synthetic city · estimated travel
       </div>
     </div>
   );
