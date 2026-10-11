@@ -1,0 +1,321 @@
+{
+  "scope": "diagnostic trusted built-in policies called directly; sandbox not repaired; dev seeds only",
+  "cases": [
+    {
+      "seed": 0,
+      "technicians": 11,
+      "initial_jobs": 42,
+      "baseline_assigned": 40,
+      "baseline_late": 7,
+      "policies": {
+        "naive": {
+          "feasible": true,
+          "cost": 1618.12,
+          "travel_min": 444.7,
+          "late_jobs": 10,
+          "unassigned": 2,
+          "moved": 0,
+          "emergency_response_min": 56.18,
+          "emergencies_past_deadline": 0,
+          "policy_runtime_ms": 0.282
+        },
+        "insertion": {
+          "feasible": true,
+          "cost": 1440.19,
+          "travel_min": 462.06,
+          "late_jobs": 8,
+          "unassigned": 3,
+          "moved": 0,
+          "emergency_response_min": 56.18,
+          "emergencies_past_deadline": 0,
+          "policy_runtime_ms": 0.27
+        }
+      }
+    },
+    {
+      "seed": 1,
+      "technicians": 9,
+      "initial_jobs": 37,
+      "baseline_assigned": 34,
+      "baseline_late": 8,
+      "policies": {
+        "naive": {
+          "feasible": true,
+          "cost": 2089.86,
+          "travel_min": 529.5,
+          "late_jobs": 8,
+          "unassigned": 3,
+          "moved": 0,
+          "emergency_response_min": 118.65,
+          "emergencies_past_deadline": 0,
+          "policy_runtime_ms": 0.181
+        },
+        "insertion": {
+          "feasible": true,
+          "cost": 1803.89,
+          "travel_min": 564.91,
+          "late_jobs": 8,
+          "unassigned": 3,
+          "moved": 0,
+          "emergency_response_min": 118.65,
+          "emergencies_past_deadline": 0,
+          "policy_runtime_ms": 0.263
+        }
+      }
+    },
+    {
+      "seed": 2,
+      "technicians": 8,
+      "initial_jobs": 37,
+      "baseline_assigned": 33,
+      "baseline_late": 7,
+      "policies": {
+        "naive": {
+          "feasible": true,
+          "cost": 2182.28,
+          "travel_min": 322.22,
+          "late_jobs": 6,
+          "unassigned": 5,
+          "moved": 0,
+          "emergency_response_min": 109.44,
+          "emergencies_past_deadline": 2,
+          "policy_runtime_ms": 0.167
+        },
+        "insertion": {
+          "feasible": true,
+          "cost": 2005.0,
+          "travel_min": 304.58,
+          "late_jobs": 6,
+          "unassigned": 6,
+          "moved": 0,
+          "emergency_response_min": 91.62,
+          "emergencies_past_deadline": 1,
+          "policy_runtime_ms": 0.213
+        }
+      }
+    },
+    {
+      "seed": 3,
+      "technicians": 9,
+      "initial_jobs": 43,
+      "baseline_assigned": 38,
+      "baseline_late": 4,
+      "policies": {
+        "naive": {
+          "feasible": true,
+          "cost": 1593.97,
+          "travel_min": 491.45,
+          "late_jobs": 7,
+          "unassigned": 5,
+          "moved": 0,
+          "emergency_response_min": 23.82,
+          "emergencies_past_deadline": 0,
+          "policy_runtime_ms": 0.159
+        },
+        "insertion": {
+          "feasible": true,
+          "cost": 1502.26,
+          "travel_min": 432.38,
+          "late_jobs": 6,
+          "unassigned": 6,
+          "moved": 0,
+          "emergency_response_min": 23.82,
+          "emergencies_past_deadline": 0,
+          "policy_runtime_ms": 0.194
+        }
+      }
+    },
+    {
+      "seed": 4,
+      "technicians": 9,
+      "initial_jobs": 47,
+      "baseline_assigned": 35,
+      "baseline_late": 8,
+      "policies": {
+        "naive": {
+          "feasible": true,
+          "cost": 4456.34,
+          "travel_min": 379.72,
+          "late_jobs": 5,
+          "unassigned": 14,
+          "moved": 0,
+          "emergency_response_min": 74.35,
+          "emergencies_past_deadline": 1,
+          "policy_runtime_ms": 0.213
+        },
+        "insertion": {
+          "feasible": true,
+          "cost": 4270.81,
+          "travel_min": 349.16,
+          "late_jobs": 4,
+          "unassigned": 15,
+          "moved": 0,
+          "emergency_response_min": 74.35,
+          "emergencies_past_deadline": 1,
+          "policy_runtime_ms": 0.289
+        }
+      }
+    },
+    {
+      "seed": 5,
+      "technicians": 12,
+      "initial_jobs": 39,
+      "baseline_assigned": 39,
+      "baseline_late": 1,
+      "policies": {
+        "naive": {
+          "feasible": true,
+          "cost": 1214.12,
+          "travel_min": 207.91,
+          "late_jobs": 2,
+          "unassigned": 1,
+          "moved": 0,
+          "emergency_response_min": 129.13,
+          "emergencies_past_deadline": 1,
+          "policy_runtime_ms": 0.141
+        },
+        "insertion": {
+          "feasible": true,
+          "cost": 550.15,
+          "travel_min": 173.87,
+          "late_jobs": 1,
+          "unassigned": 1,
+          "moved": 0,
+          "emergency_response_min": 55.0,
+          "emergencies_past_deadline": 0,
+          "policy_runtime_ms": 0.178
+        }
+      }
+    },
+    {
+      "seed": 6,
+      "technicians": 12,
+      "initial_jobs": 46,
+      "baseline_assigned": 46,
+      "baseline_late": 6,
+      "policies": {
+        "naive": {
+          "feasible": true,
+          "cost": 481.53,
+          "travel_min": 206.04,
+          "late_jobs": 2,
+          "unassigned": 0,
+          "moved": 0,
+          "emergency_response_min": 31.3,
+          "emergencies_past_deadline": 0,
+          "policy_runtime_ms": 0.132
+        },
+        "insertion": {
+          "feasible": true,
+          "cost": 322.37,
+          "travel_min": 242.07,
+          "late_jobs": 0,
+          "unassigned": 0,
+          "moved": 0,
+          "emergency_response_min": 26.77,
+          "emergencies_past_deadline": 0,
+          "policy_runtime_ms": 0.167
+        }
+      }
+    },
+    {
+      "seed": 7,
+      "technicians": 10,
+      "initial_jobs": 32,
+      "baseline_assigned": 32,
+      "baseline_late": 1,
+      "policies": {
+        "naive": {
+          "feasible": true,
+          "cost": 1076.04,
+          "travel_min": 220.44,
+          "late_jobs": 3,
+          "unassigned": 1,
+          "moved": 0,
+          "emergency_response_min": 98.87,
+          "emergencies_past_deadline": 1,
+          "policy_runtime_ms": 0.117
+        },
+        "insertion": {
+          "feasible": true,
+          "cost": 935.3,
+          "travel_min": 238.27,
+          "late_jobs": 2,
+          "unassigned": 1,
+          "moved": 0,
+          "emergency_response_min": 98.72,
+          "emergencies_past_deadline": 1,
+          "policy_runtime_ms": 0.137
+        }
+      }
+    },
+    {
+      "seed": 8,
+      "technicians": 9,
+      "initial_jobs": 45,
+      "baseline_assigned": 41,
+      "baseline_late": 6,
+      "policies": {
+        "naive": {
+          "feasible": true,
+          "cost": 2370.17,
+          "travel_min": 238.26,
+          "late_jobs": 3,
+          "unassigned": 7,
+          "moved": 0,
+          "emergency_response_min": 121.37,
+          "emergencies_past_deadline": 2,
+          "policy_runtime_ms": 0.166
+        },
+        "insertion": {
+          "feasible": true,
+          "cost": 2687.12,
+          "travel_min": 275.16,
+          "late_jobs": 3,
+          "unassigned": 7,
+          "moved": 0,
+          "emergency_response_min": 111.35,
+          "emergencies_past_deadline": 1,
+          "policy_runtime_ms": 0.247
+        }
+      }
+    },
+    {
+      "seed": 9,
+      "technicians": 11,
+      "initial_jobs": 42,
+      "baseline_assigned": 42,
+      "baseline_late": 6,
+      "policies": {
+        "naive": {
+          "feasible": true,
+          "cost": 820.91,
+          "travel_min": 272.58,
+          "late_jobs": 3,
+          "unassigned": 0,
+          "moved": 0,
+          "emergency_response_min": 65.28,
+          "emergencies_past_deadline": 0,
+          "policy_runtime_ms": 0.152
+        },
+        "insertion": {
+          "feasible": true,
+          "cost": 726.77,
+          "travel_min": 318.84,
+          "late_jobs": 2,
+          "unassigned": 0,
+          "moved": 0,
+          "emergency_response_min": 65.28,
+          "emergencies_past_deadline": 0,
+          "policy_runtime_ms": 0.226
+        }
+      }
+    }
+  ],
+  "late_emergency_probe": {
+    "feasible": true,
+    "emergency_lateness_min": 9.0
+  },
+  "malformed_job_id_probe": "TypeError",
+  "hash_matches": true
+}
