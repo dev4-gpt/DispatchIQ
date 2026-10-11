@@ -6,7 +6,42 @@ Entry for **c0mpiled-15, Track 1, Challenge A**. LLM: **`deepseek-ai/DeepSeek-V4
 
 ## Results at a glance
 
-All numbers below are read from the saved run files in `runs/` by `python -m dispatchiq.scoreboard`. Validation means 30 fixed days (seeds 100–129) that pick the champion; lower cost is better.
+All numbers below come from saved files: `runs/heldout_result.json` (held-out) and the run files in `runs/`, read by `python -m dispatchiq.scoreboard`. Lower cost is better.
+
+### Held-out: 50 days no one tuned on, scored once
+
+<!-- BEGIN heldout-headline -->
+**Held-out (50 unseen days):** the final solution, **LLM team v1**, costs **987.6**, **37.9% lower than the naive baseline** (validation: 1251.2).
+<!-- END heldout-headline -->
+
+On the held-out days the final solution also beats every other policy:
+- 28.3% lower cost than textbook cheapest insertion (1377.0);
+- 29.5% lower than random search (1401.6);
+- 2.8% lower than LLM plain (1015.6);
+- 3.5% lower than LLM team v2 (1023.3).
+
+It is on time for 74.1% of jobs (naive: 58.9%) and misses 4 of 105 emergency promises (naive: 13).
+
+<!-- BEGIN heldout-table -->
+| Policy | Held-out cost | vs naive | On-time | Missed promises | Booked bumped | Moved | Infeasible days | Validation cost |
+|---|---|---|---|---|---|---|---|---|
+| naive (reference) | 1589.1 | +0.0% | 58.9% | 13/105 | 30 | 0 | 0 | - |
+| insertion (reference) | 1377.0 | +13.3% | 62.9% | 9/105 | 11 | 0 | 0 | - |
+| random search | 1401.6 | +11.8% | 63.3% | 13/105 | 30 | 63 | 0 | 1717.7 |
+| LLM plain | 1015.6 | +36.1% | 72.9% | 4/105 | 77 | 76 | 0 | 1301.9 |
+| **LLM team v1 (final solution)** | 987.6 | +37.9% | 74.1% | 4/105 | 66 | 121 | 0 | 1251.2 |
+| LLM team v2 | 1023.3 | +35.6% | 73.2% | 4/105 | 69 | 89 | 0 | 1308.7 |
+
+50 held-out days (seeds 1000-1049), scored once by `heldout.py`: final solution LLM team v1 (named before scoring by the validation rule); baseline = naive; finished 2026-10-11T17:41:55-0400.
+<!-- END heldout-table -->
+
+**How the held-out run was done:**
+- **Final solution named first.** It is the 6-agent LLM run with the lowest validation cost, named before any held-out scoring (rule in [Reproduce](#final-solution-rule-fixed-2026-10-11-before-any-held-out-scoring)).
+- **Run once, earlier than planned.** `heldout.py` ran a single time, from 17:41:33 to 17:41:55 local time, instead of the planned 18:30.
+- **The pick was already settled.** All three candidate runs had finished before then: llm-plain at 16:26:59, team v1 at 16:58:08 and team v2 at 17:20:00. Running early did not change which run the rule picked.
+- **Shared machine.** The single-agent run (`llm-team-v2-1agent`, not eligible and not scored) was active on the same machine during scoring. That matters only for team v1's champion, which stops its search on a 0.42 s-per-day wall clock (21.1 s for its 50 days here). With the CPU shared, it may have searched slightly less than on an idle machine, so its held-out cost may be a little higher than it would otherwise be. The other policies run fixed computations, so CPU load doesn't change their results.
+
+### Validation: 30 days (seeds 100–129) that pick the champion
 
 | Policy | Validation cost | vs naive | On-time | Missed promises | Booked bumped | Moved | Agents × rounds |
 |---|---|---|---|---|---|---|---|
@@ -17,26 +52,9 @@ All numbers below are read from the saved run files in `runs/` by `python -m dis
 | **LLM team v1** | **1251.2** | **+38.7%** | 69.4% | 1/57 | 41 | 96 | 6 × 8 |
 | LLM team v2 | 1308.7 | +35.8% | 69.2% | 2/57 | 46 | 54 | 6 × 8 |
 
-- **Headline (validation):** the best LLM run, LLM team v1, costs **1251.2**. That is **38.7% lower than the naive baseline**, 30.5% lower than textbook cheapest insertion and 27.2% lower than random search with the same 48-proposal budget.
+- **On validation:** the best LLM run, LLM team v1, costs **1251.2**. That is **38.7% lower than the naive baseline**, 30.5% lower than textbook cheapest insertion and 27.2% lower than random search with the same 48-proposal budget.
 - **Missed promises:** emergencies that started after their 2-hour promise, out of all emergencies on those days.
 - **Booked bumped / Moved:** customers booked with a healthy technician but left unscheduled, and jobs moved between healthy technicians. Totals over 30 days, reported but not part of the cost (see [Honest limits](#honest-limits)).
-
-**Held-out (50 days no one tuned on, scored once at 18:30).** The run with the lowest validation cost among 6-agent LLM runs is the final solution. It is named before scoring (rule in [Reproduce](#final-solution-rule-fixed-2026-10-11-before-any-held-out-scoring)).
-
-<!-- BEGIN heldout-headline -->
-**Held-out headline: _pending — filled from `runs/heldout_result.json` after the 18:30 run._**
-<!-- END heldout-headline -->
-
-<!-- BEGIN heldout-table -->
-| Policy | Held-out cost | vs naive | On-time | Missed promises | Booked bumped | Moved | Infeasible days | Validation cost |
-|---|---|---|---|---|---|---|---|---|
-| naive (reference) | _pending_ | | | | | | | |
-| insertion (reference) | _pending_ | | | | | | | |
-| random search | _pending_ | | | | | | | |
-| LLM plain | _pending_ | | | | | | | |
-| LLM team v1 | _pending_ | | | | | | | |
-| LLM team v2 | _pending_ | | | | | | | |
-<!-- END heldout-table -->
 
 ## Where the score comes from
 
@@ -128,7 +146,9 @@ heldout.py  once, at the end: 50 HELD-OUT days, never seen during search
 | LLM team v1 | 2039.7 | 1486.6 | 1426.6 | 1356.0 | 1325.5 | 1286.6 | 1286.6 | 1251.2 | 1251.2 |
 | LLM team v2 | 2039.7 | 1374.2 | 1359.8 | 1340.2 | 1335.9 | 1330.8 | 1325.8 | 1308.7 | 1308.7 |
 
-- **Held-out:** see the table at the top, filled after the single 18:30 run.
+- **Held-out:** the final solution costs 987.6, 37.9% below naive (full table at the top).
+  - The three LLM runs keep their validation order on held-out days: team v1, then plain, then team v2.
+  - The two references swap places. Random search beat insertion on validation (1717.7 against 1801.2), but insertion beats it on held-out days (1377.0 against 1401.6).
 
 ### Improvement-loop design
 - **Six approach families.** The six hints above give the agents different starting angles. Promotion is decided only by the checker, on dev and then validation days.
@@ -197,7 +217,7 @@ The "Held-out day" tab replays one held-out day before and after the disruption.
 ## Honest limits
 - **Simulated days.** Days are generated, not taken from a real shop. Travel is Manhattan distance at 2 minutes per km. The morning plan is fixed and identical for all policies; only the re-plan is evolved.
 - **Cost-model gap.** The cost doesn't tell a booked customer apart from an unbooked one. A booked customer bumped off a healthy technician costs the same 150 × priority as a job that was never scheduled, and a move between healthy technicians costs only 20. The LLM champions bump 41–52 booked customers over 30 validation days, where insertion bumps 4. We report these counts but do not penalise them.
-- **Time-budgeted champion.** Team v1's champion stops its search on a 0.42 s-per-day wall clock, so its score depends slightly on machine speed and load: 1251.2 on validation during the run, 1250.98 when re-scored on a quieter machine. `rescore.py` reports such differences. `heldout.py` is run with nothing else running.
+- **Time-budgeted champion.** Team v1's champion stops its search on a 0.42 s-per-day wall clock, so its score depends slightly on machine speed and load: 1251.2 on validation during the run, 1250.98 when re-scored on a quieter machine. `rescore.py` reports such differences. The held-out run shared the machine with the single-agent run (see [Results at a glance](#held-out-50-days-no-one-tuned-on-scored-once)).
 - **One run per configuration.** LLM sampling is random (temperature 0.7). The gaps between plain, team v1 and team v2 (1251.2–1308.7) are single samples, not a measured ranking of the methods.
 - **The live dispatch app still uses insertion.** The live re-plan in `backend/` uses validated feasible insertion. It never loads evolved code.
 - **Late emergencies are soft in the research checker.** An emergency that starts after its 2-hour promise is penalised, not rejected; we report it as "missed promises". The live app's validator treats the deadline as a hard rule.
@@ -249,10 +269,11 @@ The **final solution** is **the 6-agent LLM run with the lowest validation cost 
 - **Named before scoring:** `heldout.py` applies this rule and prints the final solution before it scores anything.
 - **Every champion scored beside it:** the same single invocation scores naive, insertion, random search, llm-plain, team v1 and team v2 on the same 50 held-out days. Those rows are reported alongside, for comparison only. A better held-out number on another row does not change which run is the final solution.
 - **No other held-out runs:** no run is scored on held-out days outside this one invocation, and the rule is not changed after seeing held-out results.
+- **As run:** `heldout.py` ran once, at 17:41:33–17:41:55. All three eligible runs had already finished (the last, team v2, at 17:20:00), so the rule names the same run at 17:41 as it would have at 18:30.
 
 ```bash
 python heldout.py --dry-run         # names the final solution and lists the rows; scores nothing
-python heldout.py                   # the held-out run, at 18:30, with no evolve process running
+python heldout.py                   # the held-out run (ran once: 17:41:33-17:41:55)
 python fill_readme.py --check       # then fill the marked blanks in this README from the result files
 ```
 

@@ -138,7 +138,33 @@ def research_runs() -> None:
         st.warning("Run files disagree on the reference scores; showing the first one found.")
 
     rows = scoreboard.with_improvement(scoreboard.scoreboard(runs, scoreboard.load_backfill(ROOT / "runs")))
-    st.subheader("Headline: improvement over naive")
+    held, held_note = scoreboard.heldout_rows(ROOT / "runs", runs)
+    final = next((r for r in held if r.get("final_solution")), None)
+    st.subheader("Held-out result: 50 unseen days, scored once")
+    if final:
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Final solution", final["policy"], help="Named before scoring by the validation rule (README).")
+        c2.metric("Held-out cost", f"{final['mean_cost']:.1f}",
+                  delta=f"{final['vs_round0_pct']:.1f}% lower than naive", delta_color="off")
+        c3.metric("On-time / missed promises", f"{final.get('on_time_pct'):.1f}%",
+                  delta=f"{final.get('missed_promises')}/{final.get('emergencies')} emergencies late", delta_color="off")
+        st.dataframe(pd.DataFrame([{
+            "policy": r["policy"], "final solution": bool(r.get("final_solution")), "held-out cost": r["mean_cost"],
+            "vs naive %": r["vs_round0_pct"], "on-time %": r.get("on_time_pct"),
+            "missed promises": f"{r.get('missed_promises')}/{r.get('emergencies')}" if r.get("missed_promises") is not None else None,
+            "booked bumped": r.get("bumped_booked"), "moved": r.get("moved_healthy"), "infeasible days": r.get("infeasible"),
+            "validation cost": r.get("validation_cost")} for r in held]), use_container_width=True, hide_index=True)
+        st.caption(f"{held_note}. The other rows are scored in the same run, for comparison only; they cannot change "
+                   "which run is the final solution. Scored at 17:41 while the single-agent run was still active on the "
+                   "same machine (affects only team v1's time-budgeted search; see README).")
+    elif held:
+        st.dataframe(pd.DataFrame(held), use_container_width=True, hide_index=True)
+        st.caption(held_note or "")
+    else:
+        st.caption("Held-out: not run yet. `python heldout.py` scores every saved champion once and names the final "
+                   "solution by the validation rule before scoring.")
+
+    st.subheader("Validation: improvement over naive")
     saved = [r for r in rows if r["val_vs_naive_pct"] is not None and r["policy"] != "naive (reference)"]
     if saved:
         for col, r in zip(st.columns(min(4, len(saved))), saved[:4]):
@@ -147,18 +173,6 @@ def research_runs() -> None:
         if len(saved) > 4:
             st.caption("More rows in the comparison table below.")
     st.caption("Percent lower cost than the naive dispatcher policy on the 30 validation days.")
-    held, held_note = scoreboard.heldout_rows(ROOT / "runs", runs)
-    if held:
-        st.markdown(f"**Held-out (50 unseen days, run once)**: {held_note}")
-        st.dataframe(pd.DataFrame([{"policy": r["policy"], "final solution": bool(r.get("final_solution")),
-                                    "held-out cost": r["mean_cost"],
-                                    "vs baseline %": r["vs_round0_pct"], "on-time %": r.get("on_time_pct"),
-                                    "missed promises": f"{r.get('missed_promises')}/{r.get('emergencies')}"
-                                    if r.get("missed_promises") is not None else None} for r in held]),
-                     use_container_width=True, hide_index=True)
-    else:
-        st.caption("Held-out: not run yet. `python heldout.py` scores every saved champion once and names the final "
-                   "solution by the validation rule before scoring.")
 
     st.subheader("Improvement over rounds (validation cost, lower is better)")
     curves = scoreboard.curves(runs)
