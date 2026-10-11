@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+/* Design tokens: calm enterprise dispatch room (docs/EXECUTION_PLAN.md §G). */
+@theme {
+  --color-canvas: #f5f6f8;
+  --color-panel: #ffffff;
+  --color-ink: #17212f;
+  --color-muted: #5b6676;
+  --color-line: #e3e6eb;
+  --color-committed: #1d4ed8;
+  --color-committed-soft: #dbe6fe;
+  --color-proposed: #b45309;
+  --color-proposed-soft: #fdecc8;
+  --color-emergency: #c81e1e;
+  --color-emergency-soft: #fde2e2;
+  --color-ok: #15803d;
+  --color-ok-soft: #dcf3e4;
+  --color-frozen: #cbd2dc;
+  --radius-panel: 12px;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+html, body, #root { height: 100%; }
+body { background: var(--color-canvas); color: var(--color-ink); font-size: 14px; }
+.tabular { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--color-committed); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+.leaflet-container { background: #eef1f5; font-family: var(--font-sans); }
