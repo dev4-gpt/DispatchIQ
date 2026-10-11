@@ -50,6 +50,8 @@ Diff metrics: `forced_reassignments`, `voluntary_reassignments`, `changed_existi
 | GET `/api/jobs` | none | metadata + `{jobs:[...]}` |
 | GET `/api/schedule` | none | metadata + `{schedule,validation}` |
 | GET `/api/metrics` | none | metadata + `{metrics}` |
+| GET `/api/research/latest` | none | Read-only summary of saved research runs in `runs/*.json`, newest first: `{runs:[{id,name,mode,team,agents,start,rounds_completed,rounds_accepted,baseline,references,champion:{dev_cost,val_cost,val},curve[],proposer_tokens_total,critic_tokens_total,lessons,strategies}],latest_id,heldout,skipped[]}`. Parses files only; never returns or executes policy code. Research data, separate from the operational snapshot |
+| POST `/api/events/parse` | base metadata + `text` (1–2000 chars) | ParseResponse (below). Turns dispatcher free text into an event for preview; never runs the optimizer, never changes state |
 | POST `/api/events/preview` | base metadata + `event` + `strategy: "stable_insertion"\|"first_feasible"` | Proposal, with committed state unchanged |
 | POST `/api/optimize` | base metadata + `strategy` | Proposal for current committed jobs without introducing an event; same lifecycle/validator as preview |
 | POST `/api/events/commit` | base metadata + `proposal_id` | Full committed Snapshot, revision incremented once; atomic event + schedule commit |
@@ -65,6 +67,26 @@ Synchronous preview is sufficient for this scale: client marks pending until res
 `search: {termination:"completed"|"budget_exhausted"|"error", candidates_evaluated:int, feasibility_proven_impossible:bool}` describes search scope. `no_feasible_plan` with `feasibility_proven_impossible:false` means the chosen bounded heuristic found no solution. A missing required skill can establish a necessary-condition impossibility; failed insertion alone cannot.
 
 `comparison` is a list of `{strategy,status,metrics:Metrics|null,diff_metrics:DiffMetrics|null,runtime_ms,validation}` computed from identical post-event inputs. An unexecuted comparator is omitted, never given fabricated values. If a comparator finds no valid schedule, metrics are null and its validation/reason visible. Stability claims refer only to actual evaluated candidates.
+
+## Event intake from free text (additive, v1)
+
+`POST /api/events/parse` is optional and needs a server-side LLM (`LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL`; `FALLBACK_1_*`/`FALLBACK_2_*` tried in order). Keys never reach the client. The response is a suggestion: the client shows it, then sends `event` unchanged to `/api/events/preview`. Approval still goes through the normal proposal lifecycle.
+
+`ParseResponse`: `scenario_id`, `scenario_epoch`, `base_revision`, `status: "ready"|"needs_input"`, `event: Event|null`, `missing_fields: string[]`, `issues: {field,message}[]`, `question: string|null`.
+
+- `ready`: `event` is a complete `EmergencyEvent` or `UnavailableEvent` that passed the same Pydantic models as preview. `missing_fields`/`issues` are empty and `question` is null.
+- `needs_input`: `event` is null. `missing_fields` lists what the text did not state, `issues` lists stated values that failed validation, and `question` is one short question to ask the dispatcher. Resend with the original text plus the answer.
+
+The model only extracts what the text states. The server sets every field the contract already fixes, so the model cannot change them: `at_min = release_min = earliest_start_min = now_min`, `priority 5`, `emergency true`, `locked false`, `soft_promised_start_min null`, and a new unused job ID `E01`, `E02`, … with customer ID `C-<job id>`.
+
+An emergency needs these stated in the text, else they are listed as missing: `customer_name`, `site_name`, `x_km`, `y_km` (synthetic grid km), `required_skills`, `duration_min` and `respond_within_min`. `deadline_start_min = latest_start_min = now_min + respond_within_min`. `window_end_min = min(1440, deadline + duration + 120)`, the same rule as the dispatcher form. Skills must be among the current technicians' skills (lower-cased). A technician-unavailable event needs a known `technician_id` that is currently available.
+
+Errors: 409 for stale base metadata (same codes as preview); 422 `INVALID_INPUT` for a malformed request; 503 `LLM_NOT_CONFIGURED` when no provider is set; 503 `LLM_FAILED` when every provider fails or returns no usable JSON. No error changes committed state.
+
+```json
+{"scenario_id":"demo-v1","scenario_epoch":"11111111-1111-4111-8111-111111111111","base_revision":0,
+ "text":"No heat at Civic Clinic plant room, 4 km east 2 km north, 45 minute job, someone must start within 40 minutes"}
+```
 
 ## Example preview request
 
@@ -198,6 +220,7 @@ Error envelope:
 - 409 `STALE_PROPOSAL`, `PROPOSAL_CONSUMED`, `PROPOSAL_REJECTED`, or `SCENARIO_CHANGED` for lifecycle/revision mismatches.
 - 410 `PROPOSAL_EXPIRED` after configurable TTL (recommended 15 minutes real elapsed time).
 - 503 `OPTIMIZER_FAILED` or `STATE_WRITE_FAILED` for infrastructure/runtime errors; no committed-state mutation.
+- 503 `LLM_NOT_CONFIGURED` or `LLM_FAILED` from `/api/events/parse` only; the event form and preview still work.
 - A valid event with no feasible candidate returns 200 Proposal `status:"no_feasible_plan"`, null proposed snapshot, explicit reasons, search termination, and no approve action. This is a domain result, not malformed input. Unexpected failures may return 503 rather than a domain proposal.
 
 State transitions:

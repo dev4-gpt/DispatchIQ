@@ -103,6 +103,8 @@ class Score:
     unassigned: int = 0
     moved: int = 0
     emergency_response: float = 0.0  # average minutes, call to start
+    emergencies: int = 0              # emergencies assigned (reporting only)
+    missed_promises: int = 0          # emergencies starting after `latest` (reporting only, not a hard rule)
     routes: dict[str, Any] = field(default_factory=dict)
 
 
@@ -161,6 +163,8 @@ def check(state: dict[str, Any], proposal: Any) -> Score:
         for stop in r.stops:
             if jobs[stop.job].emergency:
                 resp.append(stop.start - jobs[stop.job].release)
+                s.emergencies += 1
+                s.missed_promises += stop.late > 0
             mt = open_jobs[stop.job]["morning_tech"]
             if mt and mt != tid and not techs[mt]["sick"]:
                 s.moved += 1

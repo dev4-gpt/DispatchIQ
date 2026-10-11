@@ -1,0 +1,603 @@
+{
+ "id": "random",
+ "name": "random",
+ "mode": "random_search",
+ "agents": 6,
+ "rounds_requested": 8,
+ "seed": 0,
+ "start": "dispatchiq/policies/naive.py",
+ "started_at": "2026-10-11T15:28:16-0400",
+ "heldout_hash": "cd2ba1f9b2a896c7379bffecaef861d001409539d87c1a0577df9e8dfdf5e562",
+ "baseline": {
+  "dev": {
+   "mean_cost": 1911.4,
+   "infeasible": 0,
+   "on_time_pct": 55.09,
+   "emergency_response": 66.0,
+   "travel": 351.17,
+   "moved": 0,
+   "unassigned": 4.17,
+   "emergencies": 64,
+   "missed_promises": 13
+  },
+  "val": {
+   "mean_cost": 2039.7,
+   "infeasible": 0,
+   "on_time_pct": 52.33,
+   "emergency_response": 56.26,
+   "travel": 370.62,
+   "moved": 0,
+   "unassigned": 4.8,
+   "emergencies": 57,
+   "missed_promises": 5
+  }
+ },
+ "references": {
+  "naive": {
+   "path": "dispatchiq/policies/naive.py",
+   "dev": {
+    "mean_cost": 1911.4,
+    "infeasible": 0,
+    "on_time_pct": 55.09,
+    "emergency_response": 66.0,
+    "travel": 351.17,
+    "moved": 0,
+    "unassigned": 4.17,
+    "emergencies": 64,
+    "missed_promises": 13
+   },
+   "val": {
+    "mean_cost": 2039.7,
+    "infeasible": 0,
+    "on_time_pct": 52.33,
+    "emergency_response": 56.26,
+    "travel": 370.62,
+    "moved": 0,
+    "unassigned": 4.8,
+    "emergencies": 57,
+    "missed_promises": 5
+   }
+  },
+  "insertion": {
+   "path": "dispatchiq/policies/insertion.py",
+   "dev": {
+    "mean_cost": 1663.5,
+    "infeasible": 0,
+    "on_time_pct": 59.51,
+    "emergency_response": 65.05,
+    "travel": 365.3,
+    "moved": 0,
+    "unassigned": 4.1,
+    "emergencies": 64,
+    "missed_promises": 8
+   },
+   "val": {
+    "mean_cost": 1801.2,
+    "infeasible": 0,
+    "on_time_pct": 57.9,
+    "emergency_response": 67.08,
+    "travel": 381.03,
+    "moved": 0,
+    "unassigned": 4.7,
+    "emergencies": 57,
+    "missed_promises": 6
+   }
+  }
+ },
+ "rounds": [
+  {
+   "round": 1,
+   "seconds": 0.2,
+   "accepted": true,
+   "champion_dev": 1642.4,
+   "champion_val": 1755.1,
+   "champion": {
+    "mean_cost": 1755.1,
+    "infeasible": 0,
+    "on_time_pct": 57.88,
+    "emergency_response": 56.26,
+    "travel": 362.01,
+    "moved": 1.2,
+    "unassigned": 5,
+    "emergencies": 57,
+    "missed_promises": 5
+   },
+   "tokens": 0,
+   "round_tokens": 0,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 0, 'relocate_iters': 2, 'postpone_factor': 0.5}",
+     "dev_cost": 1649.9,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 1, 'resequence': 0, 'relocate_iters': 0, 'postpone_factor': 0.5}",
+     "dev_cost": 1742.2,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 2,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 0, 'relocate_iters': 0, 'postpone_factor': 0.5}",
+     "dev_cost": 1746.4,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 3,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 0, 'relocate_iters': 1, 'postpone_factor': 1.0}",
+     "dev_cost": 1642.4,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 0, 'relocate_iters': 0, 'postpone_factor': 0.5}",
+     "dev_cost": 1746.4,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 0, 'relocate_iters': 0, 'postpone_factor': 0.5}",
+     "dev_cost": 1746.4,
+     "infeasible": 0,
+     "error": ""
+    }
+   ]
+  },
+  {
+   "round": 2,
+   "seconds": 0.2,
+   "accepted": true,
+   "champion_dev": 1635.9,
+   "champion_val": 1752.2,
+   "champion": {
+    "mean_cost": 1752.2,
+    "infeasible": 0,
+    "on_time_pct": 57.79,
+    "emergency_response": 56.26,
+    "travel": 360.88,
+    "moved": 1.17,
+    "unassigned": 5,
+    "emergencies": 57,
+    "missed_promises": 5
+   },
+   "tokens": 0,
+   "round_tokens": 0,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 1, 'relocate_iters': 1, 'postpone_factor': 1.0}",
+     "dev_cost": 1635.9,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 0, 'relocate_iters': 1, 'postpone_factor': 1.0}",
+     "dev_cost": 1642.4,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 2,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 1, 'resequence': 0, 'relocate_iters': 1, 'postpone_factor': 1.0}",
+     "dev_cost": 1649.8,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 3,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 1, 'relocate_iters': 1, 'postpone_factor': 1.0}",
+     "dev_cost": 1635.9,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 0, 'relocate_iters': 1, 'postpone_factor': 1.0}",
+     "dev_cost": 1642.4,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "random_search {'emergency_by_start': 1, 'regret': 0, 'resequence': 0, 'relocate_iters': 1, 'postpone_factor': 1.0}",
+     "dev_cost": 1651.4,
+     "infeasible": 0,
+     "error": ""
+    }
+   ]
+  },
+  {
+   "round": 3,
+   "seconds": 0.1,
+   "accepted": false,
+   "champion_dev": 1635.9,
+   "champion_val": 1752.2,
+   "champion": {
+    "mean_cost": 1752.2,
+    "infeasible": 0,
+    "on_time_pct": 57.79,
+    "emergency_response": 56.26,
+    "travel": 360.88,
+    "moved": 1.17,
+    "unassigned": 5,
+    "emergencies": 57,
+    "missed_promises": 5
+   },
+   "tokens": 0,
+   "round_tokens": 0,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 1, 'resequence': 1, 'relocate_iters': 2, 'postpone_factor': 1.0}",
+     "dev_cost": 1638.9,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "random_search {'emergency_by_start': 1, 'regret': 0, 'resequence': 1, 'relocate_iters': 1, 'postpone_factor': 1.0}",
+     "dev_cost": 1642.7,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 2,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 1, 'relocate_iters': 1, 'postpone_factor': 1.0}",
+     "dev_cost": 1635.9,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 3,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 0, 'relocate_iters': 1, 'postpone_factor': 1.0}",
+     "dev_cost": 1642.4,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 1, 'relocate_iters': 1, 'postpone_factor': 0.5}",
+     "dev_cost": 1650.8,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 1, 'relocate_iters': 1, 'postpone_factor': 1.0}",
+     "dev_cost": 1635.9,
+     "infeasible": 0,
+     "error": ""
+    }
+   ]
+  },
+  {
+   "round": 4,
+   "seconds": 0.2,
+   "accepted": true,
+   "champion_dev": 1634.7,
+   "champion_val": 1732.2,
+   "champion": {
+    "mean_cost": 1732.2,
+    "infeasible": 0,
+    "on_time_pct": 58.15,
+    "emergency_response": 57.6,
+    "travel": 354.34,
+    "moved": 1.5,
+    "unassigned": 5.1,
+    "emergencies": 57,
+    "missed_promises": 6
+   },
+   "tokens": 0,
+   "round_tokens": 0,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 1, 'relocate_iters': 1, 'postpone_factor': 1.0}",
+     "dev_cost": 1635.9,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 1, 'relocate_iters': 3, 'postpone_factor': 0.75}",
+     "dev_cost": 1634.7,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 2,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 0, 'relocate_iters': 1, 'postpone_factor': 1.0}",
+     "dev_cost": 1642.4,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 3,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 1, 'relocate_iters': 1, 'postpone_factor': 1.0}",
+     "dev_cost": 1635.9,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "random_search {'emergency_by_start': 1, 'regret': 0, 'resequence': 1, 'relocate_iters': 1, 'postpone_factor': 0.75}",
+     "dev_cost": 1650.0,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 1, 'resequence': 1, 'relocate_iters': 1, 'postpone_factor': 1.0}",
+     "dev_cost": 1641.9,
+     "infeasible": 0,
+     "error": ""
+    }
+   ]
+  },
+  {
+   "round": 5,
+   "seconds": 0.2,
+   "accepted": true,
+   "champion_dev": 1633.2,
+   "champion_val": 1728.8,
+   "champion": {
+    "mean_cost": 1728.8,
+    "infeasible": 0,
+    "on_time_pct": 58.15,
+    "emergency_response": 57.6,
+    "travel": 357.22,
+    "moved": 1.5,
+    "unassigned": 5.07,
+    "emergencies": 57,
+    "missed_promises": 6
+   },
+   "tokens": 0,
+   "round_tokens": 0,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 1, 'relocate_iters': 3, 'postpone_factor': 0.5}",
+     "dev_cost": 1647.8,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 1, 'relocate_iters': 2, 'postpone_factor': 0.75}",
+     "dev_cost": 1634.7,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 2,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 1, 'resequence': 1, 'relocate_iters': 3, 'postpone_factor': 0.75}",
+     "dev_cost": 1633.2,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 3,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 1, 'relocate_iters': 3, 'postpone_factor': 0.75}",
+     "dev_cost": 1634.7,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 1, 'relocate_iters': 3, 'postpone_factor': 0.75}",
+     "dev_cost": 1634.7,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 1, 'resequence': 1, 'relocate_iters': 3, 'postpone_factor': 0.5}",
+     "dev_cost": 1642.9,
+     "infeasible": 0,
+     "error": ""
+    }
+   ]
+  },
+  {
+   "round": 6,
+   "seconds": 0.1,
+   "accepted": false,
+   "champion_dev": 1633.2,
+   "champion_val": 1728.8,
+   "champion": {
+    "mean_cost": 1728.8,
+    "infeasible": 0,
+    "on_time_pct": 58.15,
+    "emergency_response": 57.6,
+    "travel": 357.22,
+    "moved": 1.5,
+    "unassigned": 5.07,
+    "emergencies": 57,
+    "missed_promises": 6
+   },
+   "tokens": 0,
+   "round_tokens": 0,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 1, 'resequence': 1, 'relocate_iters': 2, 'postpone_factor': 0.75}",
+     "dev_cost": 1633.2,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 1, 'resequence': 1, 'relocate_iters': 3, 'postpone_factor': 0.75}",
+     "dev_cost": 1633.2,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 2,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 1, 'resequence': 1, 'relocate_iters': 3, 'postpone_factor': 0.75}",
+     "dev_cost": 1633.2,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 3,
+     "note": "random_search {'emergency_by_start': 1, 'regret': 0, 'resequence': 1, 'relocate_iters': 3, 'postpone_factor': 0.75}",
+     "dev_cost": 1645.4,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 1, 'relocate_iters': 3, 'postpone_factor': 0.75}",
+     "dev_cost": 1634.7,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 1, 'relocate_iters': 3, 'postpone_factor': 0.75}",
+     "dev_cost": 1634.7,
+     "infeasible": 0,
+     "error": ""
+    }
+   ]
+  },
+  {
+   "round": 7,
+   "seconds": 0.1,
+   "accepted": false,
+   "champion_dev": 1633.2,
+   "champion_val": 1728.8,
+   "champion": {
+    "mean_cost": 1728.8,
+    "infeasible": 0,
+    "on_time_pct": 58.15,
+    "emergency_response": 57.6,
+    "travel": 357.22,
+    "moved": 1.5,
+    "unassigned": 5.07,
+    "emergencies": 57,
+    "missed_promises": 6
+   },
+   "tokens": 0,
+   "round_tokens": 0,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 1, 'resequence': 1, 'relocate_iters': 3, 'postpone_factor': 0.5}",
+     "dev_cost": 1642.9,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "random_search {'emergency_by_start': 1, 'regret': 1, 'resequence': 1, 'relocate_iters': 3, 'postpone_factor': 0.75}",
+     "dev_cost": 1642.5,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 2,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 1, 'resequence': 0, 'relocate_iters': 3, 'postpone_factor': 0.5}",
+     "dev_cost": 1645.0,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 3,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 0, 'relocate_iters': 3, 'postpone_factor': 0.75}",
+     "dev_cost": 1636.8,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 0, 'resequence': 1, 'relocate_iters': 3, 'postpone_factor': 0.75}",
+     "dev_cost": 1634.7,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 1, 'resequence': 1, 'relocate_iters': 0, 'postpone_factor': 0.75}",
+     "dev_cost": 1728.8,
+     "infeasible": 0,
+     "error": ""
+    }
+   ]
+  },
+  {
+   "round": 8,
+   "seconds": 0.2,
+   "accepted": true,
+   "champion_dev": 1631.1,
+   "champion_val": 1717.7,
+   "champion": {
+    "mean_cost": 1717.7,
+    "infeasible": 0,
+    "on_time_pct": 58.1,
+    "emergency_response": 59.6,
+    "travel": 354.64,
+    "moved": 1.63,
+    "unassigned": 5.03,
+    "emergencies": 57,
+    "missed_promises": 6
+   },
+   "tokens": 0,
+   "round_tokens": 0,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 1, 'resequence': 1, 'relocate_iters': 3, 'postpone_factor': 1.25}",
+     "dev_cost": 1636.2,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 1, 'resequence': 0, 'relocate_iters': 3, 'postpone_factor': 0.75}",
+     "dev_cost": 1631.1,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 2,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 1, 'resequence': 1, 'relocate_iters': 3, 'postpone_factor': 1.0}",
+     "dev_cost": 1638.9,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 3,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 1, 'resequence': 1, 'relocate_iters': 3, 'postpone_factor': 0.75}",
+     "dev_cost": 1633.2,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 1, 'resequence': 1, 'relocate_iters': 3, 'postpone_factor': 1.0}",
+     "dev_cost": 1638.9,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "random_search {'emergency_by_start': 0, 'regret': 1, 'resequence': 1, 'relocate_iters': 3, 'postpone_factor': 0.5}",
+     "dev_cost": 1642.9,
+     "infeasible": 0,
+     "error": ""
+    }
+   ]
+  }
+ ],
+ "champion_code": "\"\"\"Parametric insertion + local-search re-plan policy.\n\nUsed by the no-LLM random-search baseline (proposers.RandomSearchProposer), which only\nchanges the PARAMS line. LLM agents write free-form code instead.\n\"\"\"\n\nfrom dispatchiq.helpers import drop_until_feasible, route, route_cost, travel_min\n\nPARAMS = {\"emergency_by_start\": 0, \"regret\": 1, \"resequence\": 0, \"relocate_iters\": 3, \"postpone_factor\": 0.75}\n\nCHURN = 20\nUNASSIGNED = 150\n\n\ndef _churn(state, jid, tid):\n    mt = state[\"jobs\"][jid][\"morning_tech\"]\n    sick = {t[\"id\"] for t in state[\"techs\"] if t[\"sick\"]}\n    return CHURN if (mt and mt != tid and mt not in sick) else 0\n\n\ndef _best_insert(state, techs, plan, jid):\n    \"\"\"Return sorted list of (delta, tid, seq) feasible insertions.\"\"\"\n    job = state[\"jobs\"][jid]\n    out = []\n    for tid, t in techs.items():\n        if t[\"sick\"] or job[\"skill\"] not in t[\"skills\"]:\n            continue\n        base = route_cost(state, t, plan[tid])\n        for pos in range(len(plan[tid]) + 1):\n            seq = plan[tid][:pos] + [jid] + plan[tid][pos:]\n            c = route_cost(state, t, seq)\n            if c < 1e5:\n                out.append((c - base + _churn(state, jid, tid), tid, seq))\n    out.sort(key=lambda x: x[0])\n    return out\n\n\ndef replan(state):\n    P = PARAMS\n    techs = {t[\"id\"]: t for t in state[\"techs\"]}\n    jobs = state[\"jobs\"]\n    plan = {tid: ([] if t[\"sick\"] else list(t[\"remaining\"])) for tid, t in techs.items()}\n\n    if P[\"resequence\"]:\n        for tid, t in techs.items():\n            if plan[tid]:\n                alt = sorted(plan[tid], key=lambda j: (jobs[j][\"latest\"], jobs[j][\"earliest\"]))\n                if route_cost(state, t, alt) < route_cost(state, t, plan[tid]):\n                    plan[tid] = alt\n\n    # Emergencies: go first, to the front of a route; bump routine jobs if needed.\n    for jid in sorted((j for j in jobs if jobs[j][\"emergency\"]), key=lambda j: jobs[j][\"release\"]):\n        job = jobs[jid]\n        best = None\n        for tid, t in techs.items():\n            if t[\"sick\"] or job[\"skill\"] not in t[\"skills\"]:\n                continue\n            seq, dropped = drop_until_feasible(state, t, [jid] + plan[tid])\n            if not route(state, t, seq)[\"feasible\"]:\n                continue\n            d = travel_min(state, t[\"loc\"], job[\"loc\"])\n            key = (t[\"free_at\"] + d) if P[\"emergency_by_start\"] else d\n            key += sum(UNASSIGNED * jobs[x][\"priority\"] for x in dropped) / 1000.0\n            if best is None or key < best[0]:\n                best = (key, tid, seq)\n        if best:\n            plan[best[1]] = best[2]\n\n    # Orphaned jobs from sick techs.\n    orphans = [j for t in state[\"techs\"] if t[\"sick\"] for j in t[\"remaining\"]]\n    orphans.sort(key=lambda j: (-jobs[j][\"priority\"], jobs[j][\"latest\"]))\n    while orphans:\n        if P[\"regret\"]:\n            scored = []\n            for j in orphans:\n                opts = _best_insert(state, techs, plan, j)\n                regret = (opts[1][0] - opts[0][0]) if len(opts) > 1 else 1e9 if opts else -1\n                scored.append((regret, j, opts))\n            scored.sort(key=lambda x: -x[0])\n            _, jid, opts = scored[0]\n        else:\n            jid = orphans[0]\n            opts = _best_insert(state, techs, plan, jid)\n        orphans.remove(jid)\n        if opts and opts[0][0] < P[\"postpone_factor\"] * UNASSIGNED * jobs[jid][\"priority\"]:\n            plan[opts[0][1]] = opts[0][2]\n\n    # Relocate local search between healthy techs.\n    for _ in range(P[\"relocate_iters\"]):\n        improved = False\n        for tid in list(plan):\n            for jid in list(plan[tid]):\n                if jobs[jid][\"emergency\"]:\n                    continue\n                t = techs[tid]\n                without = [j for j in plan[tid] if j != jid]\n                gain = route_cost(state, t, plan[tid]) - route_cost(state, t, without) - _churn(state, jid, tid)\n                plan_wo = dict(plan)\n                plan_wo[tid] = without\n                opts = [o for o in _best_insert(state, techs, plan_wo, jid) if o[1] != tid]\n                if opts and opts[0][0] < gain - 1e-6:\n                    plan[tid] = without\n                    plan[opts[0][1]] = opts[0][2]\n                    improved = True\n        if not improved:\n            break\n    return plan\n",
+ "round0_code": "\"\"\"Round-0 seed policy: what a busy human dispatcher does.\n\nEveryone keeps their remaining jobs. Each orphaned job (from the sick tech) and each\nemergency goes to the nearest healthy tech with the right skill: emergencies to the\nfront of that tech's list, other jobs to the end. If that would push the tech past the\novertime limit, the job is left for tomorrow; an emergency instead bumps that\ntech's lowest-priority jobs to tomorrow.\n\"\"\"\n\nfrom dispatchiq.helpers import drop_until_feasible, route, travel_min\n\n\ndef replan(state):\n    plan = {t[\"id\"]: ([] if t[\"sick\"] else list(t[\"remaining\"])) for t in state[\"techs\"]}\n    healthy = [t for t in state[\"techs\"] if not t[\"sick\"]]\n    orphans = [j for t in state[\"techs\"] if t[\"sick\"] for j in t[\"remaining\"]]\n    emergencies = [jid for jid, j in state[\"jobs\"].items() if j[\"emergency\"]]\n    for jid in emergencies + orphans:\n        job = state[\"jobs\"][jid]\n        options = sorted((travel_min(state, t[\"loc\"], job[\"loc\"]), t[\"id\"]) for t in healthy\n                         if job[\"skill\"] in t[\"skills\"])\n        for _, tid in options:\n            tech = next(t for t in healthy if t[\"id\"] == tid)\n            seq = [jid] + plan[tid] if job[\"emergency\"] else plan[tid] + [jid]\n            if job[\"emergency\"]:\n                seq, _ = drop_until_feasible(state, tech, seq)  # bump routine jobs to tomorrow\n            if route(state, tech, seq)[\"feasible\"]:\n                plan[tid] = seq\n                break\n    return plan\n"
+}

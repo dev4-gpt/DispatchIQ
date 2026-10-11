@@ -78,6 +78,42 @@ def providers_from_env() -> list[Provider]:
     return out
 
 
+def complete_text(client, **kwargs) -> tuple[str, int]:
+    """One chat completion, streamed. Returns (answer text, total tokens).
+
+    Streaming is required, not an optimisation: Luminal's gateway answers a non-streamed request
+    that runs longer than about 20 s with HTTP 503, and reasoning models routinely take minutes.
+    A client that ignores `stream` and returns a plain completion is accepted too (test stubs).
+    """
+    r = client.chat.completions.create(stream=True, stream_options={"include_usage": True}, **kwargs)
+    if hasattr(r, "choices"):  # not a stream
+        return r.choices[0].message.content or "", (r.usage.total_tokens or 0) if r.usage else 0
+    parts, tokens = [], 0
+    for chunk in r:
+        if getattr(chunk, "usage", None):
+            tokens = chunk.usage.total_tokens or 0
+        for choice in chunk.choices or []:
+            if choice.delta and choice.delta.content:
+                parts.append(choice.delta.content)
+    return "".join(parts), tokens
+
+
+def _chat(providers: list[Provider], messages: list[dict], timeout: float, temperature: float,
+          parse) -> tuple[object, int, Provider]:
+    """Try each provider in order; return (parse(text), tokens used, provider). Bad output counts as a failure."""
+    from openai import OpenAI
+
+    last = None
+    for p in providers:
+        try:
+            client = OpenAI(base_url=p.base_url, api_key=p.api_key, timeout=timeout)
+            text, tokens = complete_text(client, model=p.model, messages=messages, temperature=temperature)
+            return parse(text), tokens, p
+        except Exception as e:  # rate limit, outage, bad output: next provider
+            last = e
+    raise RuntimeError(f"all providers failed: {last}")
+
+
 class LLMProposer:
     kind = "llm"
 
@@ -89,27 +125,81 @@ class LLMProposer:
     def available(self) -> bool:
         return bool(self.providers)
 
-    def propose(self, agent_idx: int, champion_code: str, feedback: str, rng: random.Random) -> tuple[str, str]:
-        from openai import OpenAI
-
-        strategy = STRATEGIES[agent_idx % len(STRATEGIES)]
+    def propose(self, agent_idx: int, champion_code: str, feedback: str, rng: random.Random,
+                strategy: str | None = None, team_context: str = "") -> tuple[str, str]:
+        """Plain mode: fixed STRATEGIES hint. Team mode passes the critic's hint and the shared memory."""
+        strategy = strategy or STRATEGIES[agent_idx % len(STRATEGIES)]
         messages = [
             {"role": "system", "content": TASK},
             {"role": "user", "content": f"Current champion policy:\n```python\n{champion_code}\n```\n\n"
                                         f"Checker feedback on the champion:\n{feedback}\n\n"
-                                        f"Your angle this round: {strategy}\nWrite an improved full module."},
+                                        + (f"{team_context}\n\n" if team_context else "")
+                                        + f"Your angle this round: {strategy}\nWrite an improved full module."},
         ]
-        last = None
-        for p in self.providers:
-            try:
-                client = OpenAI(base_url=p.base_url, api_key=p.api_key, timeout=self.timeout)
-                r = client.chat.completions.create(model=p.model, messages=messages, temperature=0.7)
-                if r.usage:
-                    self.tokens += r.usage.total_tokens or 0
-                return extract_code(r.choices[0].message.content or ""), f"{p.name}:{p.model} | {strategy}"
-            except Exception as e:  # rate limit, outage, bad output: next provider
-                last = e
-        raise RuntimeError(f"all providers failed: {last}")
+        code, tokens, p = _chat(self.providers, messages, self.timeout, 0.7, extract_code)
+        self.tokens += tokens
+        return code, f"{p.name}:{p.model} | {strategy}"
+
+
+CRITIC = """You are the critic on a team of agents that write a field-service RE-PLAN policy.
+Each round several agents each submit a full `replan(state)` module; a deterministic checker scores it
+on dev days (lower cost is better; any hard-rule violation makes a day infeasible).
+You never write code. You read the checker feedback on the current champion and the table of this
+round's attempts, including failures, and you teach the next round.
+
+The agents' task, for context:
+---
+{task}
+---
+
+Reply with ONLY one JSON object, no prose:
+{{"lessons": ["...", ...], "strategies": ["...", ...] or null}}
+- "lessons": at most 5 short, concrete lessons (one sentence each) drawn from what actually worked or failed.
+- "strategies": optional replacement for the per-agent angle hints next round (at most {max_strategies},
+  one sentence each), or null to keep the current hints."""
+
+MAX_LESSONS_PER_ROUND = 5
+MAX_STRATEGIES = 8
+MAX_HINT_CHARS = 300
+
+
+def parse_critic(text: str) -> dict:
+    """Extract and check the critic's JSON. Raises ValueError on anything malformed."""
+    m = re.search(r"\{.*\}", text, flags=re.S)
+    if not m:
+        raise ValueError("no JSON object in critic output")
+    data = json.loads(m.group(0))
+    if not isinstance(data, dict) or not isinstance(data.get("lessons", []), list):
+        raise ValueError("critic JSON must have a 'lessons' list")
+    lessons = [str(x).strip()[:MAX_HINT_CHARS] for x in data.get("lessons", []) if str(x).strip()]
+    strategies = data.get("strategies")
+    if strategies is not None:
+        if not isinstance(strategies, list):
+            raise ValueError("'strategies' must be a list or null")
+        strategies = [str(x).strip()[:MAX_HINT_CHARS] for x in strategies if str(x).strip()][:MAX_STRATEGIES] or None
+    return {"lessons": lessons[:MAX_LESSONS_PER_ROUND], "strategies": strategies}
+
+
+class Critic:
+    """One extra LLM call per round: turns the round's results into lessons and new strategy hints."""
+
+    def __init__(self, providers: list[Provider] | None = None, timeout: float = 120.0):
+        self.providers = providers if providers is not None else providers_from_env()
+        self.timeout = timeout
+
+    def review(self, feedback: str, round_table: str, lessons: list[str], strategies: list[str]) -> tuple[dict, int, str]:
+        """Return (parsed {"lessons", "strategies"}, tokens, provider label)."""
+        messages = [
+            {"role": "system", "content": CRITIC.format(task=TASK, max_strategies=MAX_STRATEGIES)},
+            {"role": "user", "content": f"Checker feedback on the champion (after this round):\n{feedback}\n\n"
+                                        f"This round's attempts:\n{round_table}\n\n"
+                                        "Lessons carried so far:\n"
+                                        + ("\n".join(f"- {x}" for x in lessons) or "(none)")
+                                        + "\n\nCurrent strategy hints (agent i gets hint i mod n):\n"
+                                        + "\n".join(f"{i}. {s}" for i, s in enumerate(strategies))},
+        ]
+        out, tokens, p = _chat(self.providers, messages, self.timeout, 0.3, parse_critic)
+        return out, tokens, f"{p.name}:{p.model}"
 
 
 PARAM_KNOBS = {

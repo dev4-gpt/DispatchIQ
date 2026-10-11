@@ -48,6 +48,53 @@ python heldout.py                                               # ONCE, at the e
 streamlit run app.py
 ```
 
+## Reproduce
+
+Every result is a file in `runs/<name>.json`, and `--name` refuses to overwrite one. Provider used for the LLM runs: Luminal, `deepseek-ai/DeepSeek-V4.1-Flash` (OpenAI-compatible, streamed; the gateway drops non-streamed requests that run past about 20 s).
+
+```bash
+export LLM_BASE_URL=https://flash.luminal.cloud/v1 LLM_MODEL=deepseek-ai/DeepSeek-V4.1-Flash LLM_API_KEY=...
+# PowerShell: $env:LLM_BASE_URL="https://flash.luminal.cloud/v1"; $env:LLM_MODEL="deepseek-ai/DeepSeek-V4.1-Flash"; $env:LLM_API_KEY="..."
+
+python evolve.py --mode random --rounds 8 --agents 6 --name random              # no LLM
+python evolve.py               --rounds 8 --agents 6 --name llm-plain
+python evolve.py --team        --rounds 8 --agents 6 --name llm-team
+python evolve.py --team        --rounds 48 --agents 1 --name llm-team-1agent    # same 48 proposals, one at a time
+python evolve.py --team        --rounds 8 --agents 1 --name llm-team-1agent-8r  # same rounds, one agent
+python evolve.py --team        --rounds 8 --agents 6 --name llm-team-insertion \
+                 --start dispatchiq/policies/insertion.py                       # only if llm-team does not beat random
+
+python -m dispatchiq.scoreboard        # comparison table from the saved files (runs nothing)
+streamlit run app.py                   # "Research runs" tab: same data as charts
+```
+
+- **Random search is deterministic.** With the same `--seed` (default 0) it reproduces exactly.
+- **LLM runs are not.** Sampling uses temperature 0.7, so a rerun writes different code and gets different scores. The saved file is the record.
+
+**Re-score a saved champion without any LLM.** The code saved in the run file is run through the same sandbox and checker. Dev and validation days are fixed, so the scores must match the file; a mismatch exits non-zero.
+
+```bash
+python rescore.py runs/llm-team.json                 # champion on dev + validation
+python rescore.py runs/llm-team.json --code round0   # the starting policy
+```
+
+**Held-out days are not in `rescore.py`.** `python heldout.py runs/<name>.json` scores 50 held-out days once and writes `runs/heldout_result.json`.
+
+### Final-solution rule (fixed 2026-10-11, before any held-out scoring)
+
+The held-out run uses **the 6-agent LLM run with the lowest validation cost at 18:30 local time**.
+- **Eligible runs:** `llm-plain`, `llm-team`, and `llm-team-insertion` if it was run. Each must have `--agents 6` and use the LLM.
+- **Not eligible:** random search and the 1-agent runs.
+- **Which cost counts:** the champion's validation cost in the run file as saved at 18:30. A run still going at 18:30 counts with the rounds it had saved by then.
+- **One shot:** `heldout.py` is run once, at 18:30, on that file:
+
+```bash
+python -m dispatchiq.scoreboard     # last lines name the run this rule picks from the saved files
+python heldout.py runs/<picked run>.json
+```
+
+No other run is scored on held-out days, and the rule is not changed after seeing held-out results.
+
 ## Results so far (offline, no LLM)
 Random search over `parametric.py`, 6 rounds × 6 proposals, scored on 50 held-out days:
 

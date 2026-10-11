@@ -1,0 +1,348 @@
+{
+ "id": "llm-plain",
+ "name": "llm-plain",
+ "mode": "llm",
+ "agents": 6,
+ "rounds_requested": 8,
+ "seed": 0,
+ "start": "dispatchiq/policies/naive.py",
+ "started_at": "2026-10-11T16:04:08-0400",
+ "heldout_hash": "cd2ba1f9b2a896c7379bffecaef861d001409539d87c1a0577df9e8dfdf5e562",
+ "baseline": {
+  "dev": {
+   "mean_cost": 1911.4,
+   "infeasible": 0,
+   "on_time_pct": 55.09,
+   "emergency_response": 66.0,
+   "travel": 351.17,
+   "moved": 0,
+   "unassigned": 4.17,
+   "emergencies": 64,
+   "missed_promises": 13
+  },
+  "val": {
+   "mean_cost": 2039.7,
+   "infeasible": 0,
+   "on_time_pct": 52.33,
+   "emergency_response": 56.26,
+   "travel": 370.62,
+   "moved": 0,
+   "unassigned": 4.8,
+   "emergencies": 57,
+   "missed_promises": 5
+  }
+ },
+ "references": {
+  "naive": {
+   "path": "dispatchiq/policies/naive.py",
+   "dev": {
+    "mean_cost": 1911.4,
+    "infeasible": 0,
+    "on_time_pct": 55.09,
+    "emergency_response": 66.0,
+    "travel": 351.17,
+    "moved": 0,
+    "unassigned": 4.17,
+    "emergencies": 64,
+    "missed_promises": 13
+   },
+   "val": {
+    "mean_cost": 2039.7,
+    "infeasible": 0,
+    "on_time_pct": 52.33,
+    "emergency_response": 56.26,
+    "travel": 370.62,
+    "moved": 0,
+    "unassigned": 4.8,
+    "emergencies": 57,
+    "missed_promises": 5
+   }
+  },
+  "insertion": {
+   "path": "dispatchiq/policies/insertion.py",
+   "dev": {
+    "mean_cost": 1663.5,
+    "infeasible": 0,
+    "on_time_pct": 59.51,
+    "emergency_response": 65.05,
+    "travel": 365.3,
+    "moved": 0,
+    "unassigned": 4.1,
+    "emergencies": 64,
+    "missed_promises": 8
+   },
+   "val": {
+    "mean_cost": 1801.2,
+    "infeasible": 0,
+    "on_time_pct": 57.9,
+    "emergency_response": 67.08,
+    "travel": 381.03,
+    "moved": 0,
+    "unassigned": 4.7,
+    "emergencies": 57,
+    "missed_promises": 6
+   }
+  }
+ },
+ "rounds": [
+  {
+   "round": 1,
+   "seconds": 147.5,
+   "accepted": true,
+   "champion_dev": 1314.7,
+   "champion_val": 1389.0,
+   "champion": {
+    "mean_cost": 1389.0,
+    "infeasible": 0,
+    "on_time_pct": 66.72,
+    "emergency_response": 52.59,
+    "travel": 376.47,
+    "moved": 1.57,
+    "unassigned": 4.2,
+    "emergencies": 57,
+    "missed_promises": 2
+   },
+   "tokens": 163010,
+   "round_tokens": 163010,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Make emergencies faster: choose the tech who can START the emergency soonest, not the nearest one.",
+     "dev_cost": 1448.7,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Add a local-search pass after insertion: try relocating and swapping open jobs within and between healthy techs, keeping a move only if total estimated cost (including the churn penalty) drops.",
+     "dev_cost": 1314.7,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 2,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Use regret insertion: insert first the job whose best and second-best insertion costs differ most.",
+     "dev_cost": 1446.5,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 3,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Re-sequence each healthy tech's remaining jobs (e.g. by time window and 2-opt) to cut lateness and travel.",
+     "dev_cost": 1580.0,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Reduce unscheduled high-priority jobs: allow bumping a priority-1 job to tomorrow to fit a priority-3 job.",
+     "dev_cost": 1325.4,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Balance load: prefer techs with slack before shift_end; avoid stacking overtime on one tech.",
+     "dev_cost": 1316.1,
+     "infeasible": 0,
+     "error": ""
+    }
+   ]
+  },
+  {
+   "round": 2,
+   "seconds": 155.0,
+   "accepted": true,
+   "champion_dev": 1273.2,
+   "champion_val": 1386.1,
+   "champion": {
+    "mean_cost": 1386.1,
+    "infeasible": 0,
+    "on_time_pct": 65.12,
+    "emergency_response": 56.46,
+    "travel": 389.85,
+    "moved": 1.37,
+    "unassigned": 4,
+    "emergencies": 57,
+    "missed_promises": 3
+   },
+   "tokens": 297920,
+   "round_tokens": 134910,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Make emergencies faster: choose the tech who can START the emergency soonest, not the nearest one.",
+     "dev_cost": 70511.0,
+     "infeasible": 21,
+     "error": "UnboundLocalError: cannot access local variable 'found' where it is not associated with a value; UnboundLocalError: cannot access local variable 'found' where it is not associated with a value"
+    },
+    {
+     "agent": 1,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Add a local-search pass after insertion: try relocating and swapping open jobs within and between healthy techs, keeping a move only if total estimated cost (including the churn penalty) drops.",
+     "dev_cost": 1273.2,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 2,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Use regret insertion: insert first the job whose best and second-best insertion costs differ most.",
+     "dev_cost": 1310.5,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 3,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Re-sequence each healthy tech's remaining jobs (e.g. by time window and 2-opt) to cut lateness and travel.",
+     "dev_cost": 1301.6,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Reduce unscheduled high-priority jobs: allow bumping a priority-1 job to tomorrow to fit a priority-3 job.",
+     "dev_cost": 1292.4,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Balance load: prefer techs with slack before shift_end; avoid stacking overtime on one tech.",
+     "dev_cost": 1333.4,
+     "infeasible": 0,
+     "error": ""
+    }
+   ]
+  },
+  {
+   "round": 3,
+   "seconds": 206.9,
+   "accepted": true,
+   "champion_dev": 1268.5,
+   "champion_val": 1360.1,
+   "champion": {
+    "mean_cost": 1360.1,
+    "infeasible": 0,
+    "on_time_pct": 65.4,
+    "emergency_response": 54.69,
+    "travel": 391.01,
+    "moved": 1.37,
+    "unassigned": 3.9,
+    "emergencies": 57,
+    "missed_promises": 3
+   },
+   "tokens": 434637,
+   "round_tokens": 136717,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Make emergencies faster: choose the tech who can START the emergency soonest, not the nearest one.",
+     "dev_cost": 1310.7,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Add a local-search pass after insertion: try relocating and swapping open jobs within and between healthy techs, keeping a move only if total estimated cost (including the churn penalty) drops.",
+     "dev_cost": 1273.0,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 2,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Use regret insertion: insert first the job whose best and second-best insertion costs differ most.",
+     "dev_cost": 1316.9,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 3,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Re-sequence each healthy tech's remaining jobs (e.g. by time window and 2-opt) to cut lateness and travel.",
+     "dev_cost": 1268.5,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Reduce unscheduled high-priority jobs: allow bumping a priority-1 job to tomorrow to fit a priority-3 job.",
+     "dev_cost": 1277.9,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Balance load: prefer techs with slack before shift_end; avoid stacking overtime on one tech.",
+     "dev_cost": 1280.6,
+     "infeasible": 0,
+     "error": ""
+    }
+   ]
+  },
+  {
+   "round": 4,
+   "seconds": 133.3,
+   "accepted": true,
+   "champion_dev": 1264.2,
+   "champion_val": 1349.6,
+   "champion": {
+    "mean_cost": 1349.6,
+    "infeasible": 0,
+    "on_time_pct": 68.08,
+    "emergency_response": 51.31,
+    "travel": 379.88,
+    "moved": 1.17,
+    "unassigned": 4.07,
+    "emergencies": 57,
+    "missed_promises": 3
+   },
+   "tokens": 620310,
+   "round_tokens": 185673,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Make emergencies faster: choose the tech who can START the emergency soonest, not the nearest one.",
+     "dev_cost": 1268.5,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Add a local-search pass after insertion: try relocating and swapping open jobs within and between healthy techs, keeping a move only if total estimated cost (including the churn penalty) drops.",
+     "dev_cost": 1282.7,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 2,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Use regret insertion: insert first the job whose best and second-best insertion costs differ most.",
+     "dev_cost": 7794.8,
+     "infeasible": 2,
+     "error": "T0 ends 371 min past shift (max 90); T3 ends 298 min past shift (max 90)"
+    },
+    {
+     "agent": 3,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Re-sequence each healthy tech's remaining jobs (e.g. by time window and 2-opt) to cut lateness and travel.",
+     "dev_cost": 1277.0,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Reduce unscheduled high-priority jobs: allow bumping a priority-1 job to tomorrow to fit a priority-3 job.",
+     "dev_cost": 1264.2,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Balance load: prefer techs with slack before shift_end; avoid stacking overtime on one tech.",
+     "dev_cost": 100000.0,
+     "infeasible": 30,
+     "error": "TypeError: string indices must be integers, not 'str'; TypeError: string indices must be integers, not 'str'"
+    }
+   ]
+  }
+ ],
+ "champion_code": "from dispatchiq.helpers import route, route_cost, travel_min\n\n_RC_CACHE = {}\n\n\ndef _rc(state, tech, seq):\n    key = (tech[\"id\"], tuple(seq))\n    if key in _RC_CACHE:\n        return _RC_CACHE[key]\n    if not seq:\n        _RC_CACHE[key] = 0.0\n        return 0.0\n    c = route_cost(state, tech, seq)\n    val = c if c < 1e6 else float('inf')\n    _RC_CACHE[key] = val\n    return val\n\n\ndef _tech_by_id(state, tid):\n    for t in state[\"techs\"]:\n        if t[\"id\"] == tid:\n            return t\n    return None\n\n\ndef _churn_delta(state, jid, from_id, to_id):\n    job = state[\"jobs\"][jid]\n    orig = job.get(\"morning_tech\")\n    if orig is None:\n        return 0.0\n    ot = _tech_by_id(state, orig)\n    if ot is None or ot[\"sick\"]:\n        return 0.0\n    d = 0.0\n    if from_id is not None and from_id != orig:\n        d -= 20\n    if to_id is not None and to_id != orig:\n        d += 20\n    return d\n\n\ndef _drop_low_priority(state, tech, seq, keep=None):\n    \"\"\"Make seq feasible by removing lowest-priority jobs first.\n    Returns (kept_seq, dropped_ids) or (None, []) if impossible to keep `keep`.\"\"\"\n    seq = list(seq)\n    if _rc(state, tech, seq) < 1e6:\n        return seq, []\n    dropped = []\n    candidates = [j for j in seq if j != keep]\n\n    def sort_key(j):\n        job = state[\"jobs\"][j]\n        return (job[\"priority\"], -job[\"duration\"], -job[\"latest\"])\n\n    candidates.sort(key=sort_key)\n    for j in candidates:\n        seq.remove(j)\n        dropped.append(j)\n        if _rc(state, tech, seq) < 1e6:\n            return seq, dropped\n    if keep is not None:\n        seq_keep = [keep]\n        if _rc(state, tech, seq_keep) < 1e6:\n            dropped.extend([j for j in seq if j != keep])\n            return seq_keep, dropped\n        return None, []\n    return [], dropped\n\n\ndef _nn_order(state, tech, seq):\n    jobs = state[\"jobs\"]\n    remaining = list(seq)\n    out = []\n    cur = tech[\"loc\"]\n    while remaining:\n        best = None\n        bestd = None\n        for j in remaining:\n            try:\n                d = travel_min(state, cur, jobs[j][\"loc\"])\n            except Exception:\n                d = 0.0\n            if bestd is None or d < bestd:\n                bestd = d\n                best = j\n        out.append(best)\n        cur = jobs[best][\"loc\"]\n        remaining.remove(best)\n    return out\n\n\ndef _candidate_orders(state, tech, seq):\n    if len(seq) <= 1:\n        return [list(seq)]\n    jobs = state[\"jobs\"]\n    cands = [list(seq)]\n    cands.append(sorted(seq, key=lambda j: (jobs[j][\"latest\"], jobs[j][\"earliest\"])))\n    cands.append(sorted(seq, key=lambda j: (jobs[j][\"earliest\"], jobs[j][\"latest\"])))\n    cands.append(sorted(seq, key=lambda j: (-jobs[j][\"priority\"], jobs[j][\"latest\"])))\n    cands.append(sorted(seq, key=lambda j: (jobs[j][\"latest\"] - jobs[j][\"duration\"], jobs[j][\"earliest\"])))\n    cands.append(_nn_order(state, tech, seq))\n    cands.append(list(reversed(seq)))\n    return cands\n\n\ndef _best_candidate(state, tech, seq):\n    best = None\n    best_c = float('inf')\n    for cand in _candidate_orders(state, tech, seq):\n        c = _rc(state, tech, cand)\n        if c < best_c - 1e-9:\n            best_c = c\n            best = cand\n    return best if best is not None else list(seq)\n\n\ndef _two_opt_once(state, tech, seq):\n    n = len(seq)\n    if n < 3:\n        return list(seq)\n    cur = list(seq)\n    c_cur = _rc(state, tech, cur)\n    if c_cur == float('inf'):\n        return cur\n    for i in range(n - 1):\n        for j in range(i + 1, n):\n            new = cur[:i] + list(reversed(cur[i:j + 1])) + cur[j + 1:]\n            c = _rc(state, tech, new)\n            if c < c_cur - 1e-9:\n                return new\n    return cur\n\n\ndef _or_opt_once(state, tech, seq):\n    n = len(seq)\n    if n < 2:\n        return list(seq)\n    cur = list(seq)\n    c_cur = _rc(state, tech, cur)\n    if c_cur == float('inf'):\n        return cur\n    for i in range(n):\n        for j in range(n):\n            if i == j:\n                continue\n            new = cur[:i] + cur[i + 1:]\n            new = new[:j] + [cur[i]] + new[j:]\n            c = _rc(state, tech, new)\n            if c < c_cur - 1e-9:\n                return new\n    return cur\n\n\ndef _optimize_seq(state, tech, seq, rounds=4):\n    if not seq:\n        return []\n    cur = _best_candidate(state, tech, seq)\n    c_cur = _rc(state, tech, cur)\n    for _ in range(rounds):\n        new = _two_opt_once(state, tech, cur)\n        c_new = _rc(state, tech, new)\n        if c_new < c_cur - 1e-9:\n            cur = new\n            c_cur = c_new\n        new = _or_opt_once(state, tech, cur)\n        c_new = _rc(state, tech, new)\n        if c_new < c_cur - 1e-9:\n            cur = new\n            c_cur = c_new\n    return cur\n\n\ndef _try_insert_improved(state, plan, healthy, jid, allow_drop=True):\n    \"\"\"Try to insert jid into any healthy tech, possibly dropping lower priority jobs.\n    For emergency jobs, always pick the best feasible insertion (even if costly).\"\"\"\n    job = state[\"jobs\"][jid]\n    p_new = job[\"priority\"]\n    is_em = job[\"emergency\"]\n    best_delta = float('inf') if is_em else 0.0\n    best_move = None\n\n    for t in healthy:\n        if job[\"skill\"] not in t[\"skills\"]:\n            continue\n        seq = plan[t[\"id\"]]\n        c_old = _rc(state, t, seq)\n        if c_old == float('inf'):\n            continue\n        for pos in range(len(seq) + 1):\n            candidate = seq[:pos] + [jid] + seq[pos:]\n            c_cand = _rc(state, t, candidate)\n            if c_cand < 1e6:\n                # feasible without drops\n                delta = c_cand - c_old - 150 * p_new + _churn_delta(state, jid, None, t[\"id\"])\n                if delta < best_delta - 1e-9:\n                    best_delta = delta\n                    best_move = (t[\"id\"], candidate)\n                # try dropping one existing job to improve even when feasible\n                if allow_drop:\n                    for j in candidate:\n                        if j == jid:\n                            continue\n                        p_j = state[\"jobs\"][j][\"priority\"]\n                        if not is_em and p_j > p_new:\n                            continue\n                        new_cand = [x for x in candidate if x != j]\n                        c_drop = _rc(state, t, new_cand)\n                        if c_drop < 1e6:\n                            d = c_drop - c_old - 150 * p_new + 150 * p_j\n                            d += _churn_delta(state, jid, None, t[\"id\"])\n                            d += _churn_delta(state, j, t[\"id\"], None)\n                            if d < best_delta - 1e-9:\n                                best_delta = d\n                                best_move = (t[\"id\"], new_cand)\n            else:\n                # infeasible, try dropping multiple low-priority jobs\n                if allow_drop:\n                    kept, dropped = _drop_low_priority(state, t, candidate, keep=jid)\n                    if kept is not None and jid in kept:\n                        c_kept = _rc(state, t, kept)\n                        if c_kept < 1e6:\n                            d = c_kept - c_old - 150 * p_new\n                            for j in dropped:\n                                d += 150 * state[\"jobs\"][j][\"priority\"]\n                                d += _churn_delta(state, j, t[\"id\"], None)\n                            d += _churn_delta(state, jid, None, t[\"id\"])\n                            if d < best_delta - 1e-9:\n                                best_delta = d\n                                best_move = (t[\"id\"], kept)\n    return best_move\n\n\ndef _greedy_initial(state):\n    healthy = [t for t in state[\"techs\"] if not t[\"sick\"]]\n    plan = {}\n    for t in healthy:\n        seq = list(t[\"remaining\"])\n        if seq:\n            r = route(state, t, seq)\n            if not r[\"feasible\"]:\n                seq, _ = _drop_low_priority(state, t, seq)\n                if seq is None:\n                    seq = []\n        plan[t[\"id\"]] = _optimize_seq(state, t, seq)\n\n    assigned = set()\n    for t in healthy:\n        assigned.update(plan[t[\"id\"]])\n    unassigned = [jid for jid in state[\"jobs\"] if jid not in assigned]\n    unassigned.sort(key=lambda jid: (\n        not state[\"jobs\"][jid][\"emergency\"],\n        -state[\"jobs\"][jid][\"priority\"],\n        state[\"jobs\"][jid][\"release\"],\n    ))\n\n    for jid in unassigned:\n        job = state[\"jobs\"][jid]\n        is_em = job[\"emergency\"]\n        best = _try_insert_improved(state, plan, healthy, jid, allow_drop=True)\n        if best is not None:\n            plan[best[0]] = best[1]\n        elif is_em:\n            # force emergency insertion\n            for t in healthy:\n                if job[\"skill\"] in t[\"skills\"]:\n                    seq = plan[t[\"id\"]]\n                    for new_seq in ([jid] + seq, seq + [jid]):\n                        kept, _ = _drop_low_priority(state, t, new_seq, keep=jid)\n                        if kept is not None and jid in kept:\n                            plan[t[\"id\"]] = kept\n                            break\n                    else:\n                        continue\n                    break\n    return plan\n\n\ndef _local_search(state, plan, max_iters=15):\n    healthy = [t for t in state[\"techs\"] if not t[\"sick\"]]\n    if not healthy:\n        return plan\n\n    for _ in range(max_iters):\n        improved = False\n\n        # 1. Re-sequence within each tech (or-opt then 2-opt)\n        for t in healthy:\n            seq = plan[t[\"id\"]]\n            if len(seq) < 2:\n                continue\n            c_old = _rc(state, t, seq)\n            new = _or_opt_once(state, t, seq)\n            c_new = _rc(state, t, new)\n            if c_new < c_old - 1e-9:\n                plan[t[\"id\"]] = new\n                improved = True\n                continue\n            if len(seq) >= 3:\n                new = _two_opt_once(state, t, seq)\n                c_new = _rc(state, t, new)\n                if c_new < c_old - 1e-9:\n                    plan[t[\"id\"]] = new\n                    improved = True\n\n        # 2. Relocate a job to another tech\n        if not improved:\n            done = False\n            for t1 in healthy:\n                if done:\n                    break\n                seq1 = plan[t1[\"id\"]]\n                c1_old = _rc(state, t1, seq1)\n                for i in range(len(seq1)):\n                    if done:\n                        break\n                    jid = seq1[i]\n                    job = state[\"jobs\"][jid]\n                    new_seq1 = seq1[:i] + seq1[i + 1:]\n                    c1_new = _rc(state, t1, new_seq1)\n                    if c1_new == float('inf'):\n                        continue\n                    for t2 in healthy:\n                        if done:\n                            break\n                        if t2[\"id\"] == t1[\"id\"]:\n                            continue\n                        if job[\"skill\"] not in t2[\"skills\"]:\n                            continue\n                        seq2 = plan[t2[\"id\"]]\n                        c2_old = _rc(state, t2, seq2)\n                        for pos in range(len(seq2) + 1):\n                            new_seq2 = seq2[:pos] + [jid] + seq2[pos:]\n                            c2_new = _rc(state, t2, new_seq2)\n                            if c2_new == float('inf'):\n                                continue\n                            delta = (c1_new - c1_old) + (c2_new - c2_old)\n                            delta += _churn_delta(state, jid, t1[\"id\"], t2[\"id\"])\n                            if delta < -1e-9:\n                                plan[t1[\"id\"]] = new_seq1\n                                plan[t2[\"id\"]] = new_seq2\n                                improved = True\n                                done = True\n                                break\n\n        # 3. Swap jobs between techs\n        if not improved:\n            done = False\n            for i1 in range(len(healthy)):\n                if done:\n                    break\n                t1 = healthy[i1]\n                seq1 = plan[t1[\"id\"]]\n                c1_old = _rc(state, t1, seq1)\n                for i2 in range(i1 + 1, len(healthy)):\n                    if done:\n                        break\n                    t2 = healthy[i2]\n                    seq2 = plan[t2[\"id\"]]\n                    c2_old = _rc(state, t2, seq2)\n                    for p1 in range(len(seq1)):\n                        if done:\n                            break\n                        jid1 = seq1[p1]\n                        job1 = state[\"jobs\"][jid1]\n                        if job1[\"skill\"] not in t2[\"skills\"]:\n                            continue\n                        for p2 in range(len(seq2)):\n                            jid2 = seq2[p2]\n                            job2 = state[\"jobs\"][jid2]\n                            if job2[\"skill\"] not in t1[\"skills\"]:\n                                continue\n                            new_seq1 = seq1[:p1] + [jid2] + seq1[p1 + 1:]\n                            new_seq2 = seq2[:p2] + [jid1] + seq2[p2 + 1:]\n                            c1_new = _rc(state, t1, new_seq1)\n                            c2_new = _rc(state, t2, new_seq2)\n                            if c1_new == float('inf') or c2_new == float('inf'):\n                                continue\n                            delta = (c1_new - c1_old) + (c2_new - c2_old)\n                            delta += _churn_delta(state, jid1, t1[\"id\"], t2[\"id\"])\n                            delta += _churn_delta(state, jid2, t2[\"id\"], t1[\"id\"])\n                            if delta < -1e-9:\n                                plan[t1[\"id\"]] = new_seq1\n                                plan[t2[\"id\"]] = new_seq2\n                                improved = True\n                                done = True\n                                break\n\n        # 4. Insert unscheduled jobs (with drops)\n        if not improved:\n            assigned = set()\n            for t in healthy:\n                assigned.update(plan[t[\"id\"]])\n            unscheduled = [jid for jid in state[\"jobs\"] if jid not in assigned]\n            unscheduled.sort(key=lambda jid: (\n                not state[\"jobs\"][jid][\"emergency\"],\n                -state[\"jobs\"][jid][\"priority\"],\n                state[\"jobs\"][jid][\"release\"],\n            ))\n            for jid in unscheduled:\n                job = state[\"jobs\"][jid]\n                is_em = job[\"emergency\"]\n                best = _try_insert_improved(state, plan, healthy, jid, allow_drop=True)\n                if best is not None:\n                    plan[best[0]] = best[1]\n                    improved = True\n                    break\n                elif is_em:\n                    for t in healthy:\n                        if job[\"skill\"] in t[\"skills\"]:\n                            seq = plan[t[\"id\"]]\n                            for new_seq in ([jid] + seq, seq + [jid]):\n                                kept, _ = _drop_low_priority(state, t, new_seq, keep=jid)\n                                if kept is not None and jid in kept:\n                                    plan[t[\"id\"]] = kept\n                                    improved = True\n                                    break\n                            if improved:\n                                break\n                    if improved:\n                        break\n\n        # 5. Replace a scheduled job with an unscheduled job\n        if not improved:\n            assigned = set()\n            for t in healthy:\n                assigned.update(plan[t[\"id\"]])\n            unscheduled = [jid for jid in state[\"jobs\"] if jid not in assigned]\n            unscheduled.sort(key=lambda jid: (\n                not state[\"jobs\"][jid][\"emergency\"],\n                -state[\"jobs\"][jid][\"priority\"],\n            ))\n            for u in unscheduled:\n                job_u = state[\"jobs\"][u]\n                p_u = job_u[\"priority\"]\n                is_em_u = job_u[\"emergency\"]\n                for t in healthy:\n                    if job_u[\"skill\"] not in t[\"skills\"]:\n                        continue\n                    seq = plan[t[\"id\"]]\n                    c_old = _rc(state, t, seq)\n                    for j in seq:\n                        job_j = state[\"jobs\"][j]\n                        p_j = job_j[\"priority\"]\n                        if not is_em_u and p_u <= p_j:\n                            continue\n                        base = [x for x in seq if x != j]\n                        best_c = float('inf')\n                        best_seq = None\n                        for pos in range(len(base) + 1):\n                            cand = base[:pos] + [u] + base[pos:]\n                            c = _rc(state, t, cand)\n                            if c < best_c - 1e-9:\n                                best_c = c\n                                best_seq = cand\n                        if best_seq is not None and best_c < 1e6:\n                            d = best_c - c_old - 150 * p_u + 150 * p_j\n                            d += _churn_delta(state, u, None, t[\"id\"])\n                            d += _churn_delta(state, j, t[\"id\"], None)\n                            if d < -1e-9:\n                                plan[t[\"id\"]] = best_seq\n                                improved = True\n                                break\n                    if improved:\n                        break\n                if improved:\n                    break\n\n        # 6. Unschedule a non-emergency job if it saves cost\n        if not improved:\n            done = False\n            for t in healthy:\n                if done:\n                    break\n                seq = plan[t[\"id\"]]\n                c_old = _rc(state, t, seq)\n                for i in range(len(seq)):\n                    jid = seq[i]\n                    job = state[\"jobs\"][jid]\n                    if job[\"emergency\"]:\n                        continue\n                    new_seq = seq[:i] + seq[i + 1:]\n                    c_new = _rc(state, t, new_seq)\n                    if c_new == float('inf'):\n                        continue\n                    delta = c_new - c_old + 150 * job[\"priority\"]\n                    delta += _churn_delta(state, jid, t[\"id\"], None)\n                    if delta < -1e-9:\n                        plan[t[\"id\"]] = new_seq\n                        improved = True\n                        done = True\n                        break\n\n        if not improved:\n            break\n\n    # Final full re-optimization of each tech's sequence\n    for t in healthy:\n        seq = plan[t[\"id\"]]\n        if len(seq) < 2:\n            continue\n        c_old = _rc(state, t, seq)\n        new = _optimize_seq(state, t, seq, rounds=3)\n        c_new = _rc(state, t, new)\n        if c_new < c_old - 1e-9:\n            plan[t[\"id\"]] = new\n\n    return plan\n\n\ndef replan(state):\n    _RC_CACHE.clear()\n    plan = _greedy_initial(state)\n    plan = _local_search(state, plan)\n    return {t[\"id\"]: plan.get(t[\"id\"], []) for t in state[\"techs\"] if not t[\"sick\"]}\n",
+ "round0_code": "\"\"\"Round-0 seed policy: what a busy human dispatcher does.\n\nEveryone keeps their remaining jobs. Each orphaned job (from the sick tech) and each\nemergency goes to the nearest healthy tech with the right skill: emergencies to the\nfront of that tech's list, other jobs to the end. If that would push the tech past the\novertime limit, the job is left for tomorrow; an emergency instead bumps that\ntech's lowest-priority jobs to tomorrow.\n\"\"\"\n\nfrom dispatchiq.helpers import drop_until_feasible, route, travel_min\n\n\ndef replan(state):\n    plan = {t[\"id\"]: ([] if t[\"sick\"] else list(t[\"remaining\"])) for t in state[\"techs\"]}\n    healthy = [t for t in state[\"techs\"] if not t[\"sick\"]]\n    orphans = [j for t in state[\"techs\"] if t[\"sick\"] for j in t[\"remaining\"]]\n    emergencies = [jid for jid, j in state[\"jobs\"].items() if j[\"emergency\"]]\n    for jid in emergencies + orphans:\n        job = state[\"jobs\"][jid]\n        options = sorted((travel_min(state, t[\"loc\"], job[\"loc\"]), t[\"id\"]) for t in healthy\n                         if job[\"skill\"] in t[\"skills\"])\n        for _, tid in options:\n            tech = next(t for t in healthy if t[\"id\"] == tid)\n            seq = [jid] + plan[tid] if job[\"emergency\"] else plan[tid] + [jid]\n            if job[\"emergency\"]:\n                seq, _ = drop_until_feasible(state, tech, seq)  # bump routine jobs to tomorrow\n            if route(state, tech, seq)[\"feasible\"]:\n                plan[tid] = seq\n                break\n    return plan\n",
+ "team": false
+}

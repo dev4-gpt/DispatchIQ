@@ -30,12 +30,13 @@ def main() -> None:
     ]
     results = []
     print(f"Held-out: {len(days)} unseen days, hash {h[:12]}...\n")
-    print(f"{'Policy':45s} {'cost':>8s} {'on-time':>8s} {'emerg min':>9s} {'travel':>7s} {'moved':>6s} {'unsched':>7s} {'fail':>5s}")
+    print(f"{'Policy':45s} {'cost':>8s} {'on-time':>8s} {'emerg min':>9s} {'travel':>7s} {'moved':>6s} {'unsched':>7s} {'fail':>5s} {'missed':>6s}")
     for name, code in rows:
         s = evaluate(code, days).summary()
         results.append({"policy": name, **s})
         print(f"{name:45s} {s['mean_cost']:8.0f} {s['on_time_pct']:7.1f}% {s['emergency_response']:9.0f} "
-              f"{s['travel']:7.0f} {s['moved']:6.1f} {s['unassigned']:7.1f} {s['infeasible']:5d}")
+              f"{s['travel']:7.0f} {s['moved']:6.1f} {s['unassigned']:7.1f} {s['infeasible']:5d} "
+              f"{s['missed_promises']:3d}/{s['emergencies']:<3d}")
     base, champ = results[0]["mean_cost"], results[-1]["mean_cost"]
     print(f"\nRelative improvement vs round 0 on held-out days: {100 * (base - champ) / base:.1f}%")
     (ROOT / "runs" / "heldout_result.json").write_text(json.dumps({"run": run["id"], "results": results}, indent=1))

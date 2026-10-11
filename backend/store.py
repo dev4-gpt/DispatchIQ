@@ -61,6 +61,12 @@ class StateStore:
         with self.lock:
             return self.current.model_copy(deep=True)
 
+    def snapshot_at(self, request: BaseRequest) -> Snapshot:
+        """Copy of the committed snapshot, only if the caller's base metadata is current."""
+        with self.lock:
+            self._check_base(request)
+            return self.current.model_copy(deep=True)
+
     def _check_base(self, request: BaseRequest):
         if request.scenario_id != self.current.scenario_id or request.scenario_epoch != self.current.scenario_epoch:
             raise APIError(409, "SCENARIO_CHANGED", "The scenario changed. Refresh and preview again.", self.current.revision)

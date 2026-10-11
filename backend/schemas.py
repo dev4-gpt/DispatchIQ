@@ -347,3 +347,23 @@ class RejectResponse(Model):
     proposal_id: Identifier
     status: Literal["rejected"]
     revision: Count
+
+
+class ParseRequest(BaseRequest):
+    text: Annotated[str, Field(min_length=1, max_length=2000)]
+
+
+class ParseIssue(Model):
+    field: str
+    message: str
+
+
+class ParseResponse(Model):
+    scenario_id: Identifier
+    scenario_epoch: Identifier
+    base_revision: Count
+    status: Literal["ready", "needs_input"]
+    event: Event | None
+    missing_fields: list[str]
+    issues: list[ParseIssue]
+    question: str | None

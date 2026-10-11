@@ -72,7 +72,9 @@ class Evaluation:
             return round(mean(getattr(s, attr) for s in ok), 2) if ok else None
         return {"mean_cost": round(self.mean_cost, 1), "infeasible": self.infeasible,
                 "on_time_pct": avg("on_time_pct"), "emergency_response": avg("emergency_response"),
-                "travel": avg("travel"), "moved": avg("moved"), "unassigned": avg("unassigned")}
+                "travel": avg("travel"), "moved": avg("moved"), "unassigned": avg("unassigned"),
+                # Totals over feasible days: emergencies that started after their promised latest start.
+                "emergencies": sum(s.emergencies for s in ok), "missed_promises": sum(s.missed_promises for s in ok)}
 
 
 def evaluate(code: str, seeds: list[int], timeout: float = 60.0) -> Evaluation:

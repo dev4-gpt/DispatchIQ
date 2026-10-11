@@ -42,6 +42,17 @@ def test_checker_hand_computed_cost():
     assert s.cost == 40 + 60
 
 
+def test_missed_promises_are_reported_not_hard():
+    import copy
+    st = copy.deepcopy(TINY)
+    st["jobs"]["E0"]["latest"] = 650  # B reaches E0 at 660 (see above), 10 minutes after the promise
+    s = check(st, {"A": ["J1"], "B": ["J2", "E0"], "C": []})
+    assert s.feasible and s.emergencies == 1 and s.missed_promises == 1
+    assert s.cost == 40 + 60 + 10 * 5  # unchanged weights: lateness x priority 5 is the only extra cost
+    on_time = check(TINY, {"A": ["J1"], "B": ["J2", "E0"], "C": []})
+    assert on_time.emergencies == 1 and on_time.missed_promises == 0
+
+
 def test_checker_rules():
     assert not check(TINY, {"A": ["J1"], "C": ["J2", "E0"]}).feasible             # sick tech used
     assert not check(TINY, {"A": ["J1", "J2", "E0"]}).feasible                    # A lacks plumbing
@@ -114,6 +125,32 @@ def test_llm_proposer_with_stub(monkeypatch):
     code, note = p.propose(0, naive, "feedback", __import__("random").Random(0))
     assert "def replan" in code and p.tokens == 123 and note.startswith("stub")
     assert evaluate(code, [0]).infeasible == 0
+
+
+def test_llm_proposer_streams_and_counts_tokens(monkeypatch):
+    import types
+    from dispatchiq import proposers
+    naive = (ROOT / "dispatchiq/policies/naive.py").read_text()
+    text = "```python\n" + naive + "\n```"
+
+    def chunk(content=None, usage=None):
+        delta = types.SimpleNamespace(content=content)
+        return types.SimpleNamespace(choices=[types.SimpleNamespace(delta=delta)] if content else [], usage=usage)
+
+    class StreamingClient:
+        def __init__(self, **kw):
+            self.chat = types.SimpleNamespace(completions=types.SimpleNamespace(create=self.create))
+
+        def create(self, **kw):
+            assert kw["stream"] is True  # long non-streamed requests are cut off by the gateway
+            pieces = [chunk(text[i:i + 50]) for i in range(0, len(text), 50)]
+            return iter(pieces + [chunk(usage=types.SimpleNamespace(total_tokens=777))])
+
+    import openai
+    monkeypatch.setattr(openai, "OpenAI", StreamingClient)
+    p = proposers.LLMProposer([proposers.Provider("stub", "http://x", "k", "m")])
+    code, _ = p.propose(0, naive, "feedback", __import__("random").Random(0))
+    assert code.strip() == naive.strip() and p.tokens == 777
 
 
 def test_malformed_job_ids_are_violations_not_crashes():
