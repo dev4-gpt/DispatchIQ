@@ -4,6 +4,14 @@
 
 Entry for **c0mpiled-15, Track 1, Challenge A**. LLM: **`deepseek-ai/DeepSeek-V4.1-Flash`** on Luminal (`https://flash.luminal.cloud/v1`, OpenAI-compatible, streamed).
 
+## Watch the demo
+
+[![Play the DispatchIQ demo — 1 minute 29 seconds](docs/demo-preview.png)](https://github.com/dev4-gpt/DispatchIQ/raw/refs/heads/feature/optimization/DispatchIQ.mp4)
+
+**[▶ Open / download the demo (MP4)](https://github.com/dev4-gpt/DispatchIQ/raw/refs/heads/feature/optimization/DispatchIQ.mp4)** — See the dispatch board, emergency preview, and dispatcher approval workflow.
+
+The preview links to the original video; your browser may download it. After cloning, open [docs/demo.html](docs/demo.html) locally for a player with playback, volume, and fullscreen controls.
+
 ## Results at a glance
 
 All numbers below come from saved files: `runs/heldout_result.json` (held-out) and the run files in `runs/`, read by `python -m dispatchiq.scoreboard`. Lower cost is better.
