@@ -161,6 +161,11 @@ def heldout_rows(runs_dir: Path, runs: dict[str, dict | None]) -> tuple[list[dic
     results = doc.get("results") or []
     if not results:
         return [], None
+    if doc.get("format") == 2:  # one heldout.py invocation scored every champion; first row is naive
+        base = next((r.get("mean_cost") for r in results if r.get("policy") == "naive (reference)"), None)
+        rows = [{**r, "vs_round0_pct": pct_better(r.get("mean_cost"), base)} for r in results]
+        return rows, (f"final solution {doc.get('final_solution')} (named before scoring by the validation rule); "
+                      f"baseline = naive; finished {doc.get('finished_at')}")
     source = next((r for r in runs.values() if r and r.get("id") == doc.get("run")), None)
     start = (source or {}).get("start")
     base_label = ("naive" if start and start.endswith("naive.py") else f"round 0 ({start})" if start

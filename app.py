@@ -9,6 +9,7 @@ ablation table, missed promises and the critic's lessons. It only reads run file
 
 from __future__ import annotations
 
+import importlib
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -18,6 +19,10 @@ import plotly.express as px
 import streamlit as st
 
 from dispatchiq import scoreboard
+
+# Streamlit re-runs this script on every page load but keeps imported modules cached, so a server started
+# before a scoreboard change would call functions that no longer match. Reload it so the tab is always current.
+scoreboard = importlib.reload(scoreboard)
 from dispatchiq.generator import make_day, split
 from dispatchiq.model import route_eval
 from dispatchiq.sandbox import evaluate
@@ -145,13 +150,15 @@ def research_runs() -> None:
     held, held_note = scoreboard.heldout_rows(ROOT / "runs", runs)
     if held:
         st.markdown(f"**Held-out (50 unseen days, run once)**: {held_note}")
-        st.dataframe(pd.DataFrame([{"policy": r["policy"], "held-out cost": r["mean_cost"],
-                                    "vs round 0 %": r["vs_round0_pct"], "on-time %": r.get("on_time_pct"),
+        st.dataframe(pd.DataFrame([{"policy": r["policy"], "final solution": bool(r.get("final_solution")),
+                                    "held-out cost": r["mean_cost"],
+                                    "vs baseline %": r["vs_round0_pct"], "on-time %": r.get("on_time_pct"),
                                     "missed promises": f"{r.get('missed_promises')}/{r.get('emergencies')}"
                                     if r.get("missed_promises") is not None else None} for r in held]),
                      use_container_width=True, hide_index=True)
     else:
-        st.caption("Held-out: not run yet. `python heldout.py runs/<name>.json` writes runs/heldout_result.json once.")
+        st.caption("Held-out: not run yet. `python heldout.py` scores every saved champion once and names the final "
+                   "solution by the validation rule before scoring.")
 
     st.subheader("Improvement over rounds (validation cost, lower is better)")
     curves = scoreboard.curves(runs)

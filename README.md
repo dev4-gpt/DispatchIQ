@@ -85,22 +85,26 @@ python rescore.py runs/llm-team.json                 # champion on dev + validat
 python rescore.py runs/llm-team.json --code round0   # the starting policy
 ```
 
-**Held-out days are not in `rescore.py`.** `python heldout.py runs/<name>.json` scores 50 held-out days once and writes `runs/heldout_result.json`.
+**Held-out days are not in `rescore.py`.** `python heldout.py` scores every saved champion on the 50 held-out days once and writes `runs/heldout_result.json` (rules below).
 
 ### Final-solution rule (fixed 2026-10-11, before any held-out scoring)
 
-The held-out run uses **the 6-agent LLM run with the lowest validation cost at 18:30 local time**.
+The **final solution** is **the 6-agent LLM run with the lowest validation cost at 18:30 local time**.
 - **Eligible runs:** `llm-plain`, `llm-team` (critic v1) and `llm-team-v2` (critic v2). Each must have `--agents 6` and use the LLM.
 - **Not eligible:** random search and the single-agent run (`llm-team-v2-1agent`).
 - **Which cost counts:** the champion's validation cost in the run file as saved at 18:30. A run still going at 18:30 counts with the rounds it had saved by then.
-- **One shot:** `heldout.py` is run once, at 18:30, on that file:
+- **Named before scoring:** `heldout.py` applies this rule and prints the final solution before it scores anything.
+- **Every champion scored beside it:** the same single invocation scores naive, insertion, random search, llm-plain, team v1 and team v2 on the same 50 held-out days. Those rows are reported alongside, for comparison only. A better held-out number on another row does not change which run is the final solution.
+- **No other held-out runs:** no run is scored on held-out days outside this one invocation, and the rule is not changed after seeing held-out results.
 
 ```bash
-python -m dispatchiq.scoreboard     # last lines name the run this rule picks from the saved files
-python heldout.py runs/<picked run>.json
+python heldout.py --dry-run         # names the final solution and lists the rows; scores nothing
+python heldout.py                   # the held-out run, at 18:30, with no evolve process running
 ```
 
-No other run is scored on held-out days, and the rule is not changed after seeing held-out results.
+**What "once" means:**
+- **Not a run:** a crash or timeout that prints no held-out scores, and it may be retried. `heldout.py` scores every policy before printing anything and prints no table if any policy fails to complete all 50 days.
+- **Final:** any invocation that prints held-out scores. It writes `runs/heldout_result.json`, and `heldout.py` refuses to run again while that file exists.
 
 ## Results so far (offline, no LLM)
 Random search over `parametric.py`, 6 rounds × 6 proposals, scored on 50 held-out days:
