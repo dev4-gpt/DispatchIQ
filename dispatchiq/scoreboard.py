@@ -76,7 +76,8 @@ def load_backfill(runs_dir: Path = RUNS) -> dict:
         return {}
 
 
-def _row(policy: str, val: dict | None, fallback: dict | None = None, **extra) -> dict:
+def _row(policy: str, val: dict | None, fallback: dict | None = None, rescored_val: float | None = None,
+         **extra) -> dict:
     """Fields missing from an older run file come from a matching backfill entry (re-scored, no LLM)."""
     val = val or {}
     missed, emerg = val.get("missed_promises"), val.get("emergencies")
@@ -85,6 +86,8 @@ def _row(policy: str, val: dict | None, fallback: dict | None = None, **extra) -
     if source is None and fallback:
         report = {k: fallback.get(k) for k in REPORT_FIELDS}
         source = "re-scored (rescore.py --backfill)" if all(v is not None for v in report.values()) else None
+        if source and rescored_val is not None and val.get("mean_cost") is not None                 and abs(rescored_val - val["mean_cost"]) >= 0.05:
+            source += f"; re-scored cost {rescored_val:.1f} vs saved {val['mean_cost']:.1f} (time-budgeted search)"
     return {"policy": policy, "val_cost": val.get("mean_cost"), "on_time_pct": val.get("on_time_pct"),
             "missed_promises": missed, "emergencies": emerg, "infeasible_days": val.get("infeasible"),
             **report, "report_source": source, **extra}
@@ -105,7 +108,8 @@ def scoreboard(runs: dict[str, dict | None], backfill: dict | None = None) -> li
         critic = [r["critic"] for r in rounds if isinstance(r.get("critic"), dict)]
         entry = (backfill.get("runs") or {}).get(RUN_NAMES[label]) or {}
         matches = entry.get("champion_val") == last.get("champion_val") and entry.get("rounds") == len(rounds)
-        rows.append(_row(label, last.get("champion"), entry.get("val") if matches else None, status=run_status(run),
+        rows.append(_row(label, last.get("champion"), entry.get("val") if matches else None,
+                         entry.get("rescored_val") if matches else None, status=run_status(run),
                          note=RUN_NOTES.get(label),
                          agents=run.get("agents"), rounds=len(rounds),
                          proposals=(run.get("agents") or 0) * len(rounds), start=run.get("start"),

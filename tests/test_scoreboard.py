@@ -197,3 +197,12 @@ def test_v2_round8_checkpoint_and_families_table(tmp_path):
     fams = scoreboard.families_per_round(runs["LLM team v2, 1 agent"])
     assert [f["family"] for f in fams] == ["F1", "F2", "F3", "F4", "F5", "F6", "F1", "F2", "F3", "F4"]
     assert fams[0]["promoted"] and fams[0]["dev_cost"] == 300.0
+
+
+def test_backfill_cost_mismatch_is_labelled_not_hidden(tmp_path):
+    write(tmp_path, "llm-team", run(6, [1251.2]))
+    bf = {"runs": {"llm-team": {"champion_val": 1251.2, "rounds": 1, "rescored_val": 1250.98, "cost_matches": False,
+                                "val": {"bumped_booked": 41, "moved_healthy": 96}}}}
+    row = {r["policy"]: r for r in scoreboard.scoreboard(scoreboard.load_runs(tmp_path), bf)}["LLM team v1"]
+    assert (row["bumped_booked"], row["moved_healthy"]) == (41, 96)
+    assert "re-scored cost 1251.0 vs saved 1251.2" in row["report_source"]

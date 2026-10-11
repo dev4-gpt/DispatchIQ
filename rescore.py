@@ -12,7 +12,8 @@ available here: heldout.py is the only, run-once path to them.
 --backfill re-scores the saved champion of every named run (and the naive/insertion references)
 on validation days and writes runs/backfill_metrics.json. Run files saved before a reporting field
 existed (e.g. bumped_booked, moved_healthy) get it from there; the scoreboard only uses an entry
-whose validation cost and round count still match the run file.
+whose saved validation cost and round count still match the run file. If the re-scored cost differs
+from the saved one (e.g. a champion with a wall-clock time budget), both are recorded and shown.
 """
 
 from __future__ import annotations
@@ -52,11 +53,14 @@ def backfill(runs_dir: Path) -> dict:
             continue
         summary = evaluate(run["champion_code"], days).summary()
         saved = run["rounds"][-1]["champion_val"]
-        if abs(summary["mean_cost"] - saved) >= 0.05:
-            raise SystemExit(f"{name}: re-scored validation cost {summary['mean_cost']} != saved {saved}")
-        out["runs"][name] = {"champion_val": saved, "rounds": len(run["rounds"]), "val": summary}
+        matches = abs(summary["mean_cost"] - saved) < 0.05
+        # A champion whose search stops on a wall-clock budget can score slightly differently under a different
+        # machine load. Record both costs and flag it instead of hiding the difference.
+        out["runs"][name] = {"champion_val": saved, "rounds": len(run["rounds"]), "val": summary,
+                             "rescored_val": summary["mean_cost"], "cost_matches": matches}
         print(f"  {name:22s} rounds {len(run['rounds']):2d}  val {saved:.1f}  bumped {summary['bumped_booked']}  "
-              f"moved {summary['moved_healthy']}")
+              f"moved {summary['moved_healthy']}"
+              + ("" if matches else f"  WARNING: re-scored cost {summary['mean_cost']:.1f} != saved {saved:.1f}"))
     for name, s in out["references"].items():
         print(f"  {name + ' (reference)':22s}           val {s['mean_cost']:.1f}  bumped {s['bumped_booked']}  "
               f"moved {s['moved_healthy']}")
