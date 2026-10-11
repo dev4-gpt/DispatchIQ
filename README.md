@@ -308,6 +308,16 @@ All times are local (America/New_York) on 2026-10-11, from `git log`.
 
 Later commits (this README, final run files) are in `git log`. **AI coding tools were used throughout.** Commits authored "Claude" were made by Claude Code sessions, and the other commits from 16:15 on were also written with Claude Code (`Co-Authored-By` trailers). The agents inside the product use the Luminal model named above.
 
+## Frontend
+
+The React, TypeScript and Vite frontend was built to turn scheduling decisions into a workflow a dispatcher can understand and control. It makes the day's work, the impact of an emergency and the next action visible, so a dispatcher can review changes before applying them.
+
+The main **Dispatch Board** connects an interactive map with a technician timeline: selecting a job or technician highlights its location, route and schedule, with details in a contextual inspector. Overview, Jobs, Technicians and Activity provide views of the committed day. Operational summaries show available technicians, assigned/unassigned work, appointments at risk and emergencies.
+
+For an emergency, the frontend calls the backend to preview a plan, shows current versus proposed assignments and times, and exposes the measured tradeoffs and validation evidence. **Approve Changes** commits the proposal; **Reject Proposal** keeps the approved schedule intact. Mobile uses map/timeline tabs and detail drawers. The map uses clearly labeled synthetic coordinates and estimated travel.
+
+See [frontend/README.md](frontend/README.md) for frontend setup, browser tests and screenshots. The explicitly labeled development fixture is separate from the real API workflow.
+
 ## The dispatch app
 
 The dispatch app is the product a dispatcher would use. It loads a synthetic day (10 technicians, 25 jobs, at 11:30) on a map and timeline, and lets you add an emergency. The backend proposes a validated insertion that the dispatcher approves or rejects before anything changes. A strict validator protects skills, travel, time windows, shifts and work already started, and stale proposals are refused by revision checks.
