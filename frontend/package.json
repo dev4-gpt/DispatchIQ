@@ -8,6 +8,7 @@
     "dev:fixture": "vite --mode fixture",
     "build": "tsc -p tsconfig.json && vite build",
     "preview": "vite preview",
+    "build:demo": "tsc -p tsconfig.json && vite build --mode fixture --outDir demo --emptyOutDir",
     "typecheck": "tsc -p tsconfig.json",
     "test:e2e": "playwright test"
   },

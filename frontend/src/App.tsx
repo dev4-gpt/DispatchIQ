@@ -128,7 +128,7 @@ export default function App() {
       )}
       <header className="flex min-h-16 shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-b border-line bg-panel px-4 py-2 max-[899px]:px-3">
         <div className="flex items-center gap-2">
-          <img src="/favicon.svg" alt="" className="size-7" />
+          <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="size-7" />
           <div>
             <h1 className="text-[15px] font-semibold leading-tight">DispatchIQ</h1>
             <p className="tabular text-[11px] text-muted">{s ? `${s.date} · ${hhmm(now)} simulated` : "—"}</p>

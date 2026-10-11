@@ -16,6 +16,7 @@ npm ci
 npm run dev              # real API: proxies /api to 127.0.0.1:8000 (Developer 1's FastAPI)
 npm run dev:fixture      # DEVELOPMENT FIXTURE: in-browser stand-in, orange banner, not backend results
 npm run build            # typecheck + production build
+npm run build:demo       # static fixture demo into frontend/demo/ (open demo/index.html via any static server)
 npx playwright install chromium   # once (or set CHROMIUM_PATH to an existing Chromium)
 npx playwright test      # runs the three test projects below
 ```
@@ -37,6 +38,12 @@ Test projects (`playwright.config.ts`):
 - `fixture-ui`: 10 UI workflow tests against the labeled development fixture. They check UI behaviour and contract handling, **not** backend integration.
 - `api-unavailable`: real-API mode with nothing behind the proxy.
 - `integration`: the real FastAPI service. Start it first, then run `npx playwright test --project=integration`.
+
+## Static demo (`frontend/demo/`)
+
+`frontend/demo/` is a committed static build of the **development fixture** (orange banner, not backend results), for showing the UI without installing anything:
+- **Serve it:** `cd frontend/demo && python -m http.server 8080`, then open http://127.0.0.1:8080.
+- **Rebuild it** after UI changes with `npm run build:demo`.
 
 ## Development fixture (`src/api/devFixture.ts`)
 - **What it is:** opt-in only (`npm run dev:fixture` or `?fixture=dev`), with an orange banner while active. It's a synthetic 10-technician / 25-job day at 11:30 that follows the contract's units, statuses, hard windows, frozen work, revisions and proposal lifecycle.
