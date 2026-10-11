@@ -11,9 +11,19 @@ export interface Location {
   longitude: number | null;
 }
 
+/**
+ * Contract v1.1 proposal (docs/CONTRACTS_WORKER_TYPES.md): additive, optional fields so v1
+ * payloads still parse. A missing worker_type means "human"; a missing allowed_worker_types
+ * means ["human"].
+ */
+export type WorkerType = "human" | "robot" | "agent";
+
 export interface Technician {
   id: string;
   name: string;
+  worker_type?: WorkerType;
+  /** Safety/operating certifications, e.g. "robot_cowork". */
+  certifications?: string[];
   skills: string[];
   location: Location;
   shift_start_min: Minutes;
@@ -48,6 +58,10 @@ export interface Job {
   emergency: boolean;
   status: JobStatus;
   locked: boolean;
+  /** Which kinds of worker may do this job. Missing = ["human"]. */
+  allowed_worker_types?: WorkerType[];
+  /** Physical site; work at the same site at overlapping times is checked for human-robot safety. */
+  site_id?: string | null;
 }
 
 export type JobInput = Omit<Job, "status">;

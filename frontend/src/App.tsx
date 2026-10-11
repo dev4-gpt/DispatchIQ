@@ -12,6 +12,8 @@ import { RouteMap } from "@/components/RouteMap";
 import { ScheduleBoard } from "@/components/ScheduleBoard";
 import { MetricsStrip } from "@/components/MetricsStrip";
 import { TechnicianList } from "@/components/TechnicianList";
+import { WorkforcePanel } from "@/components/WorkforcePanel";
+import { TYPE_ORDER, WORKER, workerType } from "@/lib/workers";
 import { JobInspector } from "@/components/JobInspector";
 import { ProposalPanel } from "@/components/ProposalPanel";
 import { ScenarioControls } from "@/components/ScenarioControls";
@@ -136,7 +138,12 @@ export default function App() {
         </div>
         {s && (
           <div className="flex flex-wrap items-center gap-1.5 text-[12px]">
-            <Badge tone="blue"><Users /> {available}/{s.technicians.length} techs available</Badge>
+            <Badge tone="blue"><Users /> {available}/{s.technicians.length} available</Badge>
+            {TYPE_ORDER.map((w) => {
+              const n = s.technicians.filter((t) => workerType(t) === w).length;
+              const I = WORKER[w].icon;
+              return n ? <Badge key={w} data-testid={`mix-${w}`}><I /> {n} {w === "agent" ? (n === 1 ? "AI agent" : "AI agents") : n === 1 ? WORKER[w].label.toLowerCase() : WORKER[w].plural.toLowerCase()}</Badge> : null;
+            })}
             <Badge><CalendarClock /> {inProgress} in progress</Badge>
             <Badge tone={emergencies ? "red" : "neutral"}><Siren /> {emergencies} emergencies</Badge>
             <Badge tone="neutral" className="tabular">rev {s.revision}</Badge>
@@ -171,7 +178,10 @@ export default function App() {
               </TabsList>
               <TabsContent value="timeline" className="mt-2 h-[560px]">{boardPanel}</TabsContent>
               <TabsContent value="map" className="mt-2 h-[460px]">{mapPanel}</TabsContent>
-              <TabsContent value="details" className="mt-2 rounded-[12px] border border-line bg-panel">{inspectorBody}</TabsContent>
+              <TabsContent value="details" className="mt-2 space-y-3 rounded-[12px] border border-line bg-panel">
+                {inspectorBody}
+                <div className="border-t border-line p-2"><WorkforcePanel view={view} /></div>
+              </TabsContent>
             </Tabs>
           </div>
         ) : (
@@ -191,8 +201,8 @@ export default function App() {
                     );
                   })}
                 </div>
-                <div className="min-h-0 flex-1 overflow-y-auto p-2">
-                  <h2 className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted">Technicians</h2>
+                <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-2">
+                  <WorkforcePanel view={view} />
                   <TechnicianList view={view} selectedTech={state.selectedTech} onSelectTech={selectTech} />
                 </div>
               </nav>

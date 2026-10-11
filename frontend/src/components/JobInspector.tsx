@@ -3,6 +3,7 @@ import type { Assignment, Proposal } from "@/api/types";
 import { Badge } from "@/components/ui/badge";
 import { hhmm } from "@/state/dispatch";
 import { type Indexed, skillText } from "@/lib/schedule";
+import { WORKER, allowedTypes, workerType } from "@/lib/workers";
 
 interface Props {
   jobId: string;
@@ -37,7 +38,9 @@ export function JobInspector({ jobId, committed, proposed, proposal }: Props) {
     ? [...new Map(eligibility.map((c) => [c.technician_id, c])).values()].map((c) => {
         const all = eligibility.filter((x) => x.technician_id === c.technician_id);
         const ok = all.some((x) => x.valid);
-        return { id: c.technician_id, ok, eligible: c.eligible, reason: ok ? "Valid insertion found" : all[0].reasons[0] ?? "No valid slot" };
+        const reasons = all.flatMap((x) => x.reasons);
+        const reason = ok ? "Valid insertion found" : reasons.find((r) => r.startsWith("Safety:")) ?? reasons[0] ?? "No valid slot";
+        return { id: c.technician_id, ok, eligible: c.eligible, reason };
       })
     : null;
 
@@ -60,6 +63,7 @@ export function JobInspector({ jobId, committed, proposed, proposal }: Props) {
       </div>
       <dl className="divide-y divide-line">
         <Row k="Required skills" v={job.required_skills.map(skillText).join(", ")} />
+        <Row k="Who can do it" v={allowedTypes(job).map((w) => WORKER[w].plural).join(", ")} />
         <Row k="Start window" v={`${hhmm(job.earliest_start_min)}–${hhmm(job.latest_start_min)}`} />
         <Row k="Must finish by" v={hhmm(job.window_end_min)} />
         {job.deadline_start_min !== null && <Row k="Response deadline" v={hhmm(job.deadline_start_min)} />}
@@ -70,13 +74,15 @@ export function JobInspector({ jobId, committed, proposed, proposal }: Props) {
         {proposed && <Row k="Proposed" v={<span className={changed ? "font-semibold text-proposed" : ""}>{placement(pa, proposed)}</span>} />}
         {proposed && pa && job.emergency && <Row k="Response time" v={`${pa.start_min - job.release_min} min after call`} />}
       </dl>
+      <WorkRecord jobId={jobId} committed={committed} proposed={proposed} />
       {techSummary && (
         <div>
-          <h3 className="mb-1 text-[12px] font-semibold uppercase tracking-wide text-muted">Technician eligibility</h3>
+          <h3 className="mb-1 text-[12px] font-semibold uppercase tracking-wide text-muted">Worker eligibility</h3>
           <ul className="space-y-0.5 text-[12px]">
             {techSummary.map((t) => (
               <li key={t.id} className="flex justify-between gap-2">
-                <span>{committed.techs.get(t.id)?.name ?? t.id}</span>
+                <span>{committed.techs.get(t.id)?.name ?? t.id}
+                  <span className="text-muted"> · {committed.techs.get(t.id) ? WORKER[workerType(committed.techs.get(t.id)!)].label : ""}</span></span>
                 <span className={t.ok ? "text-ok" : "text-muted"}>{t.ok ? "✓ " : "✕ "}{t.reason}</span>
               </li>
             ))}
@@ -84,5 +90,40 @@ export function JobInspector({ jobId, committed, proposed, proposal }: Props) {
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * Timestamped record of the job. Past entries are what the schedule says happened (in a real
+ * deployment these would come from wearables, robot telemetry and agent logs); future entries
+ * are planned. Labelled so the two are never confused.
+ */
+function WorkRecord({ jobId, committed, proposed }: { jobId: string; committed: Indexed; proposed: Indexed | null }) {
+  const idx = proposed?.byJob.has(jobId) ? proposed : committed;
+  const a = idx.byJob.get(jobId);
+  if (!a) return null;
+  const t = idx.techs.get(a.technician_id);
+  const now = idx.snap.now_min;
+  const kind = t ? workerType(t) : "human";
+  const verb = kind === "agent" ? ["Assigned", "Started drafting", "Delivered"] : ["Dispatched", "On site, started", "Completed"];
+  const entries: { at: number; text: string }[] = [
+    { at: Math.max(a.start_min - a.travel_min, 0), text: `${verb[0]} to ${t?.name ?? a.technician_id}${a.travel_min ? ` · ${a.travel_min} min drive` : ""}` },
+    { at: a.start_min, text: verb[1] },
+    { at: a.end_min, text: verb[2] },
+  ];
+  return (
+    <div data-testid="work-record">
+      <h3 className="mb-1 text-[12px] font-semibold uppercase tracking-wide text-muted">Work record</h3>
+      <ol className="space-y-0.5 border-l border-line pl-3 text-[12px]">
+        {entries.map((e) => (
+          <li key={e.text} className="tabular flex gap-2">
+            <span className="w-11 shrink-0">{hhmm(e.at)}</span>
+            <span className={e.at <= now ? "" : "text-muted"}>{e.text}</span>
+            <span className="ml-auto text-[10.5px] text-muted">{e.at <= now ? "logged" : "planned"}</span>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-1 text-[10.5px] text-muted">Logged entries are derived from the synthetic schedule; real deployments would record them from wearables, robot telemetry and agent logs.</p>
+    </div>
   );
 }

@@ -3,8 +3,10 @@
  *
  * A small in-browser stand-in that follows docs/CONTRACTS.md so the operations UI can be
  * built and browser-tested before Developer 1's FastAPI service exists. It computes real
- * insertion candidates, timings, validation and metrics on a synthetic 10-technician /
- * 25-job day; nothing here is canned. It is enabled only by `npm run dev:fixture` or
+ * insertion candidates, timings, validation and metrics on a synthetic day with 7 people,
+ * 2 field robots and 1 AI quoting agent (25 booked jobs); nothing here is canned. It also
+ * implements the v1.1 proposal in docs/CONTRACTS_WORKER_TYPES.md (worker types and the
+ * human-robot co-presence safety rule). It is enabled only by `npm run dev:fixture` or
  * `?fixture=dev`, and the UI shows a persistent banner while it is active.
  *
  * It is NOT the backend's optimizer or validator and its numbers must never be presented
@@ -29,6 +31,7 @@ import type {
   Technician,
   Validation,
   Violation,
+  WorkerType,
 } from "./types";
 
 const NOW = 690; // 11:30
@@ -49,48 +52,69 @@ function rng(seed: number) {
   };
 }
 
-const TECHS: [string, string[], number, number][] = [
-  ["Mike", ["hvac"], 2, 3], ["Sarah", ["hvac", "electrical"], 14, 4], ["John", ["plumbing"], 6, 15],
-  ["Priya", ["electrical"], 18, 16], ["Luis", ["hvac", "plumbing"], 10, 9], ["Ava", ["plumbing"], 3, 18],
-  ["Omar", ["hvac"], 17, 10], ["Mei", ["electrical", "plumbing"], 9, 2], ["Dan", ["hvac"], 12, 17],
-  ["Zoe", ["electrical"], 4, 9],
+type Seed = { name: string; type: WorkerType; skills: string[]; x: number; y: number; certs?: string[]; capacity?: number; jobs: number };
+
+// 7 people, 2 field robots, 1 AI agent; 25 booked jobs.
+const WORKERS: Seed[] = [
+  { name: "Mike", type: "human", skills: ["hvac"], x: 2, y: 3, certs: ["robot_cowork"], jobs: 3 },
+  { name: "Sarah", type: "human", skills: ["hvac", "electrical"], x: 14, y: 4, jobs: 3 },
+  { name: "John", type: "human", skills: ["plumbing"], x: 6, y: 15, certs: ["robot_cowork"], jobs: 2 },
+  { name: "Priya", type: "human", skills: ["electrical"], x: 18, y: 16, jobs: 3 },
+  { name: "Luis", type: "human", skills: ["hvac", "plumbing"], x: 10, y: 9, certs: ["robot_cowork"], jobs: 2 },
+  { name: "Ava", type: "human", skills: ["plumbing"], x: 3, y: 18, jobs: 3 },
+  { name: "Omar", type: "human", skills: ["hvac"], x: 17, y: 10, jobs: 2 },
+  { name: "Rover-1", type: "robot", skills: ["inspection"], x: 9, y: 2, capacity: 300, jobs: 2 },
+  { name: "Atlas-2", type: "robot", skills: ["inspection"], x: 12, y: 17, capacity: 300, jobs: 2 },
+  { name: "Quote Agent", type: "agent", skills: ["quoting"], x: 0, y: 0, jobs: 3 },
 ];
 const CUSTOMERS = ["Taylor", "Nguyen", "Okafor", "Garcia", "Kim", "Patel", "Rossi", "Haddad", "Levy", "Brooks",
   "Chen", "Silva", "Novak", "Ito", "Moreau", "Khan", "Dubois", "Park", "Weber", "Costa", "Ali", "Berg", "Sato", "Ruiz", "Shah"];
 const SITES = ["Residence", "Bakery", "Dental office", "Apartment 4B", "Warehouse", "Cafe", "Clinic", "Townhouse"];
 
+const typeOf = (t: Technician): WorkerType => t.worker_type ?? "human";
+const typeName = (w: WorkerType) => (w === "human" ? "person" : w === "robot" ? "robot" : "AI agent");
+const aTypeName = (w: WorkerType) => (w === "agent" ? "an AI agent" : `a ${typeName(w)}`);
+const fmt = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+/** Agents work remotely: no travel. Everyone else drives the synthetic grid. */
+export const travelFor = (t: Technician, a: { x_km: number; y_km: number }, b: { x_km: number; y_km: number }) =>
+  typeOf(t) === "agent" ? 0 : travel(a, b);
+
 function buildFixture(): Snapshot {
   const r = rng(15);
-  const technicians: Technician[] = TECHS.map(([name, skills, x, y], i) => ({
-    id: `T${String(i).padStart(2, "0")}`, name, skills, location: loc(x, y),
-    shift_start_min: 480, shift_end_min: 1020, max_overtime_min: 0, max_service_min: 420,
+  const technicians: Technician[] = WORKERS.map((w, i) => ({
+    id: `T${String(i).padStart(2, "0")}`, name: w.name, worker_type: w.type, certifications: w.certs ?? [],
+    skills: w.skills, location: loc(w.x, w.y),
+    shift_start_min: 480, shift_end_min: 1020, max_overtime_min: 0, max_service_min: w.capacity ?? 420,
     availability: "available", assigned_job_ids: [],
   }));
   const jobs: Job[] = [];
   const assignments: Assignment[] = [];
-  const perTech = [3, 3, 2, 3, 2, 3, 2, 3, 2, 2]; // 25 jobs
   let k = 0;
   technicians.forEach((t, ti) => {
+    const kind = typeOf(t);
     let at = t.location;
-    let free = t.shift_start_min;
-    for (let seq = 0; seq < perTech[ti]; seq++) {
+    // Robots start mid-morning so one of them is working on site around "now" (11:30).
+    let free = t.shift_start_min + (kind === "robot" ? 150 : 0);
+    for (let seq = 0; seq < WORKERS[ti].jobs; seq++) {
       const id = `J${String(++k).padStart(2, "0")}`;
       const p = loc(Math.round(r() * 20), Math.round(r() * 20));
-      const dur = [45, 60, 60, 90, 75][Math.floor(r() * 5)];
-      const tr = travel(at, p);
-      const arrive = free + tr + Math.floor(r() * 3) * 15;
+      const dur = kind === "agent" ? [20, 30, 45][Math.floor(r() * 3)] : [45, 60, 60, 90, 75][Math.floor(r() * 5)];
+      const tr = travelFor(t, at, p);
+      const arrive = free + tr + Math.floor(r() * 3) * (kind === "agent" ? 60 : 15);
       const earliest = Math.floor(arrive / 30) * 30;
       const start = Math.max(arrive, earliest);
       const latest = earliest + 90 + Math.floor(r() * 3) * 30;
       jobs.push({
-        id, customer: { id: `C${String(k).padStart(2, "0")}`, name: CUSTOMERS[k - 1], site_name: SITES[k % SITES.length] },
+        id, customer: { id: `C${String(k).padStart(2, "0")}`, name: CUSTOMERS[k - 1],
+          site_name: kind === "agent" ? "Quote request" : kind === "robot" ? "Drain line" : SITES[k % SITES.length] },
         location: p, required_skills: [t.skills[seq % t.skills.length]], priority: ([1, 1, 2, 3] as const)[Math.floor(r() * 4)],
         duration_min: dur, earliest_start_min: earliest, latest_start_min: latest,
         window_end_min: latest + dur + 60, soft_promised_start_min: earliest + 60, deadline_start_min: null,
         release_min: 0, emergency: false, status: "scheduled", locked: false,
+        allowed_worker_types: [kind], site_id: `S${String(k).padStart(2, "0")}`,
       });
       assignments.push({ job_id: id, technician_id: t.id, sequence: seq, start_min: start, end_min: start + dur, travel_min: tr, frozen: false });
-      at = p;
+      if (kind !== "agent") at = p;
       free = start + dur;
     }
   });
@@ -146,6 +170,9 @@ export function validate(s: Snapshot, base?: Snapshot): Validation {
     seen.add(a.job_id);
     if (!j.required_skills.every((k) => t.skills.includes(k)))
       v.push({ code: "SKILL_MISMATCH", job_id: j.id, technician_id: t.id, message: `${t.name} lacks ${j.required_skills.join(", ")}` });
+    const allowed = j.allowed_worker_types ?? ["human"];
+    if (!allowed.includes(typeOf(t)))
+      v.push({ code: "WORKER_TYPE_NOT_ALLOWED", job_id: j.id, technician_id: t.id, message: `${j.id} allows ${allowed.map(typeName).join("/")} only; ${t.name} is ${aTypeName(typeOf(t))}` });
     if (!a.frozen && t.availability !== "available")
       v.push({ code: "TECH_UNAVAILABLE", job_id: j.id, technician_id: t.id, message: `${t.name} is unavailable` });
     if (a.end_min !== a.start_min + j.duration_min) v.push({ code: "BAD_DURATION", job_id: j.id, message: `${j.id} end ≠ start + duration` });
@@ -164,13 +191,27 @@ export function validate(s: Snapshot, base?: Snapshot): Validation {
       const j = jobs.get(a.job_id);
       if (!j) return;
       if (a.sequence !== i) v.push({ code: "BAD_SEQUENCE", technician_id: t.id, message: `${t.name} route sequence is not contiguous` });
-      const tr = travel(at, j.location);
+      const tr = travelFor(t, at, j.location);
       if (a.travel_min !== tr) v.push({ code: "BAD_TRAVEL", job_id: j.id, message: `${j.id} travel should be ${tr} min` });
       if (a.start_min < free + tr) v.push({ code: "OVERLAP_OR_TRAVEL", job_id: j.id, technician_id: t.id, message: `${t.name} cannot reach ${j.id} by ${a.start_min}` });
       at = j.location; free = a.end_min; service += j.duration_min;
     });
     if (free > t.shift_end_min + t.max_overtime_min) v.push({ code: "SHIFT_END", technician_id: t.id, message: `${t.name} works past shift end` });
     if (service > t.max_service_min) v.push({ code: "CAPACITY", technician_id: t.id, message: `${t.name} exceeds service capacity` });
+  }
+  // Human-robot safety: a person working at the same site at the same time as a robot must be
+  // certified for robot co-work.
+  for (const ra of s.schedule.assignments) {
+    const rt = techs.get(ra.technician_id), rj = jobs.get(ra.job_id);
+    if (!rt || !rj?.site_id || typeOf(rt) !== "robot") continue;
+    for (const ha of s.schedule.assignments) {
+      const ht = techs.get(ha.technician_id), hj = jobs.get(ha.job_id);
+      if (!ht || !hj || typeOf(ht) !== "human" || hj.site_id !== rj.site_id) continue;
+      const lo = Math.max(ha.start_min, ra.start_min), hi = Math.min(ha.end_min, ra.end_min);
+      if (lo < hi && !(ht.certifications ?? []).includes("robot_cowork"))
+        v.push({ code: "SAFETY_ROBOT_COPRESENCE", job_id: hj.id, technician_id: ht.id,
+          message: `Safety: ${ht.name} would work beside robot ${rt.name} at ${rj.customer.name} ${fmt(lo)}–${fmt(hi)} without robot co-work certification` });
+    }
   }
   if (base) for (const b of base.schedule.assignments) {
     if (!b.frozen && !base.jobs.find((j) => j.id === b.job_id)?.locked) continue;
@@ -218,7 +259,7 @@ function insertInto(s: Snapshot, tech: Technician, job: Job, pos: number): Assig
   let free = frozen.length ? frozen[frozen.length - 1].end_min : tech.shift_start_min;
   for (const id of flexible) {
     const j = jobs.get(id)!;
-    const tr = travel(at, j.location);
+    const tr = travelFor(tech, at, j.location);
     // A technician idle before "now" departs no earlier than now; travel always counts.
     const start = Math.max(Math.max(free, s.now_min) + tr, j.earliest_start_min, j.release_min);
     out.push({ job_id: id, technician_id: tech.id, sequence: out.length, start_min: start, end_min: start + j.duration_min, travel_min: tr, frozen: false });
@@ -275,9 +316,14 @@ function evaluateCandidates(base: Snapshot, job: Job): Evaluated[] {
   working.jobs.push(job);
   for (const t of working.technicians) {
     const missing = job.required_skills.filter((k) => !t.skills.includes(k));
-    if (t.availability !== "available" || missing.length) {
+    const allowed = job.allowed_worker_types ?? ["human"];
+    const typeOk = allowed.includes(typeOf(t));
+    if (t.availability !== "available" || !typeOk || missing.length) {
+      const reason = t.availability !== "available" ? "Unavailable"
+        : !typeOk ? `Job needs ${allowed.map(typeName).join(" or ")}; this is ${aTypeName(typeOf(t))}`
+        : `Missing skill: ${missing.join(", ")}`;
       out.push({ snapshot: null, evidence: { id: `CAND-${t.id}`, technician_id: t.id, insertion_position: -1, eligible: false, valid: false,
-        reasons: t.availability !== "available" ? ["Technician unavailable"] : [`Missing skill: ${missing.join(", ")}`], ranking: null, emergency_start_min: null } });
+        reasons: [reason], ranking: null, emergency_start_min: null } });
       continue;
     }
     const flexibleCount = working.schedule.assignments.filter((a) => a.technician_id === t.id && !a.frozen).length;
@@ -330,6 +376,8 @@ function validateEmergencyInput(job: JobInput, at: number) {
   if (!job.emergency || job.priority !== 5) bad("Emergency jobs must have emergency=true and priority 5.");
   if (job.release_min !== at || at !== committed.now_min) bad("Release and event time must equal the current time.");
   if (!job.required_skills.length) bad("At least one required skill is needed.");
+  if (job.allowed_worker_types && (!job.allowed_worker_types.length ||
+      job.allowed_worker_types.some((w) => !["human", "robot", "agent"].includes(w)))) bad("allowed_worker_types must list human, robot or agent.");
   if (!(job.duration_min > 0) || !Number.isInteger(job.duration_min)) bad("Duration must be a positive integer.");
 }
 
@@ -385,7 +433,7 @@ export const devFixtureTransport: Transport = {
       proposal.changes = diff(committed, snap, chosen.evidence.id).changes;
       const tech = snap.technicians.find((t) => t.id === chosen.evidence.technician_id)!;
       const r = chosen.evidence.ranking!;
-      proposal.explanation = `Assign ${job.id} to ${tech.name}: qualified, starts ${r.emergency_response_min} min after the call` +
+      proposal.explanation = `Assign ${job.id} to ${tech.name} (${typeName(typeOf(tech))}): qualified, starts ${r.emergency_response_min} min after the call` +
         (job.deadline_start_min !== null ? ` (deadline ${job.deadline_start_min - job.release_min} min)` : "") +
         `. ${r.changed_existing_jobs} existing job(s) change, total start shift ${r.absolute_start_shift_min} min, ` +
         `${r.voluntary_reassignments} reassigned. Chosen by strategy "${strategy}" among ${cands.filter((c) => c.evidence.valid).length} valid candidates evaluated in this preview.`;
