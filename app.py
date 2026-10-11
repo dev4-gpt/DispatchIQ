@@ -30,9 +30,14 @@ st.caption("Agents write the re-plan logic; a deterministic rule checker scores 
 
 run_path = ROOT / "runs" / "latest.json"
 run = json.loads(run_path.read_text()) if run_path.exists() else None
+POLICIES = ROOT / "dispatchiq" / "policies"
 if run is None:
-    st.warning("No run yet. Run `python evolve.py` (or `--mode random` offline) first.")
-    st.stop()
+    st.info("No evolution run saved yet, so the right panel shows the textbook cheapest-insertion reference "
+            "instead of an evolved champion. Run `python evolve.py` (or `--mode random` offline) to compare a champion.")
+    pair = [("Round 0: dispatcher-style re-plan", (POLICIES / "naive.py").read_text()),
+            ("Textbook cheapest insertion (reference, not evolved)", (POLICIES / "insertion.py").read_text())]
+else:
+    pair = [("Round 0: dispatcher-style re-plan", run["round0_code"]), ("Evolved champion", run["champion_code"])]
 
 seed = st.sidebar.selectbox("Held-out day", split("heldout"), index=0)
 day = make_day(seed)
@@ -79,7 +84,9 @@ if not triggered:
 @st.cache_data(show_spinner="Re-planning with the checker...")
 def replan_rows(code: str, seed: int):
     ev = evaluate(code, [seed])
-    score = ev.per_seed[seed]
+    score = ev.per_seed.get(seed)
+    if score is None:  # the policy runner itself failed (crash, timeout, bad output)
+        return None, {"feasible": False, "violations": ev.errors or ["policy evaluation failed"]}
     owner = {jid: tid for tid, seq in mplan.items() for jid in seq}
     rows = [{**r, "kind": "done/in progress"} for r in morning_rows
             if r["start"] < BASE + timedelta(minutes=t_dis)]
@@ -95,12 +102,14 @@ def replan_rows(code: str, seed: int):
 
 left, right = st.columns(2)
 results = {}
-for col, (label, code) in zip((left, right), [("Round 0: dispatcher-style re-plan", run["round0_code"]),
-                                              ("Evolved champion", run["champion_code"])]):
+for col, (label, code) in zip((left, right), pair):
     with col:
         rows, score = replan_rows(code, seed)
         results[label] = score
         st.subheader(label)
+        if rows is None:
+            st.error("Re-plan unavailable: " + "; ".join(score["violations"][:3]))
+            continue
         if not score["feasible"]:
             st.error("Infeasible: " + "; ".join(score["violations"][:3]))
         c1, c2, c3, c4 = st.columns(4)
@@ -110,6 +119,8 @@ for col, (label, code) in zip((left, right), [("Round 0: dispatcher-style re-pla
         c4.metric("Customers moved", f"{score['moved']}")
         gantt(rows, "")
 
+if run is None:
+    st.stop()
 st.subheader("Improvement over rounds (validation days)")
 curve = [{"round": 0, "validation cost": run["baseline"]["val"]["mean_cost"]}] + [
     {"round": r["round"], "validation cost": r["champion_val"]} for r in run["rounds"]]

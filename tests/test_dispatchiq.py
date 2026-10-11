@@ -114,3 +114,30 @@ def test_llm_proposer_with_stub(monkeypatch):
     code, note = p.propose(0, naive, "feedback", __import__("random").Random(0))
     assert "def replan" in code and p.tokens == 123 and note.startswith("stub")
     assert evaluate(code, [0]).infeasible == 0
+
+
+def test_malformed_job_ids_are_violations_not_crashes():
+    s = check(TINY, {"A": [["J1"], {"x": 1}, None], "B": ["J2", "E0"]})
+    assert not s.feasible
+    assert sum("is not a string" in v for v in s.violations) == 3
+
+
+def test_runner_env_and_positive_control(monkeypatch):
+    from dispatchiq import sandbox
+    monkeypatch.setenv("SYSTEMROOT", r"C:\\Windows")
+    monkeypatch.setenv("SECRET_TOKEN", "x")
+    env = sandbox._child_env()
+    assert env.get("SYSTEMROOT") == r"C:\\Windows" and "SECRET_TOKEN" not in env
+    # Positive control: negative sandbox tests only mean something if a good policy actually runs.
+    ok = evaluate((ROOT / "dispatchiq/policies/naive.py").read_text(), [0, 1])
+    assert ok.infeasible == 0 and len(ok.per_seed) == 2
+
+
+def test_research_app_renders_without_a_saved_run(tmp_path, monkeypatch):
+    from streamlit.testing.v1 import AppTest
+    runs = ROOT / "runs" / "latest.json"
+    if runs.exists():
+        monkeypatch.setattr("pathlib.Path.exists", lambda p, _orig=Path.exists: False if p == runs else _orig(p))
+    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60).run()
+    assert not at.exception
+    assert any("textbook cheapest-insertion" in i.value for i in at.info)

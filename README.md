@@ -36,7 +36,7 @@ Policies:
 ## Run
 ```bash
 pip install -r requirements.txt
-pytest -q                                          # 8 tests: checker math, rules, sandbox, splits, LLM stub
+pytest -q                                          # 11 tests: checker math, rules, malformed input, sandbox, splits, LLM stub, research app
 
 # Agents (Luminal first; any OpenAI-compatible provider works, fallbacks tried in order)
 export LLM_BASE_URL=... LLM_API_KEY=... LLM_MODEL=...          # Luminal (get at check-in)

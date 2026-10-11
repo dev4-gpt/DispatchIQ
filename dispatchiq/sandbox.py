@@ -23,8 +23,12 @@ from .simulate import INFEASIBLE_COST, Score, check, replan_state
 PKG_ROOT = Path(__file__).resolve().parent.parent
 
 RUNNER = r"""
-import importlib.util, json, resource, sys
-resource.setrlimit(resource.RLIMIT_AS, (1 << 30, 1 << 30))
+import importlib.util, json, sys
+try:  # memory cap where supported (Unix). This is a resource guard, not a security sandbox.
+    import resource
+    resource.setrlimit(resource.RLIMIT_AS, (1 << 30, 1 << 30))
+except (ImportError, ValueError, OSError):
+    pass
 sys.path.insert(0, sys.argv[2])
 spec = importlib.util.spec_from_file_location("candidate", sys.argv[1])
 mod = importlib.util.module_from_spec(spec)
@@ -38,6 +42,12 @@ for st in states:
         out.append({"ok": False, "error": f"{type(e).__name__}: {e}"[:300]})
 json.dump(out, sys.stdout)
 """
+
+
+def _child_env() -> dict[str, str]:
+    """Minimal environment for the child. Windows needs SYSTEMROOT for Python to start."""
+    keep = ("PATH", "SYSTEMROOT", "SystemRoot", "TEMP", "TMP", "WINDIR")
+    return {k: v for k, v in os.environ.items() if k in keep}
 
 
 @lru_cache(maxsize=512)
@@ -73,7 +83,7 @@ def evaluate(code: str, seeds: list[int], timeout: float = 60.0) -> Evaluation:
             proc = subprocess.run([sys.executable, "-I", "-c", RUNNER, str(path), str(PKG_ROOT)],
                                   input="[" + ",".join(_state(s) for s in seeds) + "]",
                                   capture_output=True, text=True, timeout=timeout,
-                                  env={"PATH": os.environ.get("PATH", "")})
+                                  env=_child_env())
         except subprocess.TimeoutExpired:
             return Evaluation(INFEASIBLE_COST, len(seeds), [f"timeout after {timeout:.0f}s"])
     if proc.returncode != 0:
@@ -82,10 +92,12 @@ def evaluate(code: str, seeds: list[int], timeout: float = 60.0) -> Evaluation:
         results = json.loads(proc.stdout)
     except json.JSONDecodeError:
         return Evaluation(INFEASIBLE_COST, len(seeds), ["candidate printed to stdout or returned non-JSON"])
+    if not isinstance(results, list) or len(results) != len(seeds):
+        return Evaluation(INFEASIBLE_COST, len(seeds), ["runner returned the wrong number of results"])
     ev = Evaluation(0.0, 0)
     for seed, res in zip(seeds, results):
-        if not res["ok"]:
-            sc = Score(False, INFEASIBLE_COST, [res["error"]])
+        if not isinstance(res, dict) or not res.get("ok"):
+            sc = Score(False, INFEASIBLE_COST, [res.get("error", "bad result") if isinstance(res, dict) else "bad result"])
         else:
             sc = check(state(seed), res["plan"])
         ev.per_seed[seed] = sc

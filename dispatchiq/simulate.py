@@ -130,6 +130,9 @@ def check(state: dict[str, Any], proposal: Any) -> Score:
         if seq and techs[tid]["sick"]:
             v.append(f"{tid} is out sick but was given {len(seq)} jobs")
         for jid in seq:
+            if not isinstance(jid, str):
+                v.append(f"{tid}: job id {jid!r} is not a string")
+                continue
             if jid not in open_jobs:
                 v.append(f"{tid}: job {jid} is not an open job")
             elif jid in seen:
@@ -146,7 +149,7 @@ def check(state: dict[str, Any], proposal: Any) -> Score:
     s = Score(True, 0.0)
     resp, n_assigned, n_late = [], 0, 0
     for tid, t in techs.items():
-        seq = [j for j in proposal.get(tid, []) if j in jobs]
+        seq = [j for j in proposal.get(tid, []) if isinstance(j, str) and j in jobs]
         r = route_eval(t["free_at"], tuple(t["loc"]), t["shift_end"], seq, jobs)
         if r.overtime > t["max_overtime"]:
             v.append(f"{tid} ends {r.overtime:.0f} min past shift (max {t['max_overtime']})")
