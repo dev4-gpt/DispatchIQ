@@ -1,0 +1,128 @@
+{
+ "id": "llm-step1",
+ "name": "llm-step1",
+ "mode": "llm",
+ "agents": 2,
+ "rounds_requested": 1,
+ "seed": 0,
+ "start": "dispatchiq/policies/naive.py",
+ "started_at": "2026-10-11T15:53:06-0400",
+ "heldout_hash": "cd2ba1f9b2a896c7379bffecaef861d001409539d87c1a0577df9e8dfdf5e562",
+ "baseline": {
+  "dev": {
+   "mean_cost": 1911.4,
+   "infeasible": 0,
+   "on_time_pct": 55.09,
+   "emergency_response": 66.0,
+   "travel": 351.17,
+   "moved": 0,
+   "unassigned": 4.17,
+   "emergencies": 64,
+   "missed_promises": 13
+  },
+  "val": {
+   "mean_cost": 2039.7,
+   "infeasible": 0,
+   "on_time_pct": 52.33,
+   "emergency_response": 56.26,
+   "travel": 370.62,
+   "moved": 0,
+   "unassigned": 4.8,
+   "emergencies": 57,
+   "missed_promises": 5
+  }
+ },
+ "references": {
+  "naive": {
+   "path": "dispatchiq/policies/naive.py",
+   "dev": {
+    "mean_cost": 1911.4,
+    "infeasible": 0,
+    "on_time_pct": 55.09,
+    "emergency_response": 66.0,
+    "travel": 351.17,
+    "moved": 0,
+    "unassigned": 4.17,
+    "emergencies": 64,
+    "missed_promises": 13
+   },
+   "val": {
+    "mean_cost": 2039.7,
+    "infeasible": 0,
+    "on_time_pct": 52.33,
+    "emergency_response": 56.26,
+    "travel": 370.62,
+    "moved": 0,
+    "unassigned": 4.8,
+    "emergencies": 57,
+    "missed_promises": 5
+   }
+  },
+  "insertion": {
+   "path": "dispatchiq/policies/insertion.py",
+   "dev": {
+    "mean_cost": 1663.5,
+    "infeasible": 0,
+    "on_time_pct": 59.51,
+    "emergency_response": 65.05,
+    "travel": 365.3,
+    "moved": 0,
+    "unassigned": 4.1,
+    "emergencies": 64,
+    "missed_promises": 8
+   },
+   "val": {
+    "mean_cost": 1801.2,
+    "infeasible": 0,
+    "on_time_pct": 57.9,
+    "emergency_response": 67.08,
+    "travel": 381.03,
+    "moved": 0,
+    "unassigned": 4.7,
+    "emergencies": 57,
+    "missed_promises": 6
+   }
+  }
+ },
+ "rounds": [
+  {
+   "round": 1,
+   "seconds": 63.0,
+   "accepted": false,
+   "champion_dev": 1911.4,
+   "champion_val": 2039.7,
+   "champion": {
+    "mean_cost": 2039.7,
+    "infeasible": 0,
+    "on_time_pct": 52.33,
+    "emergency_response": 56.26,
+    "travel": 370.62,
+    "moved": 0,
+    "unassigned": 4.8,
+    "emergencies": 57,
+    "missed_promises": 5
+   },
+   "tokens": 0,
+   "round_tokens": 0,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "",
+     "dev_cost": null,
+     "infeasible": null,
+     "error": "proposal failed: all providers failed: Error code: 503 - {'error': {'message': 'the model is temporarily unavailable', 'type': 'server_error', 'code': 'service_unavailable'}}"
+    },
+    {
+     "agent": 1,
+     "note": "",
+     "dev_cost": null,
+     "infeasible": null,
+     "error": "proposal failed: all providers failed: Error code: 503 - {'error': {'message': 'the model is temporarily unavailable', 'type': 'server_error', 'code': 'service_unavailable'}}"
+    }
+   ]
+  }
+ ],
+ "champion_code": "\"\"\"Round-0 seed policy: what a busy human dispatcher does.\n\nEveryone keeps their remaining jobs. Each orphaned job (from the sick tech) and each\nemergency goes to the nearest healthy tech with the right skill: emergencies to the\nfront of that tech's list, other jobs to the end. If that would push the tech past the\novertime limit, the job is left for tomorrow; an emergency instead bumps that\ntech's lowest-priority jobs to tomorrow.\n\"\"\"\n\nfrom dispatchiq.helpers import drop_until_feasible, route, travel_min\n\n\ndef replan(state):\n    plan = {t[\"id\"]: ([] if t[\"sick\"] else list(t[\"remaining\"])) for t in state[\"techs\"]}\n    healthy = [t for t in state[\"techs\"] if not t[\"sick\"]]\n    orphans = [j for t in state[\"techs\"] if t[\"sick\"] for j in t[\"remaining\"]]\n    emergencies = [jid for jid, j in state[\"jobs\"].items() if j[\"emergency\"]]\n    for jid in emergencies + orphans:\n        job = state[\"jobs\"][jid]\n        options = sorted((travel_min(state, t[\"loc\"], job[\"loc\"]), t[\"id\"]) for t in healthy\n                         if job[\"skill\"] in t[\"skills\"])\n        for _, tid in options:\n            tech = next(t for t in healthy if t[\"id\"] == tid)\n            seq = [jid] + plan[tid] if job[\"emergency\"] else plan[tid] + [jid]\n            if job[\"emergency\"]:\n                seq, _ = drop_until_feasible(state, tech, seq)  # bump routine jobs to tomorrow\n            if route(state, tech, seq)[\"feasible\"]:\n                plan[tid] = seq\n                break\n    return plan\n",
+ "round0_code": "\"\"\"Round-0 seed policy: what a busy human dispatcher does.\n\nEveryone keeps their remaining jobs. Each orphaned job (from the sick tech) and each\nemergency goes to the nearest healthy tech with the right skill: emergencies to the\nfront of that tech's list, other jobs to the end. If that would push the tech past the\novertime limit, the job is left for tomorrow; an emergency instead bumps that\ntech's lowest-priority jobs to tomorrow.\n\"\"\"\n\nfrom dispatchiq.helpers import drop_until_feasible, route, travel_min\n\n\ndef replan(state):\n    plan = {t[\"id\"]: ([] if t[\"sick\"] else list(t[\"remaining\"])) for t in state[\"techs\"]}\n    healthy = [t for t in state[\"techs\"] if not t[\"sick\"]]\n    orphans = [j for t in state[\"techs\"] if t[\"sick\"] for j in t[\"remaining\"]]\n    emergencies = [jid for jid, j in state[\"jobs\"].items() if j[\"emergency\"]]\n    for jid in emergencies + orphans:\n        job = state[\"jobs\"][jid]\n        options = sorted((travel_min(state, t[\"loc\"], job[\"loc\"]), t[\"id\"]) for t in healthy\n                         if job[\"skill\"] in t[\"skills\"])\n        for _, tid in options:\n            tech = next(t for t in healthy if t[\"id\"] == tid)\n            seq = [jid] + plan[tid] if job[\"emergency\"] else plan[tid] + [jid]\n            if job[\"emergency\"]:\n                seq, _ = drop_until_feasible(state, tech, seq)  # bump routine jobs to tomorrow\n            if route(state, tech, seq)[\"feasible\"]:\n                plan[tid] = seq\n                break\n    return plan\n",
+ "team": false
+}

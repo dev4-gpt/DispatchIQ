@@ -1,0 +1,1195 @@
+{
+  "schema_version": "1",
+  "scenario_id": "demo-v1",
+  "scenario_epoch": "ad193826-5730-4474-a7f9-6773cca2805b",
+  "revision": 0,
+  "date": "2026-10-11",
+  "timezone": "America/New_York",
+  "now_min": 690,
+  "travel_model": {
+    "type": "manhattan_grid",
+    "min_per_km": 2,
+    "rounding": "ceil",
+    "synthetic": true
+  },
+  "technicians": [
+    {
+      "id": "T00",
+      "name": "John",
+      "skills": [
+        "hvac"
+      ],
+      "location": {
+        "x_km": 1.0,
+        "y_km": 1.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "shift_start_min": 480,
+      "shift_end_min": 1020,
+      "max_overtime_min": 0,
+      "max_service_min": 420,
+      "availability": "available",
+      "assigned_job_ids": [
+        "J01",
+        "J02",
+        "J03"
+      ]
+    },
+    {
+      "id": "T01",
+      "name": "Sarah",
+      "skills": [
+        "plumbing"
+      ],
+      "location": {
+        "x_km": 8.0,
+        "y_km": 4.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "shift_start_min": 480,
+      "shift_end_min": 1020,
+      "max_overtime_min": 0,
+      "max_service_min": 420,
+      "availability": "available",
+      "assigned_job_ids": [
+        "J04",
+        "J05",
+        "J06"
+      ]
+    },
+    {
+      "id": "T02",
+      "name": "Mike",
+      "skills": [
+        "hvac",
+        "electrical"
+      ],
+      "location": {
+        "x_km": 12.0,
+        "y_km": 8.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "shift_start_min": 480,
+      "shift_end_min": 1020,
+      "max_overtime_min": 0,
+      "max_service_min": 420,
+      "availability": "available",
+      "assigned_job_ids": [
+        "J07",
+        "J08",
+        "J09"
+      ]
+    },
+    {
+      "id": "T03",
+      "name": "Priya",
+      "skills": [
+        "hvac",
+        "plumbing"
+      ],
+      "location": {
+        "x_km": 9.0,
+        "y_km": 10.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "shift_start_min": 480,
+      "shift_end_min": 1020,
+      "max_overtime_min": 0,
+      "max_service_min": 420,
+      "availability": "available",
+      "assigned_job_ids": [
+        "J10",
+        "J11",
+        "J12"
+      ]
+    },
+    {
+      "id": "T04",
+      "name": "Luis",
+      "skills": [
+        "electrical"
+      ],
+      "location": {
+        "x_km": 15.0,
+        "y_km": 5.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "shift_start_min": 480,
+      "shift_end_min": 1020,
+      "max_overtime_min": 0,
+      "max_service_min": 420,
+      "availability": "available",
+      "assigned_job_ids": [
+        "J13",
+        "J14",
+        "J15"
+      ]
+    },
+    {
+      "id": "T05",
+      "name": "Ava",
+      "skills": [
+        "hvac"
+      ],
+      "location": {
+        "x_km": 16.0,
+        "y_km": 12.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "shift_start_min": 480,
+      "shift_end_min": 1020,
+      "max_overtime_min": 0,
+      "max_service_min": 420,
+      "availability": "available",
+      "assigned_job_ids": [
+        "J16",
+        "J17"
+      ]
+    },
+    {
+      "id": "T06",
+      "name": "Omar",
+      "skills": [
+        "plumbing"
+      ],
+      "location": {
+        "x_km": 2.0,
+        "y_km": 15.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "shift_start_min": 480,
+      "shift_end_min": 1020,
+      "max_overtime_min": 0,
+      "max_service_min": 420,
+      "availability": "available",
+      "assigned_job_ids": [
+        "J18",
+        "J19"
+      ]
+    },
+    {
+      "id": "T07",
+      "name": "Mei",
+      "skills": [
+        "hvac",
+        "plumbing",
+        "electrical"
+      ],
+      "location": {
+        "x_km": 3.0,
+        "y_km": 1.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "shift_start_min": 480,
+      "shift_end_min": 1020,
+      "max_overtime_min": 0,
+      "max_service_min": 420,
+      "availability": "available",
+      "assigned_job_ids": [
+        "J20",
+        "J21"
+      ]
+    },
+    {
+      "id": "T08",
+      "name": "Dan",
+      "skills": [
+        "electrical"
+      ],
+      "location": {
+        "x_km": 18.0,
+        "y_km": 3.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "shift_start_min": 480,
+      "shift_end_min": 1020,
+      "max_overtime_min": 0,
+      "max_service_min": 420,
+      "availability": "available",
+      "assigned_job_ids": [
+        "J22",
+        "J23"
+      ]
+    },
+    {
+      "id": "T09",
+      "name": "Zoe",
+      "skills": [
+        "plumbing"
+      ],
+      "location": {
+        "x_km": 7.0,
+        "y_km": 17.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "shift_start_min": 480,
+      "shift_end_min": 1020,
+      "max_overtime_min": 0,
+      "max_service_min": 420,
+      "availability": "available",
+      "assigned_job_ids": [
+        "J24",
+        "J25"
+      ]
+    }
+  ],
+  "jobs": [
+    {
+      "id": "J01",
+      "customer": {
+        "id": "C01",
+        "name": "Customer 1",
+        "site_name": "Residence"
+      },
+      "location": {
+        "x_km": 1.0,
+        "y_km": 1.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "hvac"
+      ],
+      "priority": 1,
+      "duration_min": 45,
+      "earliest_start_min": 500,
+      "latest_start_min": 530,
+      "window_end_min": 665,
+      "soft_promised_start_min": 500,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "completed"
+    },
+    {
+      "id": "J02",
+      "customer": {
+        "id": "C02",
+        "name": "Customer 2",
+        "site_name": "Workshop"
+      },
+      "location": {
+        "x_km": 1.0,
+        "y_km": 1.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "hvac"
+      ],
+      "priority": 1,
+      "duration_min": 40,
+      "earliest_start_min": 670,
+      "latest_start_min": 760,
+      "window_end_min": 830,
+      "soft_promised_start_min": 670,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "in_progress"
+    },
+    {
+      "id": "J03",
+      "customer": {
+        "id": "C03",
+        "name": "Customer 3",
+        "site_name": "Community center"
+      },
+      "location": {
+        "x_km": 5.0,
+        "y_km": 1.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "hvac"
+      ],
+      "priority": 2,
+      "duration_min": 60,
+      "earliest_start_min": 750,
+      "latest_start_min": 840,
+      "window_end_min": 930,
+      "soft_promised_start_min": 750,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "scheduled"
+    },
+    {
+      "id": "J04",
+      "customer": {
+        "id": "C04",
+        "name": "Customer 4",
+        "site_name": "Residence"
+      },
+      "location": {
+        "x_km": 8.0,
+        "y_km": 4.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "plumbing"
+      ],
+      "priority": 1,
+      "duration_min": 45,
+      "earliest_start_min": 500,
+      "latest_start_min": 530,
+      "window_end_min": 665,
+      "soft_promised_start_min": 500,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "completed"
+    },
+    {
+      "id": "J05",
+      "customer": {
+        "id": "C05",
+        "name": "Customer 5",
+        "site_name": "Workshop"
+      },
+      "location": {
+        "x_km": 8.0,
+        "y_km": 4.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "plumbing"
+      ],
+      "priority": 1,
+      "duration_min": 40,
+      "earliest_start_min": 670,
+      "latest_start_min": 760,
+      "window_end_min": 830,
+      "soft_promised_start_min": 670,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "in_progress"
+    },
+    {
+      "id": "J06",
+      "customer": {
+        "id": "C06",
+        "name": "Customer 6",
+        "site_name": "Community center"
+      },
+      "location": {
+        "x_km": 12.0,
+        "y_km": 4.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "plumbing"
+      ],
+      "priority": 2,
+      "duration_min": 60,
+      "earliest_start_min": 750,
+      "latest_start_min": 840,
+      "window_end_min": 930,
+      "soft_promised_start_min": 750,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "scheduled"
+    },
+    {
+      "id": "J07",
+      "customer": {
+        "id": "C07",
+        "name": "Customer 7",
+        "site_name": "Residence"
+      },
+      "location": {
+        "x_km": 12.0,
+        "y_km": 8.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "hvac"
+      ],
+      "priority": 1,
+      "duration_min": 45,
+      "earliest_start_min": 500,
+      "latest_start_min": 530,
+      "window_end_min": 665,
+      "soft_promised_start_min": 500,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "completed"
+    },
+    {
+      "id": "J08",
+      "customer": {
+        "id": "C08",
+        "name": "Customer 8",
+        "site_name": "Workshop"
+      },
+      "location": {
+        "x_km": 12.0,
+        "y_km": 8.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "hvac"
+      ],
+      "priority": 1,
+      "duration_min": 40,
+      "earliest_start_min": 670,
+      "latest_start_min": 760,
+      "window_end_min": 830,
+      "soft_promised_start_min": 670,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "in_progress"
+    },
+    {
+      "id": "J09",
+      "customer": {
+        "id": "C09",
+        "name": "Customer 9",
+        "site_name": "Community center"
+      },
+      "location": {
+        "x_km": 16.0,
+        "y_km": 8.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "hvac"
+      ],
+      "priority": 2,
+      "duration_min": 60,
+      "earliest_start_min": 750,
+      "latest_start_min": 840,
+      "window_end_min": 930,
+      "soft_promised_start_min": 750,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "scheduled"
+    },
+    {
+      "id": "J10",
+      "customer": {
+        "id": "C10",
+        "name": "Customer 10",
+        "site_name": "Residence"
+      },
+      "location": {
+        "x_km": 9.0,
+        "y_km": 10.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "hvac"
+      ],
+      "priority": 1,
+      "duration_min": 45,
+      "earliest_start_min": 500,
+      "latest_start_min": 530,
+      "window_end_min": 665,
+      "soft_promised_start_min": 500,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "completed"
+    },
+    {
+      "id": "J11",
+      "customer": {
+        "id": "C11",
+        "name": "Customer 11",
+        "site_name": "Workshop"
+      },
+      "location": {
+        "x_km": 9.0,
+        "y_km": 10.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "hvac"
+      ],
+      "priority": 1,
+      "duration_min": 40,
+      "earliest_start_min": 690,
+      "latest_start_min": 780,
+      "window_end_min": 850,
+      "soft_promised_start_min": 690,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "in_progress"
+    },
+    {
+      "id": "J12",
+      "customer": {
+        "id": "C12",
+        "name": "Customer 12",
+        "site_name": "Community center"
+      },
+      "location": {
+        "x_km": 13.0,
+        "y_km": 10.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "hvac"
+      ],
+      "priority": 2,
+      "duration_min": 60,
+      "earliest_start_min": 750,
+      "latest_start_min": 840,
+      "window_end_min": 930,
+      "soft_promised_start_min": 750,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "scheduled"
+    },
+    {
+      "id": "J13",
+      "customer": {
+        "id": "C13",
+        "name": "Customer 13",
+        "site_name": "Residence"
+      },
+      "location": {
+        "x_km": 15.0,
+        "y_km": 5.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "electrical"
+      ],
+      "priority": 1,
+      "duration_min": 45,
+      "earliest_start_min": 500,
+      "latest_start_min": 530,
+      "window_end_min": 665,
+      "soft_promised_start_min": 500,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "completed"
+    },
+    {
+      "id": "J14",
+      "customer": {
+        "id": "C14",
+        "name": "Customer 14",
+        "site_name": "Workshop"
+      },
+      "location": {
+        "x_km": 15.0,
+        "y_km": 5.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "electrical"
+      ],
+      "priority": 1,
+      "duration_min": 40,
+      "earliest_start_min": 670,
+      "latest_start_min": 760,
+      "window_end_min": 830,
+      "soft_promised_start_min": 670,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "in_progress"
+    },
+    {
+      "id": "J15",
+      "customer": {
+        "id": "C15",
+        "name": "Customer 15",
+        "site_name": "Community center"
+      },
+      "location": {
+        "x_km": 19.0,
+        "y_km": 5.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "electrical"
+      ],
+      "priority": 2,
+      "duration_min": 60,
+      "earliest_start_min": 750,
+      "latest_start_min": 840,
+      "window_end_min": 930,
+      "soft_promised_start_min": 750,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": true,
+      "status": "scheduled"
+    },
+    {
+      "id": "J16",
+      "customer": {
+        "id": "C16",
+        "name": "Customer 16",
+        "site_name": "Residence"
+      },
+      "location": {
+        "x_km": 16.0,
+        "y_km": 12.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "hvac"
+      ],
+      "priority": 1,
+      "duration_min": 45,
+      "earliest_start_min": 520,
+      "latest_start_min": 550,
+      "window_end_min": 685,
+      "soft_promised_start_min": 520,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "completed"
+    },
+    {
+      "id": "J17",
+      "customer": {
+        "id": "C17",
+        "name": "Customer 17",
+        "site_name": "Workshop"
+      },
+      "location": {
+        "x_km": 18.0,
+        "y_km": 12.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "hvac"
+      ],
+      "priority": 1,
+      "duration_min": 60,
+      "earliest_start_min": 705,
+      "latest_start_min": 795,
+      "window_end_min": 885,
+      "soft_promised_start_min": 705,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "scheduled"
+    },
+    {
+      "id": "J18",
+      "customer": {
+        "id": "C18",
+        "name": "Customer 18",
+        "site_name": "Residence"
+      },
+      "location": {
+        "x_km": 2.0,
+        "y_km": 15.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "plumbing"
+      ],
+      "priority": 1,
+      "duration_min": 45,
+      "earliest_start_min": 520,
+      "latest_start_min": 550,
+      "window_end_min": 685,
+      "soft_promised_start_min": 520,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "completed"
+    },
+    {
+      "id": "J19",
+      "customer": {
+        "id": "C19",
+        "name": "Customer 19",
+        "site_name": "Workshop"
+      },
+      "location": {
+        "x_km": 4.0,
+        "y_km": 15.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "plumbing"
+      ],
+      "priority": 1,
+      "duration_min": 60,
+      "earliest_start_min": 705,
+      "latest_start_min": 795,
+      "window_end_min": 885,
+      "soft_promised_start_min": 705,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "scheduled"
+    },
+    {
+      "id": "J20",
+      "customer": {
+        "id": "C20",
+        "name": "Customer 20",
+        "site_name": "Residence"
+      },
+      "location": {
+        "x_km": 3.0,
+        "y_km": 1.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "hvac",
+        "plumbing"
+      ],
+      "priority": 1,
+      "duration_min": 45,
+      "earliest_start_min": 520,
+      "latest_start_min": 550,
+      "window_end_min": 685,
+      "soft_promised_start_min": 520,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "completed"
+    },
+    {
+      "id": "J21",
+      "customer": {
+        "id": "C21",
+        "name": "Customer 21",
+        "site_name": "Workshop"
+      },
+      "location": {
+        "x_km": 5.0,
+        "y_km": 1.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "hvac",
+        "plumbing"
+      ],
+      "priority": 1,
+      "duration_min": 60,
+      "earliest_start_min": 705,
+      "latest_start_min": 795,
+      "window_end_min": 885,
+      "soft_promised_start_min": 705,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "scheduled"
+    },
+    {
+      "id": "J22",
+      "customer": {
+        "id": "C22",
+        "name": "Customer 22",
+        "site_name": "Residence"
+      },
+      "location": {
+        "x_km": 18.0,
+        "y_km": 3.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "electrical"
+      ],
+      "priority": 1,
+      "duration_min": 45,
+      "earliest_start_min": 520,
+      "latest_start_min": 550,
+      "window_end_min": 685,
+      "soft_promised_start_min": 520,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "completed"
+    },
+    {
+      "id": "J23",
+      "customer": {
+        "id": "C23",
+        "name": "Customer 23",
+        "site_name": "Workshop"
+      },
+      "location": {
+        "x_km": 20.0,
+        "y_km": 3.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "electrical"
+      ],
+      "priority": 1,
+      "duration_min": 60,
+      "earliest_start_min": 705,
+      "latest_start_min": 795,
+      "window_end_min": 885,
+      "soft_promised_start_min": 705,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "scheduled"
+    },
+    {
+      "id": "J24",
+      "customer": {
+        "id": "C24",
+        "name": "Customer 24",
+        "site_name": "Residence"
+      },
+      "location": {
+        "x_km": 7.0,
+        "y_km": 17.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "plumbing"
+      ],
+      "priority": 1,
+      "duration_min": 45,
+      "earliest_start_min": 520,
+      "latest_start_min": 550,
+      "window_end_min": 685,
+      "soft_promised_start_min": 520,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "completed"
+    },
+    {
+      "id": "J25",
+      "customer": {
+        "id": "C25",
+        "name": "Customer 25",
+        "site_name": "Workshop"
+      },
+      "location": {
+        "x_km": 9.0,
+        "y_km": 17.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "plumbing"
+      ],
+      "priority": 1,
+      "duration_min": 60,
+      "earliest_start_min": 705,
+      "latest_start_min": 795,
+      "window_end_min": 885,
+      "soft_promised_start_min": 705,
+      "deadline_start_min": null,
+      "release_min": 0,
+      "emergency": false,
+      "locked": false,
+      "status": "scheduled"
+    }
+  ],
+  "schedule": {
+    "assignments": [
+      {
+        "job_id": "J01",
+        "technician_id": "T00",
+        "sequence": 0,
+        "start_min": 500,
+        "end_min": 545,
+        "travel_min": 0,
+        "frozen": true
+      },
+      {
+        "job_id": "J02",
+        "technician_id": "T00",
+        "sequence": 1,
+        "start_min": 670,
+        "end_min": 710,
+        "travel_min": 0,
+        "frozen": true
+      },
+      {
+        "job_id": "J03",
+        "technician_id": "T00",
+        "sequence": 2,
+        "start_min": 750,
+        "end_min": 810,
+        "travel_min": 8,
+        "frozen": false
+      },
+      {
+        "job_id": "J04",
+        "technician_id": "T01",
+        "sequence": 0,
+        "start_min": 500,
+        "end_min": 545,
+        "travel_min": 0,
+        "frozen": true
+      },
+      {
+        "job_id": "J05",
+        "technician_id": "T01",
+        "sequence": 1,
+        "start_min": 670,
+        "end_min": 710,
+        "travel_min": 0,
+        "frozen": true
+      },
+      {
+        "job_id": "J06",
+        "technician_id": "T01",
+        "sequence": 2,
+        "start_min": 750,
+        "end_min": 810,
+        "travel_min": 8,
+        "frozen": false
+      },
+      {
+        "job_id": "J07",
+        "technician_id": "T02",
+        "sequence": 0,
+        "start_min": 500,
+        "end_min": 545,
+        "travel_min": 0,
+        "frozen": true
+      },
+      {
+        "job_id": "J08",
+        "technician_id": "T02",
+        "sequence": 1,
+        "start_min": 670,
+        "end_min": 710,
+        "travel_min": 0,
+        "frozen": true
+      },
+      {
+        "job_id": "J09",
+        "technician_id": "T02",
+        "sequence": 2,
+        "start_min": 750,
+        "end_min": 810,
+        "travel_min": 8,
+        "frozen": false
+      },
+      {
+        "job_id": "J10",
+        "technician_id": "T03",
+        "sequence": 0,
+        "start_min": 500,
+        "end_min": 545,
+        "travel_min": 0,
+        "frozen": true
+      },
+      {
+        "job_id": "J11",
+        "technician_id": "T03",
+        "sequence": 1,
+        "start_min": 690,
+        "end_min": 730,
+        "travel_min": 0,
+        "frozen": true
+      },
+      {
+        "job_id": "J12",
+        "technician_id": "T03",
+        "sequence": 2,
+        "start_min": 750,
+        "end_min": 810,
+        "travel_min": 8,
+        "frozen": false
+      },
+      {
+        "job_id": "J13",
+        "technician_id": "T04",
+        "sequence": 0,
+        "start_min": 500,
+        "end_min": 545,
+        "travel_min": 0,
+        "frozen": true
+      },
+      {
+        "job_id": "J14",
+        "technician_id": "T04",
+        "sequence": 1,
+        "start_min": 670,
+        "end_min": 710,
+        "travel_min": 0,
+        "frozen": true
+      },
+      {
+        "job_id": "J15",
+        "technician_id": "T04",
+        "sequence": 2,
+        "start_min": 750,
+        "end_min": 810,
+        "travel_min": 8,
+        "frozen": false
+      },
+      {
+        "job_id": "J16",
+        "technician_id": "T05",
+        "sequence": 0,
+        "start_min": 520,
+        "end_min": 565,
+        "travel_min": 0,
+        "frozen": true
+      },
+      {
+        "job_id": "J17",
+        "technician_id": "T05",
+        "sequence": 1,
+        "start_min": 705,
+        "end_min": 765,
+        "travel_min": 4,
+        "frozen": false
+      },
+      {
+        "job_id": "J18",
+        "technician_id": "T06",
+        "sequence": 0,
+        "start_min": 520,
+        "end_min": 565,
+        "travel_min": 0,
+        "frozen": true
+      },
+      {
+        "job_id": "J19",
+        "technician_id": "T06",
+        "sequence": 1,
+        "start_min": 705,
+        "end_min": 765,
+        "travel_min": 4,
+        "frozen": false
+      },
+      {
+        "job_id": "J20",
+        "technician_id": "T07",
+        "sequence": 0,
+        "start_min": 520,
+        "end_min": 565,
+        "travel_min": 0,
+        "frozen": true
+      },
+      {
+        "job_id": "J21",
+        "technician_id": "T07",
+        "sequence": 1,
+        "start_min": 705,
+        "end_min": 765,
+        "travel_min": 4,
+        "frozen": false
+      },
+      {
+        "job_id": "J22",
+        "technician_id": "T08",
+        "sequence": 0,
+        "start_min": 520,
+        "end_min": 565,
+        "travel_min": 0,
+        "frozen": true
+      },
+      {
+        "job_id": "J23",
+        "technician_id": "T08",
+        "sequence": 1,
+        "start_min": 705,
+        "end_min": 765,
+        "travel_min": 4,
+        "frozen": false
+      },
+      {
+        "job_id": "J24",
+        "technician_id": "T09",
+        "sequence": 0,
+        "start_min": 520,
+        "end_min": 565,
+        "travel_min": 0,
+        "frozen": true
+      },
+      {
+        "job_id": "J25",
+        "technician_id": "T09",
+        "sequence": 1,
+        "start_min": 705,
+        "end_min": 765,
+        "travel_min": 4,
+        "frozen": false
+      }
+    ],
+    "unassigned_job_ids": []
+  },
+  "validation": {
+    "valid": true,
+    "violations": []
+  },
+  "metrics": {
+    "scope": "future_from_now",
+    "travel_min": 60,
+    "unassigned_jobs": 0,
+    "soft_sla_violations": 0,
+    "soft_sla_lateness_min": 0,
+    "hard_constraint_violations": 0,
+    "overtime_min": 0,
+    "emergencies": []
+  },
+  "events": []
+}

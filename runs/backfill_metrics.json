@@ -1,0 +1,127 @@
+{
+ "references": {
+  "naive": {
+   "mean_cost": 2039.7,
+   "infeasible": 0,
+   "on_time_pct": 52.33,
+   "emergency_response": 56.26,
+   "travel": 370.62,
+   "moved": 0,
+   "unassigned": 4.8,
+   "emergencies": 57,
+   "missed_promises": 5,
+   "bumped_booked": 18,
+   "moved_healthy": 0
+  },
+  "insertion": {
+   "mean_cost": 1801.2,
+   "infeasible": 0,
+   "on_time_pct": 57.9,
+   "emergency_response": 67.08,
+   "travel": 381.03,
+   "moved": 0,
+   "unassigned": 4.7,
+   "emergencies": 57,
+   "missed_promises": 6,
+   "bumped_booked": 4,
+   "moved_healthy": 0
+  }
+ },
+ "runs": {
+  "random": {
+   "champion_val": 1717.7,
+   "rounds": 8,
+   "val": {
+    "mean_cost": 1717.7,
+    "infeasible": 0,
+    "on_time_pct": 58.1,
+    "emergency_response": 59.6,
+    "travel": 354.64,
+    "moved": 1.63,
+    "unassigned": 5.03,
+    "emergencies": 57,
+    "missed_promises": 6,
+    "bumped_booked": 18,
+    "moved_healthy": 49
+   },
+   "rescored_val": 1717.7,
+   "cost_matches": true
+  },
+  "llm-plain": {
+   "champion_val": 1301.9,
+   "rounds": 8,
+   "val": {
+    "mean_cost": 1301.9,
+    "infeasible": 0,
+    "on_time_pct": 68.96,
+    "emergency_response": 46.66,
+    "travel": 366.25,
+    "moved": 2.37,
+    "unassigned": 3.97,
+    "emergencies": 57,
+    "missed_promises": 1,
+    "bumped_booked": 52,
+    "moved_healthy": 71
+   },
+   "rescored_val": 1301.9,
+   "cost_matches": true
+  },
+  "llm-team": {
+   "champion_val": 1251.2,
+   "rounds": 8,
+   "val": {
+    "mean_cost": 1251.2,
+    "infeasible": 0,
+    "on_time_pct": 69.38,
+    "emergency_response": 43.67,
+    "travel": 371.85,
+    "moved": 3.17,
+    "unassigned": 3.47,
+    "emergencies": 57,
+    "missed_promises": 1,
+    "bumped_booked": 41,
+    "moved_healthy": 95
+   },
+   "rescored_val": 1251.2,
+   "cost_matches": true
+  },
+  "llm-team-v2": {
+   "champion_val": 1308.7,
+   "rounds": 8,
+   "val": {
+    "mean_cost": 1308.7,
+    "infeasible": 0,
+    "on_time_pct": 69.19,
+    "emergency_response": 51.72,
+    "travel": 380.12,
+    "moved": 1.8,
+    "unassigned": 3.87,
+    "emergencies": 57,
+    "missed_promises": 2,
+    "bumped_booked": 46,
+    "moved_healthy": 54
+   },
+   "rescored_val": 1308.7,
+   "cost_matches": true
+  },
+  "llm-team-v2-1agent": {
+   "champion_val": 1272.3,
+   "rounds": 33,
+   "val": {
+    "mean_cost": 1272.3,
+    "infeasible": 0,
+    "on_time_pct": 69.63,
+    "emergency_response": 46.98,
+    "travel": 372.96,
+    "moved": 2.6,
+    "unassigned": 3.67,
+    "emergencies": 57,
+    "missed_promises": 1,
+    "bumped_booked": 42,
+    "moved_healthy": 78
+   },
+   "rescored_val": 1272.3,
+   "cost_matches": true
+  }
+ }
+}

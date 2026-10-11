@@ -1,0 +1,128 @@
+{
+ "id": "llm-step1c",
+ "name": "llm-step1c",
+ "mode": "llm",
+ "agents": 2,
+ "rounds_requested": 1,
+ "seed": 0,
+ "start": "dispatchiq/policies/naive.py",
+ "started_at": "2026-10-11T16:00:57-0400",
+ "heldout_hash": "cd2ba1f9b2a896c7379bffecaef861d001409539d87c1a0577df9e8dfdf5e562",
+ "baseline": {
+  "dev": {
+   "mean_cost": 1911.4,
+   "infeasible": 0,
+   "on_time_pct": 55.09,
+   "emergency_response": 66.0,
+   "travel": 351.17,
+   "moved": 0,
+   "unassigned": 4.17,
+   "emergencies": 64,
+   "missed_promises": 13
+  },
+  "val": {
+   "mean_cost": 2039.7,
+   "infeasible": 0,
+   "on_time_pct": 52.33,
+   "emergency_response": 56.26,
+   "travel": 370.62,
+   "moved": 0,
+   "unassigned": 4.8,
+   "emergencies": 57,
+   "missed_promises": 5
+  }
+ },
+ "references": {
+  "naive": {
+   "path": "dispatchiq/policies/naive.py",
+   "dev": {
+    "mean_cost": 1911.4,
+    "infeasible": 0,
+    "on_time_pct": 55.09,
+    "emergency_response": 66.0,
+    "travel": 351.17,
+    "moved": 0,
+    "unassigned": 4.17,
+    "emergencies": 64,
+    "missed_promises": 13
+   },
+   "val": {
+    "mean_cost": 2039.7,
+    "infeasible": 0,
+    "on_time_pct": 52.33,
+    "emergency_response": 56.26,
+    "travel": 370.62,
+    "moved": 0,
+    "unassigned": 4.8,
+    "emergencies": 57,
+    "missed_promises": 5
+   }
+  },
+  "insertion": {
+   "path": "dispatchiq/policies/insertion.py",
+   "dev": {
+    "mean_cost": 1663.5,
+    "infeasible": 0,
+    "on_time_pct": 59.51,
+    "emergency_response": 65.05,
+    "travel": 365.3,
+    "moved": 0,
+    "unassigned": 4.1,
+    "emergencies": 64,
+    "missed_promises": 8
+   },
+   "val": {
+    "mean_cost": 1801.2,
+    "infeasible": 0,
+    "on_time_pct": 57.9,
+    "emergency_response": 67.08,
+    "travel": 381.03,
+    "moved": 0,
+    "unassigned": 4.7,
+    "emergencies": 57,
+    "missed_promises": 6
+   }
+  }
+ },
+ "rounds": [
+  {
+   "round": 1,
+   "seconds": 182.4,
+   "accepted": true,
+   "champion_dev": 1360.4,
+   "champion_val": 1466.2,
+   "champion": {
+    "mean_cost": 1466.2,
+    "infeasible": 0,
+    "on_time_pct": 61.72,
+    "emergency_response": 54.53,
+    "travel": 358.45,
+    "moved": 1.63,
+    "unassigned": 5.13,
+    "emergencies": 57,
+    "missed_promises": 3
+   },
+   "tokens": 70008,
+   "round_tokens": 70008,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Make emergencies faster: choose the tech who can START the emergency soonest, not the nearest one.",
+     "dev_cost": 1405.9,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Add a local-search pass after insertion: try relocating and swapping open jobs within and between healthy techs, keeping a move only if total estimated cost (including the churn penalty) drops.",
+     "dev_cost": 1360.4,
+     "infeasible": 0,
+     "error": ""
+    }
+   ]
+  }
+ ],
+ "champion_code": "\"\"\"Re-plan policy: greedy best-insertion, then a local-search pass that\nrelocates / swaps / drops jobs and inserts unassigned work, keeping a move\nonly when the full estimated cost (travel + lateness + overtime + emergency\nwait + unscheduled penalties + churn penalties) strictly drops.\n\"\"\"\n\nfrom dispatchiq.helpers import drop_until_feasible, route_cost\n\n\ndef replan(state):\n    techs = state[\"techs\"]\n    jobs = state[\"jobs\"]\n    tid2tech = {t[\"id\"]: t for t in techs}\n    healthy_ids = [t[\"id\"] for t in techs if not t[\"sick\"]]\n    healthy_set = set(healthy_ids)\n\n    # ---------- initial plan: healthy techs keep their morning work ----------\n    plan = {t[\"id\"]: [] for t in techs}\n    seen = set()\n    for t in techs:\n        if t[\"sick\"]:\n            continue\n        for jid in t[\"remaining\"]:\n            if jid not in seen and jid in jobs:\n                seen.add(jid)\n                plan[t[\"id\"]].append(jid)\n\n    orphans = []\n    for t in techs:\n        if not t[\"sick\"]:\n            continue\n        for jid in t[\"remaining\"]:\n            if jid not in seen and jid in jobs:\n                seen.add(jid)\n                orphans.append(jid)\n\n    emergencies = [jid for jid, j in jobs.items()\n                   if j.get(\"emergency\") and jid not in seen]\n\n    unassigned = set()\n    memo = {}\n    budget = [30000]\n\n    def rc(tid, seq):\n        if not seq:\n            return 0.0\n        key = (tid, tuple(seq))\n        v = memo.get(key)\n        if v is None:\n            v = route_cost(state, tid2tech[tid], seq)\n            memo[key] = v\n            budget[0] -= 1\n        return v\n\n    def move_pen(jid, tid):\n        mt = jobs[jid].get(\"morning_tech\")\n        if mt is None or mt == tid or mt not in healthy_set:\n            return 0\n        return 20\n\n    # ---------- repair any infeasible morning sequence ----------\n    for tid in healthy_ids:\n        seq = plan[tid]\n        if seq and rc(tid, seq) >= 1e6:\n            kept, dropped = drop_until_feasible(state, tid2tech[tid], seq)\n            if not any(jobs[d].get(\"emergency\") for d in dropped):\n                plan[tid] = kept\n                for d in dropped:\n                    unassigned.add(d)\n\n    # ---------- greedy best insertion ----------\n    def insert_job(jid):\n        job = jobs[jid]\n        skill = job[\"skill\"]\n        is_em = bool(job.get(\"emergency\"))\n        best = None  # (delta, tech, new_seq, dropped)\n        for B in healthy_ids:\n            if skill not in tid2tech[B][\"skills\"]:\n                continue\n            seqB = plan[B]\n            base = rc(B, seqB)\n            mp = move_pen(jid, B)\n            for pos in range(len(seqB) + 1):\n                nseq = seqB[:pos] + [jid] + seqB[pos:]\n                c = rc(B, nseq)\n                if c < 1e6:\n                    delta = c - base + mp\n                    if best is None or delta < best[0]:\n                        best = (delta, B, nseq, [])\n                elif is_em:\n                    kept, dropped = drop_until_feasible(state, tid2tech[B], nseq)\n                    if jid not in kept:\n                        continue\n                    if any(jobs[d].get(\"emergency\") for d in dropped):\n                        continue\n                    ck = rc(B, kept)\n                    if ck >= 1e6:\n                        continue\n                    delta = ck - base + mp\n                    for d in dropped:\n                        delta += 150 * jobs[d][\"priority\"] - move_pen(d, B)\n                    if best is None or delta < best[0]:\n                        best = (delta, B, kept, dropped)\n        if best is None:\n            return False\n        _, B, nseq, dropped = best\n        plan[B] = nseq\n        for d in dropped:\n            unassigned.add(d)\n        return True\n\n    for jid in sorted(emergencies,\n                      key=lambda j: (jobs[j].get(\"release\", 0),\n                                     -jobs[j][\"priority\"])):\n        if not insert_job(jid):\n            unassigned.add(jid)\n\n    for jid in sorted(orphans,\n                      key=lambda j: (-jobs[j][\"priority\"],\n                                     jobs[j].get(\"latest\", 10 ** 9))):\n        if not insert_job(jid):\n            unassigned.add(jid)\n\n    # ---------- local search ----------\n    MAX_PASSES = 12\n    EPS = 1e-7\n    n_tech = len(healthy_ids)\n\n    for _pass in range(MAX_PASSES):\n        if budget[0] <= 0:\n            break\n        best_delta = -EPS\n        best_move = None\n        # tuple layout: (kind, A, seqA, B, seqB, jid, dropped)\n\n        # (0) insert unassigned jobs\n        for jid in list(unassigned):\n            job = jobs[jid]\n            skill = job[\"skill\"]\n            pen = 150 * job[\"priority\"]\n            for B in healthy_ids:\n                if skill not in tid2tech[B][\"skills\"]:\n                    continue\n                seqB = plan[B]\n                base = rc(B, seqB)\n                mp = move_pen(jid, B)\n                for pos in range(len(seqB) + 1):\n                    nseq = seqB[:pos] + [jid] + seqB[pos:]\n                    c = rc(B, nseq)\n                    if c < 1e6:\n                        delta = c - base - pen + mp\n                        if delta < best_delta:\n                            best_delta = delta\n                            best_move = (0, B, nseq, None, None, jid, [])\n                    else:\n                        kept, dropped = drop_until_feasible(\n                            state, tid2tech[B], nseq)\n                        if jid not in kept:\n                            continue\n                        if any(jobs[d].get(\"emergency\") for d in dropped):\n                            continue\n                        ck = rc(B, kept)\n                        if ck >= 1e6:\n                            continue\n                        delta = ck - base - pen + mp\n                        for d in dropped:\n                            delta += 150 * jobs[d][\"priority\"] - move_pen(d, B)\n                        if delta < best_delta:\n                            best_delta = delta\n                            best_move = (0, B, kept, None, None, jid, dropped)\n\n        # (1) drop assigned non-emergency jobs\n        for A in healthy_ids:\n            seqA = plan[A]\n            if not seqA:\n                continue\n            baseA = rc(A, seqA)\n            for i, jid in enumerate(seqA):\n                if jobs[jid].get(\"emergency\"):\n                    continue\n                nseq = seqA[:i] + seqA[i + 1:]\n                c = rc(A, nseq)\n                if c >= 1e6:\n                    continue\n                delta = c - baseA + 150 * jobs[jid][\"priority\"] - move_pen(jid, A)\n                if delta < best_delta:\n                    best_delta = delta\n                    best_move = (1, A, nseq, None, None, jid, None)\n\n        # (2) intra-tech reorder\n        for A in healthy_ids:\n            seqA = plan[A]\n            n = len(seqA)\n            if n < 2:\n                continue\n            baseA = rc(A, seqA)\n            for i in range(n):\n                jid = seqA[i]\n                red = seqA[:i] + seqA[i + 1:]\n                for pos in range(n):\n                    if pos == i:\n                        continue\n                    nseq = red[:pos] + [jid] + red[pos:]\n                    c = rc(A, nseq)\n                    if c >= 1e6:\n                        continue\n                    delta = c - baseA\n                    if delta < best_delta:\n                        best_delta = delta\n                        best_move = (2, A, nseq, None, None, None, None)\n\n        # (3) cross-tech relocate\n        for A in healthy_ids:\n            seqA = plan[A]\n            if not seqA:\n                continue\n            baseA = rc(A, seqA)\n            for i, jid in enumerate(seqA):\n                skill = jobs[jid][\"skill\"]\n                red = seqA[:i] + seqA[i + 1:]\n                c_red = rc(A, red)\n                if c_red >= 1e6:\n                    continue\n                old_pen = move_pen(jid, A)\n                for B in healthy_ids:\n                    if B == A:\n                        continue\n                    if skill not in tid2tech[B][\"skills\"]:\n                        continue\n                    seqB = plan[B]\n                    baseB = rc(B, seqB)\n                    pen_delta = move_pen(jid, B) - old_pen\n                    for pos in range(len(seqB) + 1):\n                        nseqB = seqB[:pos] + [jid] + seqB[pos:]\n                        c = rc(B, nseqB)\n                        if c >= 1e6:\n                            continue\n                        delta = (c_red + c) - (baseA + baseB) + pen_delta\n                        if delta < best_delta:\n                            best_delta = delta\n                            best_move = (3, A, red, B, nseqB, jid, None)\n\n        # (4) intra-tech swap\n        for A in healthy_ids:\n            seqA = plan[A]\n            n = len(seqA)\n            if n < 2:\n                continue\n            baseA = rc(A, seqA)\n            for i in range(n):\n                for j in range(i + 1, n):\n                    nseq = list(seqA)\n                    nseq[i], nseq[j] = nseq[j], nseq[i]\n                    c = rc(A, nseq)\n                    if c >= 1e6:\n                        continue\n                    delta = c - baseA\n                    if delta < best_delta:\n                        best_delta = delta\n                        best_move = (2, A, nseq, None, None, None, None)\n\n        # (5) cross-tech swap\n        for ai in range(n_tech):\n            A = healthy_ids[ai]\n            seqA = plan[A]\n            if not seqA:\n                continue\n            baseA = rc(A, seqA)\n            skillsA = tid2tech[A][\"skills\"]\n            for bi in range(ai + 1, n_tech):\n                B = healthy_ids[bi]\n                seqB = plan[B]\n                if not seqB:\n                    continue\n                skillsB = tid2tech[B][\"skills\"]\n                baseB = rc(B, seqB)\n                for i, ja in enumerate(seqA):\n                    if jobs[ja][\"skill\"] not in skillsB:\n                        continue\n                    for j, jb in enumerate(seqB):\n                        if jobs[jb][\"skill\"] not in skillsA:\n                            continue\n                        nseqA = seqA[:i] + [jb] + seqA[i + 1:]\n                        nseqB = seqB[:j] + [ja] + seqB[j + 1:]\n                        ca = rc(A, nseqA)\n                        cb = rc(B, nseqB)\n                        if ca >= 1e6 or cb >= 1e6:\n                            continue\n                        delta = (ca + cb) - (baseA + baseB)\n                        delta += move_pen(ja, B) - move_pen(ja, A)\n                        delta += move_pen(jb, A) - move_pen(jb, B)\n                        if delta < best_delta:\n                            best_delta = delta\n                            best_move = (4, A, nseqA, B, nseqB, None, None)\n\n        if best_move is None:\n            break\n\n        kind = best_move[0]\n        if kind == 0:\n            _, B, nseq, _, _, jid, dropped = best_move\n            plan[B] = nseq\n            unassigned.discard(jid)\n            for d in (dropped or []):\n                unassigned.add(d)\n        elif kind == 1:\n            _, A, nseq, _, _, jid, _ = best_move\n            plan[A] = nseq\n            unassigned.add(jid)\n        elif kind == 2:\n            _, A, nseq, _, _, _, _ = best_move\n            plan[A] = nseq\n        elif kind == 3:\n            _, A, red, B, nseqB, _, _ = best_move\n            plan[A] = red\n            plan[B] = nseqB\n        else:  # kind == 4\n            _, A, nseqA, B, nseqB, _, _ = best_move\n            plan[A] = nseqA\n            plan[B] = nseqB\n\n    return {tid: list(seq) for tid, seq in plan.items()}\n",
+ "round0_code": "\"\"\"Round-0 seed policy: what a busy human dispatcher does.\n\nEveryone keeps their remaining jobs. Each orphaned job (from the sick tech) and each\nemergency goes to the nearest healthy tech with the right skill: emergencies to the\nfront of that tech's list, other jobs to the end. If that would push the tech past the\novertime limit, the job is left for tomorrow; an emergency instead bumps that\ntech's lowest-priority jobs to tomorrow.\n\"\"\"\n\nfrom dispatchiq.helpers import drop_until_feasible, route, travel_min\n\n\ndef replan(state):\n    plan = {t[\"id\"]: ([] if t[\"sick\"] else list(t[\"remaining\"])) for t in state[\"techs\"]}\n    healthy = [t for t in state[\"techs\"] if not t[\"sick\"]]\n    orphans = [j for t in state[\"techs\"] if t[\"sick\"] for j in t[\"remaining\"]]\n    emergencies = [jid for jid, j in state[\"jobs\"].items() if j[\"emergency\"]]\n    for jid in emergencies + orphans:\n        job = state[\"jobs\"][jid]\n        options = sorted((travel_min(state, t[\"loc\"], job[\"loc\"]), t[\"id\"]) for t in healthy\n                         if job[\"skill\"] in t[\"skills\"])\n        for _, tid in options:\n            tech = next(t for t in healthy if t[\"id\"] == tid)\n            seq = [jid] + plan[tid] if job[\"emergency\"] else plan[tid] + [jid]\n            if job[\"emergency\"]:\n                seq, _ = drop_until_feasible(state, tech, seq)  # bump routine jobs to tomorrow\n            if route(state, tech, seq)[\"feasible\"]:\n                plan[tid] = seq\n                break\n    return plan\n",
+ "team": false
+}

@@ -1,0 +1,11 @@
+round 0  dev  1911.4  val  2039.7  (start: dispatchiq/policies/naive.py)
+         reference insertion  dev  1663.5  val  1801.2
+round 1  dev  1364.1  val  1486.6  ACCEPTED  feasible 5/6  167.0s  tokens 168301  critic 25.6s/4912 tok
+round 2  dev  1315.9  val  1426.6  ACCEPTED  feasible 6/6  175.7s  tokens 168226  critic 17.1s/4571 tok
+round 3  dev  1253.5  val  1356.0  ACCEPTED  feasible 6/6  325.2s  tokens 195069  critic 8.7s/3640 tok
+round 4  dev  1235.4  val  1325.5  ACCEPTED  feasible 5/6  195.3s  tokens 211317  critic 48.5s/9151 tok
+round 5  dev  1217.3  val  1286.6  ACCEPTED  feasible 5/6  194.3s  tokens 226057  critic 14.1s/4337 tok
+round 6  dev  1217.3  val  1286.6  kept      feasible 6/6  165.4s  tokens 186043  critic 49.0s/10630 tok
+round 7  dev  1199.4  val  1251.2  ACCEPTED  feasible 6/6  163.2s  tokens 165092  critic 26.4s/6346 tok
+round 8  dev  1199.4  val  1251.2  kept      feasible 6/6  237.8s  tokens 230782  critic 16.6s/4296 tok
+saved runs/llm-team.json

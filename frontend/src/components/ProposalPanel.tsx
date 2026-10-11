@@ -1,11 +1,18 @@
-import { ArrowRight, ArrowRightLeft, CheckCircle2, CircleSlash, Clock, Loader2, Plus, RefreshCw, ShieldAlert, XCircle } from "lucide-react";
-import type { Change, ComparisonEntry, Proposal, Strategy } from "@/api/types";
+import { useEffect, useState } from "react";
+import {
+  CheckCircle2,
+  Loader2,
+  RefreshCw,
+  ShieldAlert,
+  Siren,
+  XCircle,
+} from "lucide-react";
+import type { ComparisonEntry, Proposal, Strategy } from "@/api/types";
+import { ScheduleComparison } from "@/components/ScheduleComparison";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { hhmm, type Busy } from "@/state/dispatch";
 import type { Indexed } from "@/lib/schedule";
-import { WORKER, workerType } from "@/lib/workers";
 
 interface Props {
   proposal: Proposal;
@@ -18,192 +25,371 @@ interface Props {
   onRefresh: () => void;
   onSelectJob: (id: string) => void;
 }
+const strategyName = (s: string) =>
+  s === "stable_insertion" ? "Least disruption" : "First feasible";
 
-const KIND = {
-  added: { icon: Plus, text: "Added" },
-  reassigned: { icon: ArrowRightLeft, text: "Reassigned" },
-  shifted: { icon: Clock, text: "Time shifted" },
-  unassigned: { icon: CircleSlash, text: "Unassigned" },
-} as const;
-
-function Place({ p, idx }: { p: Change["before"]; idx: Indexed }) {
-  if (!p) return <span className="text-muted">—</span>;
-  return <span className="tabular">{idx.techs.get(p.technician_id)?.name ?? p.technician_id} {hhmm(p.start_min)}</span>;
-}
-
-const strategyName = (s: string) => (s === "stable_insertion" ? "Least disruption" : s === "first_feasible" ? "First feasible" : s);
-
-export function ProposalPanel({ proposal: p, strategy, committed, stale, busy, onApprove, onReject, onRefresh, onSelectJob }: Props) {
-  const ready = p.status === "ready" && !!p.proposed_snapshot && p.validation.valid;
-  const canApprove = ready && !stale && busy === null;
-  const evt = p.event?.type === "emergency" ? p.event.job : null;
-  const proposedIdx = p.proposed_snapshot ? p.proposed_snapshot : null;
-  const validCands = p.candidates.filter((c) => c.valid && c.ranking).sort((a, b) =>
-    (a.id === p.selected_candidate_id ? -1 : b.id === p.selected_candidate_id ? 1 : 0));
+export function ProposalPanel({
+  proposal: p,
+  strategy,
+  committed,
+  stale,
+  busy,
+  onApprove,
+  onReject,
+  onRefresh,
+  onSelectJob,
+}: Props) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    setNow(Date.now());
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [p.proposal_id]);
+  const expired = now >= Date.parse(p.expires_at_utc);
+  const outdated =
+    stale ||
+    (expired
+      ? "This proposal expired. Refresh and preview the event again."
+      : null);
+  const ready =
+    p.status === "ready" && !!p.proposed_snapshot && p.validation.valid;
+  const canApprove = ready && !outdated && busy === null;
+  const event = p.event?.type === "emergency" ? p.event.job : null;
+  const assignment = event
+    ? p.proposed_snapshot?.schedule.assignments.find(
+        (a) => a.job_id === event.id,
+      )
+    : null;
+  const emergency = event
+    ? p.proposed_snapshot?.metrics.emergencies.find(
+        (e) => e.job_id === event.id,
+      )
+    : null;
+  const valid = p.candidates.filter((c) => c.valid && c.ranking);
   const rejected = p.candidates.filter((c) => !c.valid);
-
+  const selected = p.comparison.find((c) => c.strategy === strategy);
+  const diff = selected?.diff_metrics;
+  const selectedCandidate = p.candidates.find(
+    (c) => c.id === p.selected_candidate_id,
+  );
+  const assignedTech = committed.techs.get(assignment?.technician_id ?? "");
   return (
-    <section aria-labelledby="proposal-h" className="space-y-3" data-testid="proposal-panel">
-      <div className="flex items-start justify-between gap-2 pr-6">
+    <section
+      className="proposal-review"
+      data-testid="proposal-panel"
+      aria-labelledby="proposal-h"
+    >
+      <div className="proposal-status">
+        {outdated ? (
+          <Badge tone="amber">
+            <ShieldAlert />
+            Outdated
+          </Badge>
+        ) : ready ? (
+          <Badge tone="green">
+            <CheckCircle2 />
+            Ready to review
+          </Badge>
+        ) : (
+          <Badge tone="red">
+            <XCircle />
+            {p.status === "no_feasible_plan" ? "No feasible plan" : "Failed"}
+          </Badge>
+        )}
+        <span>Unapproved proposal</span>
+      </div>
+      <div className="emergency-summary">
+        <span className="emergency-icon">
+          <Siren size={18} />
+        </span>
         <div>
-          <h2 id="proposal-h" className="text-[15px] font-semibold">Proposed change</h2>
-          <p className="text-[12px] text-muted">
-            {evt ? <>Emergency <span className="tabular">{evt.id}</span> · {evt.customer.name}</> : "Re-plan"} · base revision {p.base_revision}
+          <h2 id="proposal-h">
+            {event?.customer.name ?? "Schedule adjustment"}
+          </h2>
+          <p>
+            {event
+              ? `${event.id} · ${event.customer.site_name}`
+              : "Review before updating the day"}
           </p>
         </div>
-        {stale ? <Badge tone="amber"><ShieldAlert /> Outdated</Badge>
-          : p.status === "ready" ? <Badge tone="green"><CheckCircle2 /> Ready to review</Badge>
-          : p.status === "no_feasible_plan" ? <Badge tone="red"><XCircle /> No feasible plan</Badge>
-          : <Badge tone="red"><XCircle /> Failed</Badge>}
       </div>
-
-      {stale && (
-        <div role="alert" className="rounded-md border border-proposed/40 bg-proposed-soft p-2.5 text-[12px] text-proposed">
-          {stale} This proposal can no longer be approved.
-          <Button size="sm" variant="outline" className="mt-2" onClick={onRefresh}><RefreshCw /> Refresh committed schedule</Button>
-        </div>
-      )}
-
-      <div className="rounded-md bg-canvas p-2.5 text-[12.5px] leading-relaxed">
-        <p data-testid="proposal-explanation">{p.explanation}</p>
-        <p className="mt-1.5 text-[11px] text-muted">
-          Deterministic explanation built from the evaluated candidates below. No language model was used.
-        </p>
-      </div>
-
-      {p.status !== "ready" && (
-        <p className="text-[12px] text-muted">
-          Search: {p.search.termination}, {p.search.candidates_evaluated} candidates evaluated.{" "}
-          {p.search.feasibility_proven_impossible
-            ? "A necessary condition fails (e.g. no qualified technician), so no plan exists for this event."
-            : "No plan was found by this bounded search; that is not a proof that none exists."}
-        </p>
-      )}
-
-      {p.changes.length > 0 && (
-        <div>
-          <h3 className="mb-1 text-[12px] font-semibold uppercase tracking-wide text-muted">Changes ({p.changes.length})</h3>
-          <ul className="divide-y divide-line rounded-md border border-line">
-            {p.changes.map((c) => {
-              const K = KIND[c.kind];
-              return (
-                <li key={c.job_id} className="p-2 text-[12px]" data-testid={`change-${c.job_id}`}>
-                  <button className="flex w-full items-center gap-1.5 text-left" onClick={() => onSelectJob(c.job_id)}>
-                    <K.icon className="size-3.5 shrink-0 text-proposed" aria-hidden />
-                    <span className="font-medium">{K.text}</span>
-                    <span className="tabular font-semibold">{c.job_id}</span>
-                    {c.forced && <Badge tone="amber">forced</Badge>}
-                  </button>
-                  <div className="mt-0.5 flex items-center gap-1.5 pl-5">
-                    <Place p={c.before} idx={committed} /> <ArrowRight className="size-3 text-muted" aria-label="to" />
-                    <Place p={c.after} idx={proposedIdx ? { ...committed, techs: new Map(proposedIdx.technicians.map((t) => [t.id, t])) } : committed} />
-                  </div>
-                  <p className="mt-0.5 pl-5 text-muted">{c.explanation}</p>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
-
-      {p.comparison.length > 0 && <Comparison rows={p.comparison} selected={p} strategy={strategy} />}
-
-      <details className="rounded-md border border-line text-[12px]">
-        <summary className="cursor-pointer px-2 py-1.5 font-medium">
-          Candidates evaluated: {validCands.length} valid, {rejected.length} rejected
-        </summary>
-        <div className="max-h-56 overflow-auto px-2 pb-2">
-          <table className="w-full text-left text-[11.5px]">
-            <thead className="text-muted"><tr><th className="py-1">Worker</th><th>Slot</th><th>Start</th><th>Changed</th><th>Shift</th></tr></thead>
-            <tbody className="tabular">
-              {validCands.map((c) => (
-                <tr key={c.id} className={c.id === p.selected_candidate_id ? "font-semibold text-committed" : ""}>
-                  <td className="py-0.5">{committed.techs.get(c.technician_id)?.name ?? c.technician_id}
-                    <span className="font-normal text-muted"> · {committed.techs.get(c.technician_id) ? WORKER[workerType(committed.techs.get(c.technician_id)!)].label : ""}</span>
-                    {c.id === p.selected_candidate_id && " ✓"}</td>
-                  <td>{c.insertion_position}</td>
-                  <td>{c.emergency_start_min !== null ? hhmm(c.emergency_start_min) : "—"}</td>
-                  <td>{c.ranking!.changed_existing_jobs}</td>
-                  <td>{c.ranking!.absolute_start_shift_min}m</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {rejected.length > 0 && (
-            <ul className="mt-2 space-y-0.5 text-muted">
-              {rejected.slice(0, 12).map((c) => (
-                <li key={c.id}>
-                  {committed.techs.get(c.technician_id)?.name ?? c.technician_id}
-                  {c.insertion_position >= 0 && ` (slot ${c.insertion_position})`}: {c.reasons.join("; ")}
-                </li>
-              ))}
-              {rejected.length > 12 && <li>…and {rejected.length - 12} more</li>}
-            </ul>
+      {event && (
+        <dl className="proposal-facts">
+          <div>
+            <dt>Priority</dt>
+            <dd>
+              {event.priority === 5 ? "Critical" : `Priority ${event.priority}`}
+            </dd>
+          </div>
+          <div>
+            <dt>Synthetic location</dt>
+            <dd className="tabular">
+              ({event.location.x_km}, {event.location.y_km}) km
+            </dd>
+          </div>
+          <div>
+            <dt>Response deadline</dt>
+            <dd>
+              {event.deadline_start_min !== null
+                ? hhmm(event.deadline_start_min)
+                : "Not specified"}
+            </dd>
+          </div>
+          <div>
+            <dt>Required skills</dt>
+            <dd>{event.required_skills.join(", ").toUpperCase()}</dd>
+          </div>
+          {assignment && (
+            <>
+              <div>
+                <dt>Recommended technician</dt>
+                <dd>
+                  {committed.techs.get(assignment.technician_id)?.name ??
+                    assignment.technician_id}
+                  {assignedTech &&
+                    event.required_skills.every((skill) =>
+                      assignedTech.skills.includes(skill),
+                    ) && (
+                      <span className="deadline-met">
+                        <CheckCircle2 size={12} /> Required skills matched
+                      </span>
+                    )}
+                </dd>
+              </div>
+              <div>
+                <dt>Estimated start</dt>
+                <dd>
+                  {hhmm(assignment.start_min)}
+                  {emergency?.deadline_met && (
+                    <span className="deadline-met">
+                      <CheckCircle2 size={12} />
+                      Within deadline
+                    </span>
+                  )}
+                </dd>
+              </div>
+            </>
           )}
+        </dl>
+      )}
+      {outdated && (
+        <div
+          role="alert"
+          className="rounded-md bg-proposed-soft p-3 text-[12px] text-proposed"
+        >
+          {outdated}
+          <Button size="sm" className="mt-2" onClick={onRefresh}>
+            <RefreshCw />
+            Refresh committed schedule
+          </Button>
+        </div>
+      )}
+      <ScheduleComparison
+        key={p.proposal_id}
+        proposal={p}
+        committed={committed}
+        onSelectJob={onSelectJob}
+      />
+      <details className="review-disclosure" open={!ready}>
+        <summary>Why this recommendation</summary>
+        {diff && (
+          <div className="proposal-impact">
+            <div>
+              <strong>{diff.changed_existing_jobs}</strong>
+              <span>existing jobs changed</span>
+            </div>
+            <div>
+              <strong>
+                {diff.absolute_start_shift_min}
+                <small> min</small>
+              </strong>
+              <span>total start shift</span>
+            </div>
+            {emergency && (
+              <div>
+                <strong>
+                  {emergency.response_min ?? "—"}
+                  <small> min</small>
+                </strong>
+                <span>emergency response</span>
+              </div>
+            )}
+          </div>
+        )}
+        <p data-testid="proposal-explanation">{p.explanation}</p>
+        {selectedCandidate?.ranking && (
+          <p data-testid="travel-impact">
+            Future travel change:{" "}
+            {selectedCandidate.ranking.added_travel_min > 0 ? "+" : ""}
+            {selectedCandidate.ranking.added_travel_min} min, as measured by the
+            backend for this candidate.
+          </p>
+        )}
+        {!ready && (
+          <p>
+            {p.search.feasibility_proven_impossible
+              ? "A necessary scheduling condition fails for this event."
+              : "No feasible plan was found under this search. This does not prove none exists."}{" "}
+            The approved schedule is unchanged.
+          </p>
+        )}
+      </details>
+      {p.comparison.length > 0 && (
+        <details className="review-disclosure">
+          <summary>Compare evaluated approaches</summary>
+          <Comparison
+            rows={p.comparison}
+            strategy={strategy}
+            eventId={event?.id}
+          />
+          <p>
+            Both approaches evaluate the same event and approved schedule.
+            Travel covers future work.
+          </p>
+        </details>
+      )}
+      <details className="review-disclosure">
+        <summary>
+          Technician options · {valid.length} valid, {rejected.length} rejected
+        </summary>
+        <div className="candidate-options">
+          {valid.map((c) => (
+            <div key={c.id}>
+              <strong>
+                {committed.techs.get(c.technician_id)?.name ?? c.technician_id}
+                {c.id === p.selected_candidate_id ? " · selected" : ""}
+              </strong>
+              <span>
+                {c.emergency_start_min !== null
+                  ? hhmm(c.emergency_start_min)
+                  : "—"}{" "}
+                · {c.ranking!.changed_existing_jobs} changed ·{" "}
+                {c.ranking!.absolute_start_shift_min} min shift
+              </span>
+            </div>
+          ))}
+          {rejected.map((c) => (
+            <div key={c.id}>
+              <strong>
+                {committed.techs.get(c.technician_id)?.name ?? c.technician_id}
+              </strong>
+              <span>{c.reasons.join("; ")}</span>
+            </div>
+          ))}
         </div>
       </details>
-
-      <div className="text-[12px]">
-        {p.validation.valid ? (
-          <p className="flex items-center gap-1 text-ok"><CheckCircle2 className="size-3.5" /> Proposed schedule passed independent validation.</p>
+      <div className="validation-summary">
+        {p.validation.valid && ready ? (
+          <span>
+            <CheckCircle2 size={14} />
+            Schedule independently checked
+          </span>
         ) : p.validation.violations.length ? (
-          <ul className="text-emergency">{p.validation.violations.map((v, i) => <li key={i}>{v.message}</li>)}</ul>
+          <ul role="alert">
+            {p.validation.violations.map((v, i) => (
+              <li key={i}>{v.message}</li>
+            ))}
+          </ul>
         ) : null}
-        <p className="tabular mt-1 text-muted">
-          Computed in {p.runtime_ms} ms · expires {new Date(p.expires_at_utc).toLocaleTimeString()}
+        <small>
+          Evaluated in {p.runtime_ms.toFixed(1)} ms ·{" "}
+          {p.search.candidates_evaluated} options ·{" "}
+          {p.search.termination === "budget_exhausted"
+            ? "Search budget reached"
+            : "Search complete"}
+        </small>
+      </div>
+      <div className="proposal-decision">
+        <Button
+          variant="approve"
+          disabled={!canApprove}
+          onClick={onApprove}
+          data-testid="approve"
+        >
+          {busy === "committing" ? (
+            <Loader2 className="animate-spin" />
+          ) : (
+            <CheckCircle2 />
+          )}
+          Approve Changes
+        </Button>
+        <Button
+          disabled={busy !== null}
+          onClick={onReject}
+          data-testid="reject"
+        >
+          {busy === "rejecting" ? (
+            <Loader2 className="animate-spin" />
+          ) : (
+            <XCircle />
+          )}
+          {ready && !outdated ? "Reject Proposal" : "Dismiss"}
+        </Button>
+        <p>
+          {outdated
+            ? "Outdated proposals cannot be approved."
+            : !ready
+              ? "Only a validated proposal can be approved."
+              : "Approval applies the event and schedule together."}
         </p>
       </div>
-
-      <div className="sticky bottom-0 -mx-4 flex gap-2 border-t border-line bg-panel px-4 py-3">
-        <Button variant="approve" className="flex-1" disabled={!canApprove} onClick={onApprove}
-          aria-describedby={!canApprove ? "approve-why" : undefined} data-testid="approve">
-          {busy === "committing" ? <Loader2 className="animate-spin" /> : <CheckCircle2 />} Approve
-        </Button>
-        <Button className="flex-1" onClick={onReject} disabled={busy !== null} data-testid="reject">
-          {busy === "rejecting" ? <Loader2 className="animate-spin" /> : <XCircle />} {ready && !stale ? "Reject" : "Dismiss"}
-        </Button>
-      </div>
-      {!canApprove && (
-        <p id="approve-why" className="-mt-1 text-[11px] text-muted">
-          {stale ? "Outdated proposals cannot be approved." : !ready ? "Only a ready, validated proposal can be approved." : "Waiting for the current request."}
-        </p>
-      )}
     </section>
   );
 }
-
-function Comparison({ rows, selected, strategy }: { rows: ComparisonEntry[]; selected: Proposal; strategy: Strategy | null }) {
-  const chosen = selected.proposed_snapshot ? strategy : null;
+function Comparison({
+  rows,
+  strategy,
+  eventId,
+}: {
+  rows: ComparisonEntry[];
+  strategy: Strategy | null;
+  eventId?: string;
+}) {
   return (
-    <div>
-      <h3 className="mb-1 text-[12px] font-semibold uppercase tracking-wide text-muted">Strategies on the same event</h3>
-      <table className="w-full text-left text-[11.5px]" data-testid="comparison">
-        <thead className="text-muted">
-          <tr className="[&>th]:px-1 [&>th]:py-1 [&>th]:font-medium"><th className="!pl-0">Strategy</th><th className="text-right">Jobs changed</th><th className="text-right">Shift</th><th className="text-right">Response</th><th className="text-right">Travel</th><th className="text-right">ms</th></tr>
-        </thead>
-        <tbody className="tabular">
-          {rows.map((r) => {
-            const e = r.metrics?.emergencies[0];
-            return (
-              <tr key={r.strategy} className={cn("[&>td]:px-1 [&>td]:py-0.5 [&>td:not(:first-child)]:text-right", r.strategy === chosen && "font-semibold")}>
-                <td className="!pl-0">{strategyName(r.strategy)}{r.strategy === chosen && " (proposed)"}</td>
-                {r.status === "ready" && r.metrics && r.diff_metrics ? (
-                  <>
-                    <td>{r.diff_metrics.changed_existing_jobs}</td>
-                    <td>{r.diff_metrics.absolute_start_shift_min}m</td>
-                    <td>{e?.response_min != null ? `${e.response_min}m` : "—"}</td>
-                    <td>{r.metrics.travel_min}m</td>
-                  </>
-                ) : (
-                  <td colSpan={4} className="text-muted">{r.status === "no_feasible_plan" ? "no feasible plan" : "failed"}</td>
-                )}
-                <td>{r.runtime_ms}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      <p className="mt-1 text-[11px] text-muted">Both strategies ran on an identical copy of the committed schedule plus this event. Travel is future travel from now.</p>
+    <div className="strategy-comparison" data-testid="comparison">
+      {rows.map((r) => {
+        const response = eventId
+          ? r.metrics?.emergencies.find((e) => e.job_id === eventId)
+          : undefined;
+        return (
+          <div key={r.strategy}>
+            <h4>
+              {strategyName(r.strategy)}
+              {r.strategy === strategy && " (proposed)"}
+            </h4>
+            {r.status === "ready" && r.metrics && r.diff_metrics ? (
+              <dl>
+                <div>
+                  <dt>Jobs changed</dt>
+                  <dd>{r.diff_metrics.changed_existing_jobs}</dd>
+                </div>
+                <div>
+                  <dt>Total start shift</dt>
+                  <dd>{r.diff_metrics.absolute_start_shift_min} min</dd>
+                </div>
+                <div>
+                  <dt>Emergency response</dt>
+                  <dd>{response?.response_min ?? "—"} min</dd>
+                </div>
+                <div>
+                  <dt>Future travel</dt>
+                  <dd>{r.metrics.travel_min} min</dd>
+                </div>
+                <div>
+                  <dt>Measured runtime</dt>
+                  <dd>{r.runtime_ms.toFixed(1)} ms</dd>
+                </div>
+              </dl>
+            ) : (
+              <p>
+                {r.status === "no_feasible_plan"
+                  ? "No feasible plan found"
+                  : "Evaluation failed"}
+              </p>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

@@ -1,0 +1,12 @@
+round 0  dev  1911.4  val  2039.7  (start: dispatchiq/policies/naive.py)
+         reference insertion  dev  1663.5  val  1801.2
+round 1  dev  1642.4  val  1755.1  ACCEPTED  feasible 6/6  0.2s
+round 2  dev  1635.9  val  1752.2  ACCEPTED  feasible 6/6  0.2s
+round 3  dev  1635.9  val  1752.2  kept      feasible 6/6  0.1s
+round 4  dev  1634.7  val  1732.2  ACCEPTED  feasible 6/6  0.2s
+round 5  dev  1633.2  val  1728.8  ACCEPTED  feasible 6/6  0.2s
+round 6  dev  1633.2  val  1728.8  kept      feasible 6/6  0.1s
+round 7  dev  1633.2  val  1728.8  kept      feasible 6/6  0.1s
+round 8  dev  1631.1  val  1717.7  ACCEPTED  feasible 6/6  0.2s
+saved runs/random.json
+exit=0

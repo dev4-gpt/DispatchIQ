@@ -1,0 +1,288 @@
+{
+  "proposal_id": "2d918e37-f40b-4893-818d-5d380244acee",
+  "scenario_id": "demo-v1",
+  "scenario_epoch": "ad193826-5730-4474-a7f9-6773cca2805b",
+  "base_revision": 0,
+  "status": "no_feasible_plan",
+  "event": {
+    "type": "emergency",
+    "at_min": 690,
+    "job": {
+      "id": "E-impossible",
+      "customer": {
+        "id": "C99",
+        "name": "Civic Clinic",
+        "site_name": "Plant room"
+      },
+      "location": {
+        "x_km": 4.0,
+        "y_km": 2.0,
+        "latitude": null,
+        "longitude": null
+      },
+      "required_skills": [
+        "hvac"
+      ],
+      "priority": 5,
+      "duration_min": 45,
+      "earliest_start_min": 690,
+      "latest_start_min": 730,
+      "window_end_min": 840,
+      "soft_promised_start_min": null,
+      "deadline_start_min": 691,
+      "release_min": 690,
+      "emergency": true,
+      "locked": false
+    }
+  },
+  "proposed_snapshot": null,
+  "changes": [],
+  "validation": {
+    "valid": false,
+    "violations": [
+      {
+        "code": "NO_FEASIBLE_INSERTION",
+        "message": "No feasible insertion found under this bounded search.",
+        "job_id": "E-impossible",
+        "technician_id": null
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "id": "CAND-E-impossible-T07-1",
+      "technician_id": "T07",
+      "insertion_position": 1,
+      "eligible": true,
+      "valid": false,
+      "reasons": [
+        "EMERGENCY_DEADLINE"
+      ],
+      "ranking": null,
+      "emergency_start_min": null
+    },
+    {
+      "id": "CAND-E-impossible-T07-2",
+      "technician_id": "T07",
+      "insertion_position": 2,
+      "eligible": true,
+      "valid": false,
+      "reasons": [
+        "CUSTOMER_WINDOW",
+        "EMERGENCY_DEADLINE"
+      ],
+      "ranking": null,
+      "emergency_start_min": null
+    },
+    {
+      "id": "CAND-E-impossible-T00-2",
+      "technician_id": "T00",
+      "insertion_position": 2,
+      "eligible": true,
+      "valid": false,
+      "reasons": [
+        "EMERGENCY_DEADLINE"
+      ],
+      "ranking": null,
+      "emergency_start_min": null
+    },
+    {
+      "id": "CAND-E-impossible-T00-3",
+      "technician_id": "T00",
+      "insertion_position": 3,
+      "eligible": true,
+      "valid": false,
+      "reasons": [
+        "CUSTOMER_WINDOW",
+        "EMERGENCY_DEADLINE"
+      ],
+      "ranking": null,
+      "emergency_start_min": null
+    },
+    {
+      "id": "CAND-E-impossible-T06-excluded",
+      "technician_id": "T06",
+      "insertion_position": 0,
+      "eligible": false,
+      "valid": false,
+      "reasons": [
+        "SKILL_MISMATCH"
+      ],
+      "ranking": null,
+      "emergency_start_min": null
+    },
+    {
+      "id": "CAND-E-impossible-T08-excluded",
+      "technician_id": "T08",
+      "insertion_position": 0,
+      "eligible": false,
+      "valid": false,
+      "reasons": [
+        "SKILL_MISMATCH"
+      ],
+      "ranking": null,
+      "emergency_start_min": null
+    },
+    {
+      "id": "CAND-E-impossible-T01-excluded",
+      "technician_id": "T01",
+      "insertion_position": 0,
+      "eligible": false,
+      "valid": false,
+      "reasons": [
+        "SKILL_MISMATCH"
+      ],
+      "ranking": null,
+      "emergency_start_min": null
+    },
+    {
+      "id": "CAND-E-impossible-T09-excluded",
+      "technician_id": "T09",
+      "insertion_position": 0,
+      "eligible": false,
+      "valid": false,
+      "reasons": [
+        "SKILL_MISMATCH"
+      ],
+      "ranking": null,
+      "emergency_start_min": null
+    },
+    {
+      "id": "CAND-E-impossible-T05-1",
+      "technician_id": "T05",
+      "insertion_position": 1,
+      "eligible": true,
+      "valid": false,
+      "reasons": [
+        "CUSTOMER_WINDOW",
+        "EMERGENCY_DEADLINE"
+      ],
+      "ranking": null,
+      "emergency_start_min": null
+    },
+    {
+      "id": "CAND-E-impossible-T05-2",
+      "technician_id": "T05",
+      "insertion_position": 2,
+      "eligible": true,
+      "valid": false,
+      "reasons": [
+        "CUSTOMER_WINDOW",
+        "EMERGENCY_DEADLINE"
+      ],
+      "ranking": null,
+      "emergency_start_min": null
+    },
+    {
+      "id": "CAND-E-impossible-T02-2",
+      "technician_id": "T02",
+      "insertion_position": 2,
+      "eligible": true,
+      "valid": false,
+      "reasons": [
+        "CUSTOMER_WINDOW",
+        "EMERGENCY_DEADLINE"
+      ],
+      "ranking": null,
+      "emergency_start_min": null
+    },
+    {
+      "id": "CAND-E-impossible-T02-3",
+      "technician_id": "T02",
+      "insertion_position": 3,
+      "eligible": true,
+      "valid": false,
+      "reasons": [
+        "CUSTOMER_WINDOW",
+        "EMERGENCY_DEADLINE"
+      ],
+      "ranking": null,
+      "emergency_start_min": null
+    },
+    {
+      "id": "CAND-E-impossible-T04-excluded",
+      "technician_id": "T04",
+      "insertion_position": 0,
+      "eligible": false,
+      "valid": false,
+      "reasons": [
+        "SKILL_MISMATCH"
+      ],
+      "ranking": null,
+      "emergency_start_min": null
+    },
+    {
+      "id": "CAND-E-impossible-T03-2",
+      "technician_id": "T03",
+      "insertion_position": 2,
+      "eligible": true,
+      "valid": false,
+      "reasons": [
+        "CUSTOMER_WINDOW",
+        "EMERGENCY_DEADLINE"
+      ],
+      "ranking": null,
+      "emergency_start_min": null
+    },
+    {
+      "id": "CAND-E-impossible-T03-3",
+      "technician_id": "T03",
+      "insertion_position": 3,
+      "eligible": true,
+      "valid": false,
+      "reasons": [
+        "CUSTOMER_WINDOW",
+        "EMERGENCY_DEADLINE"
+      ],
+      "ranking": null,
+      "emergency_start_min": null
+    }
+  ],
+  "selected_candidate_id": null,
+  "comparison": [
+    {
+      "strategy": "stable_insertion",
+      "status": "no_feasible_plan",
+      "metrics": null,
+      "diff_metrics": null,
+      "runtime_ms": 11.671200016280636,
+      "validation": {
+        "valid": false,
+        "violations": [
+          {
+            "code": "NO_FEASIBLE_INSERTION",
+            "message": "No feasible insertion found under this bounded search.",
+            "job_id": "E-impossible",
+            "technician_id": null
+          }
+        ]
+      }
+    },
+    {
+      "strategy": "first_feasible",
+      "status": "no_feasible_plan",
+      "metrics": null,
+      "diff_metrics": null,
+      "runtime_ms": 11.30760001251474,
+      "validation": {
+        "valid": false,
+        "violations": [
+          {
+            "code": "NO_FEASIBLE_INSERTION",
+            "message": "No feasible insertion found under this bounded search.",
+            "job_id": "E-impossible",
+            "technician_id": null
+          }
+        ]
+      }
+    }
+  ],
+  "runtime_ms": 11.671200016280636,
+  "search": {
+    "termination": "completed",
+    "candidates_evaluated": 10,
+    "feasibility_proven_impossible": true
+  },
+  "expires_at_utc": "2026-10-11T18:16:22.635813+00:00",
+  "explanation": "No feasible plan found for E-impossible. The committed schedule is unchanged."
+}

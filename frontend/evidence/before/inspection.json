@@ -1,0 +1,46 @@
+[
+  {
+    "width": 1440,
+    "height": 900,
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1440,
+      "scrollHeight": 900,
+      "viewport": 1440
+    },
+    "text": "Loaded schedule revision 1.\nDispatchIQ\n\n2026-10-11 · 11:30 simulated\n\n10/10 techs available\n5 in progress\n0 emergencies\nrev 1\nAPI · feasible_insertion\nReset\nIntroduce emergency\nMap\nSchedule\nTECHNICIANS\nJohn\nHVAC · on J02\nSarah\nPlumbing · on J05\nMike\nHVAC · Electrical · on J08\nPriya\nHVAC · Plumbing · on J11\nLuis\nElectrical · on J14\nAva\nHVAC · next J17 11:45\nOmar\nPlumbing · next J19 11:45\nMei\nHVAC · Plumbing · Electrical · next J21 11:45\nDan\nElectrical · next J23 11:45\nZoe\nPlumbing · next J25 11:45\nFuture travel\n60 min\nUnassigned jobs\n0\nSoft SLA misses\n0\nHard violations\n0\nEmergency response\n—\nScope: work after now\nMap\nClick a technician or job\nJo\nSa\nMi\nPr\nLu\nAv\nOm\nMe\nDa\nZo\n+\n−\nSynthetic city · 1 km grid · estimated travel, not road routing\nSchedule · committed · rev 1\nStart of day\nCommitted\nProposed\n08:00\n09:00\n10:00\n11:00\n12:00\n13:00\n14:00\n15:00\n16:00\n17:00\nJohn\nHVAC\nJ01\nJ02\nJ03\nSarah\nPlumbing\nJ04\nJ05\nJ06\nMike\nHVAC\nElectrical\nJ07\nJ08\nJ09\nPriya\nHVAC\nPlumbing\nJ10\nJ11\nJ12\nLuis\nElectrical\nJ13\nJ14\nJ15\nAva\nHVAC\nJ16\nJ17\nOmar\nPlumbing\nJ18\nJ19\nMei\nHVAC\nPlumbing\nElectrical\nJ20\nJ21\nDan\nElectrical\nJ22\nJ23\nZoe\nPlumbing\nJ24\nJ25\nNo unassigned work in this view.\nstarted (locked)\nproposed change\nemergency\nnow 11:30"
+  },
+  {
+    "width": 1280,
+    "height": 800,
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1280,
+      "scrollHeight": 800,
+      "viewport": 1280
+    },
+    "text": "Loaded schedule revision 1.\nDispatchIQ\n\n2026-10-11 · 11:30 simulated\n\n10/10 techs available\n5 in progress\n0 emergencies\nrev 1\nAPI · feasible_insertion\nReset\nIntroduce emergency\nMap\nSchedule\nTECHNICIANS\nJohn\nHVAC · on J02\nSarah\nPlumbing · on J05\nMike\nHVAC · Electrical · on J08\nPriya\nHVAC · Plumbing · on J11\nLuis\nElectrical · on J14\nAva\nHVAC · next J17 11:45\nOmar\nPlumbing · next J19 11:45\nMei\nHVAC · Plumbing · Electrical · next J21 11:45\nDan\nElectrical · next J23 11:45\nZoe\nPlumbing · next J25 11:45\nFuture travel\n60 min\nUnassigned jobs\n0\nSoft SLA misses\n0\nHard violations\n0\nEmergency response\n—\nScope: work after now\nMap\nClick a technician or job\nJo\nSa\nMi\nPr\nLu\nAv\nOm\nMe\nDa\nZo\n+\n−\nSynthetic city · 1 km grid · estimated travel, not road routing\nSchedule · committed · rev 1\nStart of day\nCommitted\nProposed\n08:00\n09:00\n10:00\n11:00\n12:00\n13:00\n14:00\n15:00\n16:00\n17:00\nJohn\nHVAC\nJ01\nJ02\nJ03\nSarah\nPlumbing\nJ04\nJ05\nJ06\nMike\nHVAC\nElectrical\nJ07\nJ08\nJ09\nPriya\nHVAC\nPlumbing\nJ10\nJ11\nJ12\nLuis\nElectrical\nJ13\nJ14\nJ15\nAva\nHVAC\nJ16\nJ17\nOmar\nPlumbing\nJ18\nJ19\nMei\nHVAC\nPlumbing\nElectrical\nJ20\nJ21\nDan\nElectrical\nJ22\nJ23\nZoe\nPlumbing\nJ24\nJ25\nNo unassigned work in this view.\nstarted (locked)\nproposed change\nemergency\nnow 11:30"
+  },
+  {
+    "width": 1024,
+    "height": 768,
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1024,
+      "scrollHeight": 768,
+      "viewport": 1024
+    },
+    "text": "Loaded schedule revision 1.\nDispatchIQ\n\n2026-10-11 · 11:30 simulated\n\n10/10 techs available\n5 in progress\n0 emergencies\nrev 1\nAPI · feasible_insertion\nReset\nIntroduce emergency\nFuture travel\n60 min\nUnassigned jobs\n0\nSoft SLA misses\n0\nHard violations\n0\nEmergency response\n—\nScope: work after now\nMap\nClick a technician or job\nJo\nSa\nMi\nPr\nLu\nAv\nOm\nMe\nDa\nZo\n+\n−\nSynthetic city · 1 km grid · estimated travel, not road routing\nSchedule · committed · rev 1\nStart of day\nCommitted\nProposed\n08:00\n09:00\n10:00\n11:00\n12:00\n13:00\n14:00\n15:00\n16:00\n17:00\nJohn\nHVAC\nJ01\nJ02\nJ03\nSarah\nPlumbing\nJ04\nJ05\nJ06\nMike\nHVAC\nElectrical\nJ07\nJ08\nJ09\nPriya\nHVAC\nPlumbing\nJ10\nJ11\nJ12\nLuis\nElectrical\nJ13\nJ14\nJ15\nAva\nHVAC\nJ16\nJ17\nOmar\nPlumbing\nJ18\nJ19\nMei\nHVAC\nPlumbing\nElectrical\nJ20\nJ21\nDan\nElectrical\nJ22\nJ23\nZoe\nPlumbing\nJ24\nJ25\nNo unassigned work in this view.\nstarted (locked)\nproposed change\nemergency\nnow 11:30"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "errors": [],
+    "layout": {
+      "scrollWidth": 390,
+      "scrollHeight": 844,
+      "viewport": 390
+    },
+    "text": "Loaded schedule revision 1.\nDispatchIQ\n\n2026-10-11 · 11:30 simulated\n\n10/10 techs available\n5 in progress\n0 emergencies\nrev 1\nAPI · feasible_insertion\nReset\nIntroduce emergency\nFuture travel\n60 min\nUnassigned jobs\n0\nSoft SLA misses\n0\nHard violations\n0\nEmergency response\n—\nScope: work after now\nTimeline\nMap\nDetails\nSchedule · rev 1\nStart\nCommitted\nProposed\n08:00\n09:00\n10:00\n11:00\n12:00\n13:00\n14:00\n15:00\n16:00\n17:00\nJohn\nHVAC\nJ01\nJ02\nJ03\nSarah\nPlumbing\nJ04\nJ05\nJ06\nMike\nHVAC\nElectrical\nJ07\nJ08\nJ09\nPriya\nHVAC\nPlumbing\nJ10\nJ11\nJ12\nLuis\nElectrical\nJ13\nJ14\nJ15\nAva\nHVAC\nJ16\nJ17\nOmar\nPlumbing\nJ18\nJ19\nMei\nHVAC\nPlumbing\nElectrical\nJ20\nJ21\nDan\nElectrical\nJ22\nJ23\nZoe\nPlumbing\nJ24\nJ25\nNo unassigned work in this view.\nstarted (locked)\nproposed change\nemergency\nnow 11:30"
+  }
+]

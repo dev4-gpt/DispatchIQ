@@ -72,7 +72,41 @@ class Evaluation:
             return round(mean(getattr(s, attr) for s in ok), 2) if ok else None
         return {"mean_cost": round(self.mean_cost, 1), "infeasible": self.infeasible,
                 "on_time_pct": avg("on_time_pct"), "emergency_response": avg("emergency_response"),
-                "travel": avg("travel"), "moved": avg("moved"), "unassigned": avg("unassigned")}
+                "travel": avg("travel"), "moved": avg("moved"), "unassigned": avg("unassigned"),
+                # Totals over feasible days: emergencies that started after their promised latest start.
+                "emergencies": sum(s.emergencies for s in ok), "missed_promises": sum(s.missed_promises for s in ok),
+                # Reporting only (not in the cost): customers booked with a healthy tech this morning who are
+                # left unscheduled, and jobs moved from one healthy tech to another.
+                "bumped_booked": sum(_bumped_booked(seed, s) for seed, s in self.per_seed.items() if s.feasible),
+                "moved_healthy": sum(s.moved for s in ok)}
+
+
+def cost_breakdown(ev: Evaluation) -> dict[str, float] | None:
+    """Mean per-day cost split into the checker's terms, over feasible days. The parts sum to the
+    checker's cost; computed from the scored routes, so the checker itself is unchanged."""
+    from .simulate import W_CHURN, W_EMERGENCY, W_UNASSIGNED
+    ok = {seed: s for seed, s in ev.per_seed.items() if s.feasible}
+    if not ok:
+        return None
+    tot = dict(travel=0.0, lateness=0.0, unassigned=0.0, churn=0.0, emergency_wait=0.0, overtime=0.0)
+    for seed, s in ok.items():
+        jobs = state(seed)["jobs"]
+        assigned = {stop["job"] for stops in s.routes.values() for stop in stops}
+        tot["travel"] += s.travel
+        tot["lateness"] += s.weighted_late
+        tot["overtime"] += s.overtime
+        tot["churn"] += W_CHURN * s.moved
+        tot["emergency_wait"] += W_EMERGENCY * s.emergency_response * s.emergencies
+        tot["unassigned"] += W_UNASSIGNED * sum(j["priority"] for jid, j in jobs.items() if jid not in assigned)
+    return {k: round(v / len(ok), 1) for k, v in tot.items()}
+
+
+def _bumped_booked(seed: int, score: Score) -> int:
+    st = state(seed)
+    sick = {t["id"] for t in st["techs"] if t["sick"]}
+    assigned = {stop["job"] for stops in score.routes.values() for stop in stops}
+    return sum(1 for jid, j in st["jobs"].items()
+               if j["morning_tech"] and j["morning_tech"] not in sick and jid not in assigned)
 
 
 def evaluate(code: str, seeds: list[int], timeout: float = 60.0) -> Evaluation:
