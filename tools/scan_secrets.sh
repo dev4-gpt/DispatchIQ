@@ -6,7 +6,7 @@
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
-PATTERN='lum_live_[A-Za-z0-9]{8,}|[Bb]earer [A-Za-z0-9._~+/=-]{16,}|sk-[A-Za-z0-9_-]{20,}|gsk_[A-Za-z0-9]{20,}|(api[_-]?key|secret|token)["'"'"' ]*[:=] *["'"'"'][A-Za-z0-9._-]{16,}["'"'"']'
+PATTERN='lum_live_[A-Za-z0-9]{8,}|[Bb]earer [A-Za-z0-9._~+/=-]{16,}|(^|[^A-Za-z0-9_-])sk-[A-Za-z0-9_-]{20,}|gsk_[A-Za-z0-9]{20,}|(api[_-]?key|secret|token)["'"'"' ]*[:=] *["'"'"'][A-Za-z0-9._-]{16,}["'"'"']'
 mask() { sed -E 's/(lum_live_|[Bb]earer |sk-|gsk_)?([A-Za-z0-9._~+\/=-]{0,9})[A-Za-z0-9._~+\/=-]*/\1\2…[masked]/'; }
 found=0
 
