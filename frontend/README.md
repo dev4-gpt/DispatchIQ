@@ -1,72 +1,72 @@
-# DispatchIQ operations frontend (Developer 2)
+# DispatchIQ operations frontend
 
-React + TypeScript + Vite command center for the emergency re-plan workflow in `docs/CONTRACTS.md`:
-- **Load:** the committed schedule.
-- **Inspect:** technicians and jobs on a synthetic-city map and a shift timeline.
-- **Preview:** introduce an emergency and preview the server's proposal (changes, candidate evidence, strategy comparison, validation).
-- **Decide:** approve or reject it. Reset when needed.
+React / TypeScript / Vite / Tailwind command center connected to the existing contract-v1 FastAPI service. The dispatch board pairs the approved schedule with a synthetic service map. A dispatcher previews an emergency, checks the actual deadline and appointment changes, and approves or rejects the proposal.
 
-The Streamlit research view (`../app.py`) is unchanged and separate.
+Overview, searchable Jobs, searchable Technicians and Activity all use committed server data. Details appear contextually. Desktop uses a side inspector; smaller screens use accessible Radix sheets, with map/timeline tabs on mobile. There are no empty navigation destinations.
 
-## Run
+## Run from the repository root
 
-```bash
-cd frontend
-npm ci
-npm run dev              # real API: proxies /api to 127.0.0.1:8000 (Developer 1's FastAPI)
-npm run dev:fixture      # DEVELOPMENT FIXTURE: in-browser stand-in, orange banner, not backend results
-npm run build            # typecheck + production build
-npm run build:demo       # static fixture demo into frontend/demo/ (open demo/index.html via any static server)
-npx playwright install chromium   # once (or set CHROMIUM_PATH to an existing Chromium)
-npx playwright test      # runs the three test projects below
+First terminal:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
+.\.venv\Scripts\python.exe -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
 ```
 
-On Windows PowerShell use `npm.cmd` / `npx.cmd`. Set `DISPATCHIQ_API` to point the proxy somewhere other than `http://127.0.0.1:8000`.
+Second terminal:
 
-## Status: what is and isn't verified
+```powershell
+cd frontend
+npm.cmd ci
+npm.cmd run dev -- --host 127.0.0.1
+```
 
-| Area | Status |
-|---|---|
-| Typed client + contract types (`src/api/types.ts`, `client.ts`) | Done; frozen from CONTRACTS.md v1 |
-| Shell, metrics strip, technician list, map, timeline, job inspector, proposal panel, scenario controls | Done |
-| Emergency preview → approve / reject / reset, stale and no-plan handling | Done; tested against the **development fixture** |
-| Responsive 1440 / 1024 (drawer) / 390 (tabs) | Done; screenshots in `test-results/screenshots/` |
-| No silent fallback when the API is down | Tested (`api-unavailable`): error + retry, no fixture data |
-| **Integration with the real backend** | **Not yet verified.** The backend did not exist when this was built. `tests/integration.spec.ts` skips itself until `GET 127.0.0.1:8000/api/health` answers |
+Open http://127.0.0.1:5173. Vite proxies `/api` to port 8000. `DISPATCHIQ_API` can point the proxy to another backend. Production build: `npm.cmd run build` (typecheck + build). Preview serves only static assets; an API reverse proxy is needed for a deployed app.
 
-Test projects (`playwright.config.ts`):
-- `fixture-ui`: 10 UI workflow tests against the labeled development fixture. They check UI behaviour and contract handling, **not** backend integration.
-- `api-unavailable`: real-API mode with nothing behind the proxy.
-- `integration`: the real FastAPI service. Start it first, then run `npx playwright test --project=integration`.
+## Verify
 
-## Static demo (`frontend/demo/`)
+```powershell
+npx.cmd playwright install chromium
+npx.cmd playwright test
+```
 
-`frontend/demo/` is a committed static build of the **development fixture** (orange banner, not backend results), for showing the UI without installing anything:
-- **Serve it:** `cd frontend/demo && python -m http.server 8080`, then open http://127.0.0.1:8080.
-- **Rebuild it** after UI changes with `npm run build:demo`.
+An installed browser may be supplied via `CHROMIUM_PATH`. Real integration checks require a healthy backend and fail when it is absent; a passing fixture suite cannot substitute for integration. Tests reset and approve the synthetic scenario, so use an isolated service during development:
 
-## Development fixture (`src/api/devFixture.ts`)
-- **What it is:** opt-in only (`npm run dev:fixture` or `?fixture=dev`), with an orange banner while active. It's a synthetic 10-technician / 25-job day at 11:30 that follows the contract's units, statuses, hard windows, frozen work, revisions and proposal lifecycle.
-- **It really computes:** insertion candidates, timings, validation, metrics and both strategies. Nothing is canned.
-- **It is not the backend's optimizer or validator.** Its numbers must never be shown as product results.
-- **Test hook:** `window.__dispatchiqFixture.simulateExternalCommit()` exists only in fixture mode, to test stale approvals.
+```powershell
+# Repository root, dedicated terminal: actual API/optimizer, isolated in-memory store.
+.\.venv\Scripts\python.exe -c "from backend.app import create_app; from backend.store import StateStore; import uvicorn; uvicorn.run(create_app(StateStore()), host='127.0.0.1', port=8001)"
+```
 
-## Design tooling (checked in this session)
-- **shadcn:** no shadcn MCP was available. The official CLI (`npx shadcn add …`) failed with "not authorized" fetching `ui.shadcn.com/r/...` (network-restricted environment). Per the 10-minute timebox, `src/components/ui/` contains small hand-written shadcn-style components (Button, Badge, Tabs, Dialog/Sheet) on Radix primitives.
-- **Figma:** no Figma MCP or design file was available.
-- **Browser:** project-local `@playwright/test`.
-- **Map:** Leaflet `CRS.Simple` over the synthetic km grid. No tiles or network, so it works offline. Lines show estimated visit order, not roads.
+```powershell
+# frontend, dedicated preview terminal
+$env:DISPATCHIQ_API='http://127.0.0.1:8001'
+npm.cmd run dev -- --port 5180 --strictPort
+```
 
-## Visual review (actual screenshots, fixed, recaptured)
-1. Mobile: the page scrolled horizontally and "Introduce emergency" was cut off. Fixed: the header wraps and the root clips x-overflow (scrollWidth 390 = viewport).
-2. Mobile: the schedule header was cramped ("Start of day" truncated). Fixed: shorter labels and title on mobile.
-3. Desktop: the "Ready to review" badge wrapped onto two lines. Fixed: badges don't wrap.
-4. Desktop: the map was a small square in empty bands. Fixed: a faint surrounding street grid plus an outlined service area.
-5. The disclaimer label overlapped the zoom control or was clipped at the bottom. Fixed: moved top-right.
-6. The strategy comparison table ran its column headers together. Fixed: spacing, right-aligned numbers, "(proposed)" marker.
-7. The fixture showed an emergency starting "0 min after the call" (travel not applied after idle time). Fixed in the fixture: idle technicians depart no earlier than now.
+```powershell
+# frontend, test terminal
+$env:DISPATCHIQ_API='http://127.0.0.1:8001'
+$env:DISPATCHIQ_UI='http://127.0.0.1:5180'
+npx.cmd playwright test
+```
 
-## Notes for Developer 1 (contract questions, no fields renamed)
-- `Proposal` doesn't echo the requested `strategy`. The UI tracks it locally to label the proposed row in `comparison`. Echoing it would remove the ambiguity.
-- The UI only offers **Approve** when `status === "ready"`, `proposed_snapshot` is non-null and `validation.valid` is true. It treats 409/410 lifecycle codes as "outdated proposal".
-- The UI sends emergency `JobInput` with `release_min = at_min = snapshot.now_min`, `priority: 5`, `locked: false` and a new `E##` ID. 422 responses are shown verbatim from `error.message`.
+Three projects: ten fixture UI tests, one API-unavailable test and eleven real API integration tests. They cover evidence equality, visible changes, preview/reject immutability, commit/reset, selection linkage, stale approval, keyboard/focus return, expiry protection, server error recovery, navigation/search/empty states, and all four screen sizes.
+
+## Design and evidence
+
+- [Prioritized audit, design direction and verified MCP availability](evidence/AUDIT.md)
+- [Visual refinements, tests, files changed and limitations](evidence/QA.md)
+- [Before/after browser screenshot comparison](evidence/comparison.html)
+- [Design system](evidence/DESIGN_SYSTEM.md)
+
+`evidence/before/` and `evidence/after/` are actual API captures at 1440×900, 1280×800, 1024×768 and 390×844, with proposal views. `first-pass/` preserves the initial redesign critique. `test-results/screenshots/` comes from the labeled frontend fixture and must not be presented as backend evidence.
+
+## Fixture and static demo
+
+`npm.cmd run dev:fixture` or `?fixture=dev` explicitly enables the in-browser development fixture and its amber banner. There is no automatic fixture fallback when the API fails. `npm.cmd run build:demo` rebuilds the committed static fixture under `demo/`; serve it with `python -m http.server 8080 --directory demo`. These demo results come from the frontend fixture, not the Python optimizer.
+
+## Limits
+
+Synthetic km-grid locations and estimated visit-order routes are not live GPS, traffic or roads. Nearby jobs cluster at the current map zoom; emergencies and selected jobs remain individual. Expand/zoom the map or open a cluster’s job list. All appointment timings, changes, metrics, options and explanations in real API mode come from server state.
+
+The backend supplies the initial daily fixture; there is no endpoint for creating a custom morning schedule. Activity exposes only committed disruption events, with no actor/wall-clock audit timestamps or rejection history. Authentication, production hosting and a backend migration are outside this frontend change. Scheduling algorithms, API fields and independent validation are preserved.

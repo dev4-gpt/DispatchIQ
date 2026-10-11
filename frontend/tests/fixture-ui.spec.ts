@@ -12,34 +12,51 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("loads baseline with fixture clearly labelled", async ({ page }) => {
-  await expect(page.getByTestId("fixture-banner")).toContainText("Development fixture");
+  await expect(page.getByTestId("fixture-banner")).toContainText(
+    "Development fixture",
+  );
   await expect(page.locator('[data-testid^="row-T"]')).toHaveCount(10);
   await expect(page.locator('[data-testid^="bar-J"]')).toHaveCount(25);
   await expect(page.getByTestId("backend-status")).toContainText("Dev fixture");
   expect(await revision(page)).toBe(0);
 });
 
-test("technician, map and timeline selection open one inspector", async ({ page }) => {
+test("technician, map and timeline selection open one inspector", async ({
+  page,
+}) => {
   await page.getByTestId("tech-T03").click();
-  await expect(page.getByTestId("tech-T03")).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByTestId("row-T03").getByRole("button").first()).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("tech-T03")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(
+    page.getByTestId("row-T03").getByRole("button").first(),
+  ).toHaveAttribute("aria-pressed", "true");
   await page.getByTestId("bar-J10").click();
   await expect(page.getByTestId("job-inspector")).toContainText("J10");
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("job-inspector")).toHaveCount(0);
   await page.locator(".job-J12").click();
+  const popupJob = page
+    .locator(".map-popup-jobs")
+    .getByRole("button", { name: /J12/ });
+  if (await popupJob.isVisible()) await popupJob.click();
   await expect(page.getByTestId("job-inspector")).toContainText("J12");
 });
 
-test("emergency preview leaves committed schedule unchanged until approval", async ({ page }) => {
+test("emergency preview leaves committed schedule unchanged until approval", async ({
+  page,
+}) => {
   await introduceEmergency(page, "No heat at a clinic");
-  await expect(page.getByTestId("proposal-panel")).toContainText("Ready to review");
+  await expect(page.getByTestId("proposal-panel")).toContainText(
+    "Ready to review",
+  );
   await expect(page.getByTestId("proposal-explanation")).toContainText("E01");
   await expect(page.getByTestId("change-E01")).toContainText("Added");
   expect(await revision(page)).toBe(0);
   // Proposed view shows E01; committed view does not.
   await expect(page.getByTestId("bar-E01")).toBeVisible();
-  await page.getByRole("tab", { name: "Committed" }).click();
+  await page.getByRole("tab", { name: "Approved" }).click();
   await expect(page.getByTestId("bar-E01")).toHaveCount(0);
   await page.getByTestId("approve").click();
   await expect(page.getByTestId("announce")).toContainText("revision 1");
@@ -48,14 +65,20 @@ test("emergency preview leaves committed schedule unchanged until approval", asy
   await expect(page.getByTestId("proposal-panel")).toHaveCount(0);
 });
 
-test("first-feasible strategy shows real owner/time changes with before and after", async ({ page }) => {
+test("first-feasible strategy shows real owner/time changes with before and after", async ({
+  page,
+}) => {
   await introduceEmergency(page, "Power loss at a bakery", "first_feasible");
   const shifted = page.locator('[data-testid^="change-J"]');
   await expect(shifted.first()).toBeVisible();
   await expect(shifted.first()).toContainText(/Time shifted|Reassigned/);
-  const changed = page.locator('[data-change="shifted"], [data-change="reassigned"]');
+  const changed = page.locator(
+    '[data-change="shifted"], [data-change="reassigned"]',
+  );
   await expect(changed.first()).toBeVisible();
-  await expect(page.getByTestId("comparison")).toContainText("First feasible (proposed)");
+  await expect(page.getByTestId("comparison")).toContainText(
+    "First feasible (proposed)",
+  );
 });
 
 test("reject preserves committed state", async ({ page }) => {
@@ -67,16 +90,24 @@ test("reject preserves committed state", async ({ page }) => {
   await expect(page.getByTestId("bar-E01")).toHaveCount(0);
 });
 
-test("impossible event shows an honest no-plan result that cannot be approved", async ({ page }) => {
+test("impossible event shows an honest no-plan result that cannot be approved", async ({
+  page,
+}) => {
   await introduceEmergency(page, "Elevator fault (no qualified tech)");
-  await expect(page.getByTestId("proposal-panel")).toContainText("No feasible plan");
-  await expect(page.getByTestId("proposal-explanation")).toContainText("No technician has the required skill");
+  await expect(page.getByTestId("proposal-panel")).toContainText(
+    "No feasible plan",
+  );
+  await expect(page.getByTestId("proposal-explanation")).toContainText(
+    "No technician has the required skill",
+  );
   await expect(page.getByTestId("approve")).toBeDisabled();
   await page.getByTestId("reject").click();
   expect(await revision(page)).toBe(0);
 });
 
-test("reset invalidates an open proposal and replay is deterministic twice", async ({ page }) => {
+test("reset invalidates an open proposal and replay is deterministic twice", async ({
+  page,
+}) => {
   const runOnce = async () => {
     await introduceEmergency(page, "No heat at a clinic");
     await page.getByTestId("approve").click();
@@ -96,23 +127,35 @@ test("reset invalidates an open proposal and replay is deterministic twice", asy
   await expect(page.getByTestId("proposal-panel")).toHaveCount(0);
 });
 
-test("stale approval is refused and the committed board is kept", async ({ page }) => {
+test("stale approval is refused and the committed board is kept", async ({
+  page,
+}) => {
   await introduceEmergency(page, "Burst pipe");
   await expect(page.getByTestId("approve")).toBeEnabled();
   // Another dispatcher commits first (fixture-only hook), so this proposal's base revision is stale.
-  await page.evaluate(() => (window as unknown as { __dispatchiqFixture: { simulateExternalCommit(): void } }).__dispatchiqFixture.simulateExternalCommit());
+  await page.evaluate(() =>
+    (
+      window as unknown as {
+        __dispatchiqFixture: { simulateExternalCommit(): void };
+      }
+    ).__dispatchiqFixture.simulateExternalCommit(),
+  );
   await page.getByTestId("approve").click();
   await expect(page.getByTestId("proposal-panel")).toContainText("Outdated");
   await expect(page.getByTestId("approve")).toBeDisabled();
-  await page.getByRole("tab", { name: "Committed" }).click();
+  await page.getByRole("tab", { name: "Approved" }).click();
   await expect(page.locator('[data-testid^="bar-J"]')).toHaveCount(25);
   await expect(page.getByTestId("bar-E01")).toHaveCount(0);
-  await page.getByRole("button", { name: /Refresh committed schedule/ }).click();
+  await page
+    .getByRole("button", { name: /Refresh committed schedule/ })
+    .click();
   await expect(page.getByTestId("announce")).toContainText("revision 1");
 });
 
 test.describe("responsive", () => {
-  test("1024 uses a drawer inspector; 390 uses tabs and keeps controls usable", async ({ page }) => {
+  test("1024 uses a drawer inspector; 390 uses tabs and keeps controls usable", async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 1024, height: 768 });
     await introduceEmergency(page, "No heat at a clinic");
     await expect(page.getByRole("dialog")).toBeVisible();
