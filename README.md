@@ -49,12 +49,12 @@ It is on time for 74.1% of jobs (naive: 58.9%) and misses 4 of 105 emergency pro
 | insertion (reference) | 1801.2 | +11.7% | 57.9% | 6/57 | 4 | 0 | fixed policy |
 | random search | 1717.7 | +15.8% | 58.1% | 6/57 | 18 | 49 | 6 × 8 |
 | LLM plain | 1301.9 | +36.2% | 69.0% | 1/57 | 52 | 71 | 6 × 8 |
-| **LLM team v1** | **1251.2** | **+38.7%** | 69.4% | 1/57 | 41 | 96 | 6 × 8 |
+| **LLM team v1** | **1251.2** | **+38.7%** | 69.4% | 1/57 | 41 | 95 | 6 × 8 |
 | LLM team v2 | 1308.7 | +35.8% | 69.2% | 2/57 | 46 | 54 | 6 × 8 |
 
 - **On validation:** the best LLM run, LLM team v1, costs **1251.2**. That is **38.7% lower than the naive baseline**, 30.5% lower than textbook cheapest insertion and 27.2% lower than random search with the same 48-proposal budget.
 - **Missed promises:** emergencies that started after their 2-hour promise, out of all emergencies on those days.
-- **Booked bumped / Moved:** customers booked with a healthy technician but left unscheduled, and jobs moved between healthy technicians. Totals over 30 days, reported but not part of the cost (see [Honest limits](#honest-limits)).
+- **Booked bumped / Moved:** customers booked with a healthy technician but left unscheduled, and jobs moved between healthy technicians. Totals over 30 days, reported but not part of the cost (see [Honest limits](#honest-limits)). Older run files get these counts by re-scoring their champion (`rescore.py --backfill`). Team v1's champion has a time budget, so its re-scores vary slightly: moved was 96 in one re-score and 95 in another.
 
 ## Where the score comes from
 
@@ -189,12 +189,18 @@ heldout.py  once, at the end: 50 HELD-OUT days, never seen during search
   - Team v2: 1,237,322 proposer tokens plus 52,876 critic tokens.
 
 ### Effective parallelism
-Six agents per round against one agent working alone (the same critic v2, rotating through the six families by round). The single-agent run has a 48-round cap and stops at 18:30.
-- **Team v2, 6 agents:** beat insertion and random search after its first round, at 215 s. It finished 8 rounds in 1,312 s of wall-clock time.
-- **Single agent:** results below.
+Six agents per round against one agent working alone, with the same critic v2; the single agent rotates through the six families by round. The single-agent run had a 48-round cap and an 18:30 deadline. It stopped at 33 rounds, at 18:26, because the next round would likely have ended after 18:30.
+- **Same rounds:** after 8 rounds, six agents (48 proposals) reached 1308.7 in 1,312 s, and one agent (8 proposals) reached 1344.2 in 1,082 s.
+- **Same wall-clock time:** when team v2 finished at 1,312 s, the single agent was at 1344.2 after 9 rounds.
+- **Given three times the time:** the single agent kept going to 33 rounds (3,970 s) and reached 1272.3, lower than team v2's 1308.7. It passed team v2 at 1,771 s, in round 13.
+- **Token cost:** the single agent used 1,053,081 proposer tokens plus 164,069 critic tokens, because its critic ran 33 times. Team v2 used 1,237,322 plus 52,876.
+- **Reading:** in this one run each, parallel agents bought faster progress per round and per minute, and a lone agent given about 3× the time went further. Both runs beat insertion and random search in their first round.
 
 <!-- BEGIN single-agent -->
-_Pending: the single-agent run (`runs/llm-team-v2-1agent.json`) stops at 18:30; this table is filled from that file (validation at round 8 and at the stop, wall-clock time, first time it beat insertion and random search)._
+| Run | Agents | Rounds | Validation at round 8 | Wall-clock at round 8 | Final validation | Wall-clock at end | First beat insertion | First beat random search | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| LLM team v2 | 6 | 8 | 1308.7 | 1312 s | 1308.7 | 1312 s | 215 s | 215 s | saved |
+| LLM team v2, 1 agent | 1 | 33 | 1344.2 | 1082 s | 1272.3 | 3970 s | 150 s | 150 s | stopped at 33 rounds (of 48, deadline 18:30) |
 <!-- END single-agent -->
 
 ### Demo and clarity
@@ -217,7 +223,7 @@ The "Held-out day" tab replays one held-out day before and after the disruption.
 ## Honest limits
 - **Simulated days.** Days are generated, not taken from a real shop. Travel is Manhattan distance at 2 minutes per km. The morning plan is fixed and identical for all policies; only the re-plan is evolved.
 - **Cost-model gap.** The cost doesn't tell a booked customer apart from an unbooked one. A booked customer bumped off a healthy technician costs the same 150 × priority as a job that was never scheduled, and a move between healthy technicians costs only 20. The LLM champions bump 41–52 booked customers over 30 validation days, where insertion bumps 4. We report these counts but do not penalise them.
-- **Time-budgeted champion.** Team v1's champion stops its search on a 0.42 s-per-day wall clock, so its score depends slightly on machine speed and load: 1251.2 on validation during the run, 1250.98 when re-scored on a quieter machine. `rescore.py` reports such differences. The held-out run shared the machine with the single-agent run (see [Results at a glance](#held-out-50-days-no-one-tuned-on-scored-once)).
+- **Time-budgeted champion.** Team v1's champion stops its search on a 0.42 s-per-day wall clock, so its score depends slightly on machine speed and load: 1251.2 on validation during the run, 1250.98 in one later re-score and 1251.2 again in another. `rescore.py` reports such differences. The held-out run shared the machine with the single-agent run (see [Results at a glance](#held-out-50-days-no-one-tuned-on-scored-once)).
 - **One run per configuration.** LLM sampling is random (temperature 0.7). The gaps between plain, team v1 and team v2 (1251.2–1308.7) are single samples, not a measured ranking of the methods.
 - **The live dispatch app still uses insertion.** The live re-plan in `backend/` uses validated feasible insertion. It never loads evolved code.
 - **Late emergencies are soft in the research checker.** An emergency that starts after its 2-hour promise is penalised, not rejected; we report it as "missed promises". The live app's validator treats the deadline as a hard rule.

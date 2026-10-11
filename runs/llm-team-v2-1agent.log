@@ -1,0 +1,38 @@
+round 0  dev  1911.4  val  2039.7  (start: dispatchiq/policies/naive.py)
+         reference insertion  dev  1663.5  val  1801.2
+round 1  dev  1337.7  val  1455.5  ACCEPTED  feasible 1/1  140.9s  tokens 34315  critic 8.4s/2680 tok
+round 2  dev  1287.7  val  1362.4  ACCEPTED  feasible 1/1  154.4s  tokens 36155  critic 14.2s/4226 tok
+round 3  dev  1272.3  val  1344.2  ACCEPTED  feasible 1/1  101.4s  tokens 27221  critic 11.1s/4094 tok
+round 4  dev  1272.3  val  1344.2  kept      feasible 1/1  71.8s  tokens 20385  critic 17.2s/5115 tok
+round 5  dev  1272.3  val  1344.2  kept      feasible 1/1  97.6s  tokens 25196  critic 15.2s/4781 tok
+round 6  dev  1272.3  val  1344.2  kept      feasible 0/1  115.6s  tokens 28489  critic 12.3s/4291 tok
+round 7  dev  1272.3  val  1344.2  kept      feasible 1/1  176.9s  tokens 42413  critic 13.6s/5776 tok
+round 8  dev  1272.3  val  1344.2  kept      feasible 1/1  117.9s  tokens 28437  critic 12.9s/4321 tok
+round 9  dev  1272.3  val  1344.2  kept      feasible 1/1  143.5s  tokens 32521  critic 9.7s/4237 tok
+round 10  dev  1272.3  val  1344.2  kept      feasible 0/1  93.0s  tokens 25325  critic 9.6s/4049 tok
+round 11  dev  1272.3  val  1344.2  kept      feasible 1/1  147.6s  tokens 35683  critic 14.6s/4893 tok
+round 12  dev  1272.3  val  1344.2  kept      feasible 1/1  155.5s  tokens 38582  critic 11.4s/4720 tok
+round 13  dev  1252.6  val  1308.5  ACCEPTED  feasible 1/1  92.3s  tokens 26141  critic 10.5s/4546 tok
+round 14  dev  1242.3  val  1301.7  ACCEPTED  feasible 1/1  94.1s  tokens 30282  critic 18.0s/5653 tok
+round 15  dev  1242.3  val  1301.7  kept      feasible 1/1  53.5s  tokens 18963  critic 9.8s/4816 tok
+round 16  dev  1242.3  val  1301.7  kept      feasible 1/1  38.7s  tokens 16969  critic 14.7s/5534 tok
+round 17  dev  1242.2  val  1300.2  ACCEPTED  feasible 1/1  114.2s  tokens 29320  critic 15.5s/5497 tok
+round 18  dev  1242.2  val  1300.2  kept      feasible 1/1  59.9s  tokens 22464  critic 10.7s/4914 tok
+round 19  dev  1234.0  val  1288.8  ACCEPTED  feasible 1/1  72.0s  tokens 24322  critic 12.1s/5040 tok
+round 20  dev  1234.0  val  1288.8  kept      feasible 1/1  134.9s  tokens 41403  critic 14.2s/5024 tok
+round 21  dev  1234.0  val  1288.8  kept      feasible 1/1  95.1s  tokens 31307  critic 10.6s/4609 tok
+round 22  dev  1234.0  val  1288.8  kept      feasible 1/1  238.7s  tokens 58578  critic 16.8s/5653 tok
+round 23  dev  1233.9  val  1274.7  ACCEPTED  feasible 1/1  148.9s  tokens 43552  critic 8.8s/4419 tok
+round 24  dev  1226.0  val  1273.9  ACCEPTED  feasible 1/1  95.1s  tokens 35159  critic 12.5s/4908 tok
+round 25  dev  1226.0  val  1273.9  kept      feasible 1/1  65.2s  tokens 30928  critic 11.4s/4767 tok
+round 26  dev  1221.1  val  1272.3  ACCEPTED  feasible 1/1  148.0s  tokens 49200  critic 14.6s/5542 tok
+round 27  dev  1221.1  val  1272.3  kept      feasible 1/1  101.5s  tokens 37766  critic 12.4s/4818 tok
+round 28  dev  1221.1  val  1272.3  kept      feasible 1/1  64.4s  tokens 28974  critic 17.2s/5543 tok
+round 29  dev  1221.1  val  1272.3  kept      feasible 1/1  83.2s  tokens 33005  critic 16.5s/5609 tok
+round 30  dev  1221.1  val  1272.3  kept      feasible 1/1  67.9s  tokens 29837  critic 16.4s/5386 tok
+round 31  dev  1221.1  val  1272.3  kept      feasible 1/1  78.8s  tokens 32280  critic 23.4s/6474 tok
+round 32  dev  1221.1  val  1272.3  kept      feasible 1/1  72.0s  tokens 29428  critic 19.7s/6121 tok
+round 33  dev  1221.1  val  1272.3  kept      feasible 1/1  63.8s  tokens 28481  critic 18.9s/6013 tok
+stopped at 33 rounds: next round would likely end after 18:30
+saved runs/llm-team-v2-1agent.json
+exit=0

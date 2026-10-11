@@ -1,0 +1,1374 @@
+{
+ "id": "llm-team",
+ "name": "llm-team",
+ "mode": "llm",
+ "agents": 6,
+ "rounds_requested": 8,
+ "seed": 0,
+ "start": "dispatchiq/policies/naive.py",
+ "started_at": "2026-10-11T16:27:00-0400",
+ "heldout_hash": "cd2ba1f9b2a896c7379bffecaef861d001409539d87c1a0577df9e8dfdf5e562",
+ "baseline": {
+  "dev": {
+   "mean_cost": 1911.4,
+   "infeasible": 0,
+   "on_time_pct": 55.09,
+   "emergency_response": 66.0,
+   "travel": 351.17,
+   "moved": 0,
+   "unassigned": 4.17,
+   "emergencies": 64,
+   "missed_promises": 13
+  },
+  "val": {
+   "mean_cost": 2039.7,
+   "infeasible": 0,
+   "on_time_pct": 52.33,
+   "emergency_response": 56.26,
+   "travel": 370.62,
+   "moved": 0,
+   "unassigned": 4.8,
+   "emergencies": 57,
+   "missed_promises": 5
+  }
+ },
+ "references": {
+  "naive": {
+   "path": "dispatchiq/policies/naive.py",
+   "dev": {
+    "mean_cost": 1911.4,
+    "infeasible": 0,
+    "on_time_pct": 55.09,
+    "emergency_response": 66.0,
+    "travel": 351.17,
+    "moved": 0,
+    "unassigned": 4.17,
+    "emergencies": 64,
+    "missed_promises": 13
+   },
+   "val": {
+    "mean_cost": 2039.7,
+    "infeasible": 0,
+    "on_time_pct": 52.33,
+    "emergency_response": 56.26,
+    "travel": 370.62,
+    "moved": 0,
+    "unassigned": 4.8,
+    "emergencies": 57,
+    "missed_promises": 5
+   }
+  },
+  "insertion": {
+   "path": "dispatchiq/policies/insertion.py",
+   "dev": {
+    "mean_cost": 1663.5,
+    "infeasible": 0,
+    "on_time_pct": 59.51,
+    "emergency_response": 65.05,
+    "travel": 365.3,
+    "moved": 0,
+    "unassigned": 4.1,
+    "emergencies": 64,
+    "missed_promises": 8
+   },
+   "val": {
+    "mean_cost": 1801.2,
+    "infeasible": 0,
+    "on_time_pct": 57.9,
+    "emergency_response": 67.08,
+    "travel": 381.03,
+    "moved": 0,
+    "unassigned": 4.7,
+    "emergencies": 57,
+    "missed_promises": 6
+   }
+  }
+ },
+ "rounds": [
+  {
+   "round": 1,
+   "seconds": 167.0,
+   "accepted": true,
+   "promoted_agent": 4,
+   "wall_seconds": 192.7,
+   "elapsed_seconds": 193.1,
+   "champion_dev": 1364.1,
+   "champion_val": 1486.6,
+   "champion": {
+    "mean_cost": 1486.6,
+    "infeasible": 0,
+    "on_time_pct": 64.59,
+    "emergency_response": 41.99,
+    "travel": 405.75,
+    "moved": 3.67,
+    "unassigned": 4.27,
+    "emergencies": 57,
+    "missed_promises": 0
+   },
+   "tokens": 168301,
+   "round_tokens": 168301,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Make emergencies faster: choose the tech who can START the emergency soonest, not the nearest one.",
+     "dev_cost": 1398.5,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Add a local-search pass after insertion: try relocating and swapping open jobs within and between healthy techs, keeping a move only if total estimated cost (including the churn penalty) drops.",
+     "dev_cost": 1390.5,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 2,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Use regret insertion: insert first the job whose best and second-best insertion costs differ most.",
+     "dev_cost": 7792.3,
+     "infeasible": 2,
+     "error": "RuntimeError: Set changed size during iteration; RuntimeError: Set changed size during iteration"
+    },
+    {
+     "agent": 3,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Re-sequence each healthy tech's remaining jobs (e.g. by time window and 2-opt) to cut lateness and travel.",
+     "dev_cost": 1450.8,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Reduce unscheduled high-priority jobs: allow bumping a priority-1 job to tomorrow to fit a priority-3 job.",
+     "dev_cost": 1364.1,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Balance load: prefer techs with slack before shift_end; avoid stacking overtime on one tech.",
+     "dev_cost": 1370.5,
+     "infeasible": 0,
+     "error": ""
+    }
+   ],
+   "critic": {
+    "lessons": [
+     "Unscheduled jobs dominate cost (150\u00d7priority each; the champion's 10\u201315 unscheduled jobs cost 1500\u20133000 on the worst days), so the highest-leverage change is scheduling more jobs before polishing travel or lateness.",
+     "The promoted change simply traded a low-priority job for a higher-priority one, confirming that deliberately dropping cheap priority-1/2 jobs to fit priority-3/5 jobs is profitable because the unscheduled penalty is 150\u00d7priority.",
+     "Pure re-sequencing/2-opt (1450.8), load-balancing (1370.5), earliest-emergency-start (1398.5) and naive local search (1390.5) all scored worse than the champion, so the remaining cost is not in travel or load balancing but in coverage.",
+     "Agent 2 crashed two days with 'Set changed size during iteration': never insert/remove while looping over a live set/list \u2014 materialize the candidate sequence in a new list and assign afterward.",
+     "Local-search moves that look travel-positive can be net-negative because each job changing tech costs 20; every move's delta must include 20\u00d7(jobs moved) plus the 150\u00d7priority impact on unscheduled jobs."
+    ],
+    "strategies": [
+     "Coverage-first construction: sort open jobs by descending priority (5\u21921) and insert each at the best feasible position across all healthy techs, using route_cost; only leave a job unscheduled if no insertion fits within the overtime cap.",
+     "Generalize the champion's bump rule: when a priority-3/5 job has no feasible insertion, remove from one tech the job with the smallest (150\u00d7its_priority - saved travel/lateness by dropping it) and retry inserting the high-priority job.",
+     "Respect overtime exactly: after each route is built, run route() or drop_until_feasible per tech so end \u2264 shift_end + max_overtime, then try to re-insert any dropped job on another tech rather than discarding it.",
+     "Treat emergencies as hard constraints but budget their response wait: assign each emergency to a feasible tech, and only accept extra wait if it avoids dropping jobs whose 150\u00d7priority penalty is larger than the wait difference.",
+     "Add a bounded (\u22641s) local search of relocate/swap moves accepted only when the full checker-style cost (travel + priority\u00d7lateness + overtime + 150\u00d7unscheduled + 20\u00d7moved + emergency wait) strictly improves.",
+     "Avoid mutation-during-iteration bugs by building every candidate sequence in a fresh list and replacing plan entries only after the loop finishes; never modify the collection you are iterating over.",
+     "Score candidate plans with the exact cost formula rather than a proxy (e.g. minimizing route_cost alone will miss the 150\u00d7priority unscheduled penalty), and return the best feasible candidate.",
+     "Use morning_tech as a tiebreaker: prefer keeping a job with its original tech unless the gain clearly exceeds the 20-point churn penalty, so the plan does not pay move costs for marginal travel savings."
+    ],
+    "tokens": 4912,
+    "seconds": 25.6,
+    "provider": "LLM:deepseek-ai/DeepSeek-V4.1-Flash",
+    "error": ""
+   }
+  },
+  {
+   "round": 2,
+   "seconds": 175.7,
+   "accepted": true,
+   "promoted_agent": 3,
+   "wall_seconds": 192.9,
+   "elapsed_seconds": 386.1,
+   "champion_dev": 1315.9,
+   "champion_val": 1426.6,
+   "champion": {
+    "mean_cost": 1426.6,
+    "infeasible": 0,
+    "on_time_pct": 66.37,
+    "emergency_response": 46.3,
+    "travel": 388.93,
+    "moved": 3.6,
+    "unassigned": 4.3,
+    "emergencies": 57,
+    "missed_promises": 0
+   },
+   "tokens": 336527,
+   "round_tokens": 168226,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Coverage-first construction: sort open jobs by descending priority (5\u21921) and insert each at the best feasible position across all healthy techs, using route_cost; only leave a job unscheduled if no insertion fits within the overtime cap.",
+     "dev_cost": 1344.4,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Generalize the champion's bump rule: when a priority-3/5 job has no feasible insertion, remove from one tech the job with the smallest (150\u00d7its_priority - saved travel/lateness by dropping it) and retry inserting the high-priority job.",
+     "dev_cost": 1364.1,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 2,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Respect overtime exactly: after each route is built, run route() or drop_until_feasible per tech so end \u2264 shift_end + max_overtime, then try to re-insert any dropped job on another tech rather than discarding it.",
+     "dev_cost": 1370.5,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 3,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Treat emergencies as hard constraints but budget their response wait: assign each emergency to a feasible tech, and only accept extra wait if it avoids dropping jobs whose 150\u00d7priority penalty is larger than the wait difference.",
+     "dev_cost": 1315.9,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Add a bounded (\u22641s) local search of relocate/swap moves accepted only when the full checker-style cost (travel + priority\u00d7lateness + overtime + 150\u00d7unscheduled + 20\u00d7moved + emergency wait) strictly improves.",
+     "dev_cost": 1364.5,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Avoid mutation-during-iteration bugs by building every candidate sequence in a fresh list and replacing plan entries only after the loop finishes; never modify the collection you are iterating over.",
+     "dev_cost": 1383.8,
+     "infeasible": 0,
+     "error": ""
+    }
+   ],
+   "critic": {
+    "lessons": [
+     "The wait-budgeting emergency policy (agent 3, 1315.9) beat the old champion by 48.2 points, showing emergency response wait is cheap enough to trade for preserving jobs with 150\u00d7priority penalties.",
+     "Unscheduled jobs still dominate the new champion: 15 unscheduled on day 4 and 11 on day 26 imply roughly 1650\u20132250+ penalty before travel, so next round must prioritize scheduling one more job over polishing travel or lateness.",
+     "Coverage-first priority-descending insertion (agent 0, 1344.4) also beat the old champion, confirming that scheduling high-priority jobs early is the reliable base, but it needs wait-aware emergency handling to match the promoted policy.",
+     "Overtime cleanup/reinsertion and anti-mutation fixes (agents 2 and 5, 1370.5 and 1383.8) scored below the old champion, so feasibility bookkeeping alone does not help unless it directly converts an unscheduled job into a scheduled one.",
+     "Naive full-cost local search (agent 4, 1364.5) only tied the old champion, so any local search must be seeded from the new wait-aware construction and include the 20-move penalty plus 150\u00d7priority unscheduled effects."
+    ],
+    "strategies": [
+     "Start from the promoted wait-aware emergency policy: build coverage in descending priority order and allow an emergency to start later only when the added wait is less than the 150\u00d7priority penalty of a job it saves.",
+     "Before optimizing travel, explicitly count and minimize unscheduled jobs: schedule every priority-3/5 job first, then fit priority-2/1 jobs, because dropping a p5 costs 750 and a p1 costs 150.",
+     "When a high-priority job has no feasible insertion, extend the bump rule: remove the job minimizing (150\u00d7its_priority + its route/lateness contribution - emergency-wait increase it causes), then retry the insertion.",
+     "Treat max_overtime as usable budget: accept overtime minutes to schedule a job when its 150\u00d7priority penalty exceeds the extra overtime cost; do not drop it merely to end exactly at shift_end.",
+     "For every insertion, relocation, or swap, compare exact checker-style deltas including travel, priority\u00d7lateness, overtime, 150\u00d7unscheduled, 20\u00d7jobs moved, and emergency response minutes.",
+     "Re-insert any job dropped by overtime or bumping onto a different healthy tech immediately, in descending priority order, before considering it unscheduled.",
+     "Assign emergencies to feasible techs by minimizing added full objective cost, not just earliest start, so a tech already near a high-priority cluster is not forced to abandon it.",
+     "Keep mutation safety: build each candidate sequence in a fresh list and replace the plan only after evaluation, never modifying a list or set being iterated."
+    ],
+    "tokens": 4571,
+    "seconds": 17.1,
+    "provider": "LLM:deepseek-ai/DeepSeek-V4.1-Flash",
+    "error": ""
+   }
+  },
+  {
+   "round": 3,
+   "seconds": 325.2,
+   "accepted": true,
+   "promoted_agent": 4,
+   "wall_seconds": 334.2,
+   "elapsed_seconds": 720.2,
+   "champion_dev": 1253.5,
+   "champion_val": 1356.0,
+   "champion": {
+    "mean_cost": 1356.0,
+    "infeasible": 0,
+    "on_time_pct": 67.72,
+    "emergency_response": 46.51,
+    "travel": 393.56,
+    "moved": 3.9,
+    "unassigned": 3.77,
+    "emergencies": 57,
+    "missed_promises": 1
+   },
+   "tokens": 531596,
+   "round_tokens": 195069,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Start from the promoted wait-aware emergency policy: build coverage in descending priority order and allow an emergency to start later only when the added wait is less than the 150\u00d7priority penalty of a job it saves.",
+     "dev_cost": 1291.6,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Before optimizing travel, explicitly count and minimize unscheduled jobs: schedule every priority-3/5 job first, then fit priority-2/1 jobs, because dropping a p5 costs 750 and a p1 costs 150.",
+     "dev_cost": 1264.8,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 2,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | When a high-priority job has no feasible insertion, extend the bump rule: remove the job minimizing (150\u00d7its_priority + its route/lateness contribution - emergency-wait increase it causes), then retry the insertion.",
+     "dev_cost": 1256.5,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 3,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Treat max_overtime as usable budget: accept overtime minutes to schedule a job when its 150\u00d7priority penalty exceeds the extra overtime cost; do not drop it merely to end exactly at shift_end.",
+     "dev_cost": 1313.0,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | For every insertion, relocation, or swap, compare exact checker-style deltas including travel, priority\u00d7lateness, overtime, 150\u00d7unscheduled, 20\u00d7jobs moved, and emergency response minutes.",
+     "dev_cost": 1253.5,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Re-insert any job dropped by overtime or bumping onto a different healthy tech immediately, in descending priority order, before considering it unscheduled.",
+     "dev_cost": 1331.7,
+     "infeasible": 0,
+     "error": ""
+    }
+   ],
+   "critic": {
+    "lessons": [
+     "Exact checker-style delta evaluation (agent 4, 1253.5) was the only attempt to beat the champion, so every insertion/relocation/swap must be scored with the full objective including 20\u00d7moved and 150\u00d7priority unscheduled.",
+     "The cost-minimizing bump rule (agent 2, 1256.5) nearly matched it, confirming that evicting the cheapest victim to seat a high-priority job is the right coverage mechanism.",
+     "Blanket re-insertion of dropped jobs onto other techs (agent 5, 1331.7) backfired, likely because the 20-per-move penalty and extra overtime outweighed the coverage gain.",
+     "Unscheduled jobs still dominate: 14 on day 4 and 11 on day 26 (~1650\u20132250 penalty) versus travel of only 255\u2013456, so coverage remains the top lever.",
+     "Overtime-as-budget (agent 3, 1313.0) and pure wait-aware construction (agent 0, 1291.6) both underperformed, so those policies only pay off when embedded inside exact-delta search."
+    ],
+    "strategies": [
+     "Seed from the promoted exact-delta search: build coverage priority-descending with wait-aware emergency placement, then run insertion/relocation/swap moves scored by the full checker objective.",
+     "For each unscheduled job in descending priority, try inserting on every healthy tech and, if infeasible, apply the cost-minimizing bump rule (evict the job minimizing 150\u00d7its_priority + its route/lateness contribution \u2212 emergency-wait increase).",
+     "Treat overtime as budget only when the exact delta (overtime minutes added vs 150\u00d7priority saved plus lateness change) is negative; never drop a p3/p5 job merely to end exactly at shift_end.",
+     "Never re-insert a dropped job onto another tech unless the full delta (including 20\u00d7moved and any new overtime/lateness) is negative \u2014 agent 5's blanket reinsertion lost 78 points.",
+     "Keep mutation safety: build candidate sequences in fresh lists and only assign after evaluation; never mutate a list or set being iterated.",
+     "After coverage is maximized, run a bounded 2-opt/relocate pass per tech scored by exact route deltas, since travel is now a small share (255\u2013456) but still worth trimming.",
+     "When choosing emergency techs, minimize full objective delta (including the 150\u00d7priority jobs it displaces), not earliest start, so a tech near a high-priority cluster isn't forced to abandon it.",
+     "If a day still has unscheduled jobs after all insertions, prefer leaving low-priority (p1) jobs unscheduled over p3/p5, since 150\u00d7priority makes a p5 eight times costlier than a p1."
+    ],
+    "tokens": 3640,
+    "seconds": 8.7,
+    "provider": "LLM:deepseek-ai/DeepSeek-V4.1-Flash",
+    "error": ""
+   }
+  },
+  {
+   "round": 4,
+   "seconds": 195.3,
+   "accepted": true,
+   "promoted_agent": 3,
+   "wall_seconds": 244.0,
+   "elapsed_seconds": 964.2,
+   "champion_dev": 1235.4,
+   "champion_val": 1325.5,
+   "champion": {
+    "mean_cost": 1325.5,
+    "infeasible": 0,
+    "on_time_pct": 69.46,
+    "emergency_response": 46.83,
+    "travel": 387.28,
+    "moved": 3.7,
+    "unassigned": 3.57,
+    "emergencies": 57,
+    "missed_promises": 1
+   },
+   "tokens": 742913,
+   "round_tokens": 211317,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Seed from the promoted exact-delta search: build coverage priority-descending with wait-aware emergency placement, then run insertion/relocation/swap moves scored by the full checker objective.",
+     "dev_cost": 1250.2,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "",
+     "dev_cost": null,
+     "infeasible": null,
+     "error": "proposal failed: all providers failed: no replan() in model output"
+    },
+    {
+     "agent": 2,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Treat overtime as budget only when the exact delta (overtime minutes added vs 150\u00d7priority saved plus lateness change) is negative; never drop a p3/p5 job merely to end exactly at shift_end.",
+     "dev_cost": 1296.7,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 3,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Never re-insert a dropped job onto another tech unless the full delta (including 20\u00d7moved and any new overtime/lateness) is negative \u2014 agent 5's blanket reinsertion lost 78 points.",
+     "dev_cost": 1235.4,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Keep mutation safety: build candidate sequences in fresh lists and only assign after evaluation; never mutate a list or set being iterated.",
+     "dev_cost": 1277.0,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | After coverage is maximized, run a bounded 2-opt/relocate pass per tech scored by exact route deltas, since travel is now a small share (255\u2013456) but still worth trimming.",
+     "dev_cost": 1278.1,
+     "infeasible": 0,
+     "error": ""
+    }
+   ],
+   "critic": {
+    "lessons": [
+     "'Latest' is not a hard rule: the champion's low weighted lateness (132-272) alongside 10-14 unscheduled jobs suggests it is dropping jobs to avoid lateness, but scheduling a p1 job up to 150 min late costs the same as dropping it, so late scheduling should be preferred.",
+     "Unscheduled jobs still dominate cost (14 on day 4 \u2248 2100+ penalty vs travel 329), so every attempt must first try to seat one more job before any travel/lateness polish.",
+     "Agent 3's gated re-insertion (only if full delta negative) won at 1235.4, confirming that re-insertion must be scored with the exact objective including 20\u00d7moved and 150\u00d7priority.",
+     "Agent 0's seed-from-exact-delta-search got 1250.2, only 15 points behind, so the exact-delta local search is the right engine but needs a stronger coverage move set.",
+     "2-opt/relocate travel polish (agent 5, 1278.1) lost 43 points, confirming travel (212-456) is a minor lever compared to coverage."
+    ],
+    "strategies": [
+     "Seed from the promoted exact-delta search and add a coverage-first pass: for each unscheduled job in descending priority, try every insertion position on every healthy tech, accepting lateness and overtime as long as the full delta (including 150\u00d7priority saved) is negative.",
+     "Treat 'latest' as soft: never drop a job merely because it would be late; only drop if the resulting lateness cost (minutes \u00d7 priority) exceeds 150\u00d7priority.",
+     "Use the full overtime budget: since overtime costs 1/min but scheduling a p1 job saves 150, accept any overtime up to max_overtime if it seats a job.",
+     "Apply the cost-minimizing bump rule: when no direct insertion is feasible, evict the job minimizing 150\u00d7its_priority + its route/lateness contribution \u2212 emergency-wait increase, then re-insert the bumped job elsewhere if delta negative.",
+     "Be willing to move jobs between healthy techs: the 20-per-move penalty is tiny compared to 150\u00d7priority, so reassign jobs if it enables one more scheduled job.",
+     "Score every move with the full checker objective including 20\u00d7moved and 150\u00d7priority unscheduled, and never accept a move with positive delta.",
+     "After coverage is maximized, run a bounded 2-opt/relocate pass per tech scored by exact route deltas, but only accept moves that don't increase unscheduled count.",
+     "Keep mutation safety: build candidate sequences in fresh lists and only assign after evaluation."
+    ],
+    "tokens": 9151,
+    "seconds": 48.5,
+    "provider": "LLM:deepseek-ai/DeepSeek-V4.1-Flash",
+    "error": ""
+   }
+  },
+  {
+   "round": 5,
+   "seconds": 194.3,
+   "accepted": true,
+   "promoted_agent": 1,
+   "wall_seconds": 222.0,
+   "elapsed_seconds": 1186.3,
+   "champion_dev": 1217.3,
+   "champion_val": 1286.6,
+   "champion": {
+    "mean_cost": 1286.6,
+    "infeasible": 0,
+    "on_time_pct": 69.51,
+    "emergency_response": 44.95,
+    "travel": 371.33,
+    "moved": 3.53,
+    "unassigned": 3.6,
+    "emergencies": 57,
+    "missed_promises": 1
+   },
+   "tokens": 968970,
+   "round_tokens": 226057,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Seed from the promoted exact-delta search and add a coverage-first pass: for each unscheduled job in descending priority, try every insertion position on every healthy tech, accepting lateness and overtime as long as the full delta (including 150\u00d7priority saved) is negative.",
+     "dev_cost": 1235.4,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Treat 'latest' as soft: never drop a job merely because it would be late; only drop if the resulting lateness cost (minutes \u00d7 priority) exceeds 150\u00d7priority.",
+     "dev_cost": 1217.3,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 2,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Use the full overtime budget: since overtime costs 1/min but scheduling a p1 job saves 150, accept any overtime up to max_overtime if it seats a job.",
+     "dev_cost": 11026.8,
+     "infeasible": 3,
+     "error": "T0 ends 290 min past shift (max 90); T0 ends 91 min past shift (max 90)"
+    },
+    {
+     "agent": 3,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Apply the cost-minimizing bump rule: when no direct insertion is feasible, evict the job minimizing 150\u00d7its_priority + its route/lateness contribution \u2212 emergency-wait increase, then re-insert the bumped job elsewhere if delta negative.",
+     "dev_cost": 1235.4,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Be willing to move jobs between healthy techs: the 20-per-move penalty is tiny compared to 150\u00d7priority, so reassign jobs if it enables one more scheduled job.",
+     "dev_cost": 1249.9,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Score every move with the full checker objective including 20\u00d7moved and 150\u00d7priority unscheduled, and never accept a move with positive delta.",
+     "dev_cost": 1244.6,
+     "infeasible": 0,
+     "error": ""
+    }
+   ],
+   "critic": {
+    "lessons": [
+     "Soft-latest won (-18.1): never drop a job merely for being late while its lateness minutes stay under 150 (the drop-vs-keep break-even), since scheduling it late costs at most the same as dropping.",
+     "Agent 2's blind 'use full overtime' rule produced 3 infeasible days (290 and 91 min past a 90-min cap), so every candidate sequence must be validated with route()/route_cost before acceptance \u2014 never assume overtime is free.",
+     "Plain coverage-first insertion passes on top of the exact-delta seed (agents 0 and 3) gained exactly 0 over the champion, so the residual 10\u201314 unscheduled jobs are not reachable by simple insertion \u2014 bumping already-scheduled low-value jobs is the missing mechanism.",
+     "Cross-tech reassignment still loses (agent 4, 1249.9) and the champion only shows moved 1\u20133, so the 20-per-move penalty plus added travel/overtime almost always outweighs the marginal coverage gain.",
+     "Emergency response still costs 54\u201394 min per day in the champion, and that wait is billed as extra minutes per emergency, so emergency start ordering is an unexploited lever separate from raw coverage."
+    ],
+    "strategies": [
+     "Seed from the promoted soft-latest exact-delta search, then loop: pick the unscheduled job with largest 150\u00d7priority, try every (tech, position) insertion, and accept only strictly negative full-objective deltas until no move improves.",
+     "Before accepting any candidate, recompute the tech's route end via route() and reject if end > shift_end + max_overtime; treat the schedule as feasible only when this hard check passes.",
+     "When no direct insertion is negative, run a bounded bump chain: evict the job minimizing (its 150\u00d7priority + route/lateness contribution \u2212 emergency-wait increase), re-insert the bumped job elsewhere, and keep the chain only if the total delta is negative.",
+     "Cap the search: limit bump depth to 2 evictions and total candidate evaluations to a few thousand per day so runtime stays far under 1 second.",
+     "Schedule emergencies first by minimising each one's release-to-start wait (nearest feasible tech/position), since emergency_wait is billed as extra minutes and currently runs 54\u201394 min per day.",
+     "Only allow cross-tech moves when the full objective strictly decreases after adding 20\u00d7moved and the recomputed travel/overtime of both techs \u2014 otherwise leave the job where it is.",
+     "After coverage stabilises, run a bounded intra-tech 2-opt/relocate pass scored by exact route_cost deltas, accepting only strict improvements that keep the scheduled job set unchanged.",
+     "Cache route_cost results by (tech_id, tuple(sequence)) and reuse them across insertion attempts, since re-evaluation of the same sequences is the hot loop."
+    ],
+    "tokens": 4337,
+    "seconds": 14.1,
+    "provider": "LLM:deepseek-ai/DeepSeek-V4.1-Flash",
+    "error": ""
+   }
+  },
+  {
+   "round": 6,
+   "seconds": 165.4,
+   "accepted": false,
+   "promoted_agent": null,
+   "wall_seconds": 214.4,
+   "elapsed_seconds": 1400.7,
+   "champion_dev": 1217.3,
+   "champion_val": 1286.6,
+   "champion": {
+    "mean_cost": 1286.6,
+    "infeasible": 0,
+    "on_time_pct": 69.51,
+    "emergency_response": 44.95,
+    "travel": 371.33,
+    "moved": 3.53,
+    "unassigned": 3.6,
+    "emergencies": 57,
+    "missed_promises": 1
+   },
+   "tokens": 1155013,
+   "round_tokens": 186043,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Seed from the promoted soft-latest exact-delta search, then loop: pick the unscheduled job with largest 150\u00d7priority, try every (tech, position) insertion, and accept only strictly negative full-objective deltas until no move improves.",
+     "dev_cost": 1237.5,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Before accepting any candidate, recompute the tech's route end via route() and reject if end > shift_end + max_overtime; treat the schedule as feasible only when this hard check passes.",
+     "dev_cost": 1219.2,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 2,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | When no direct insertion is negative, run a bounded bump chain: evict the job minimizing (its 150\u00d7priority + route/lateness contribution \u2212 emergency-wait increase), re-insert the bumped job elsewhere, and keep the chain only if the total delta is negative.",
+     "dev_cost": 1239.3,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 3,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Cap the search: limit bump depth to 2 evictions and total candidate evaluations to a few thousand per day so runtime stays far under 1 second.",
+     "dev_cost": 1219.3,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Schedule emergencies first by minimising each one's release-to-start wait (nearest feasible tech/position), since emergency_wait is billed as extra minutes and currently runs 54\u201394 min per day.",
+     "dev_cost": 1217.3,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Only allow cross-tech moves when the full objective strictly decreases after adding 20\u00d7moved and the recomputed travel/overtime of both techs \u2014 otherwise leave the job where it is.",
+     "dev_cost": 1228.2,
+     "infeasible": 0,
+     "error": ""
+    }
+   ],
+   "critic": {
+    "lessons": [
+     "The champion is a strong local optimum: this round's coverage insertion (agent 0, +20.2), bump chain (agent 2, +22.0), and cross-tech moves (agent 5, +10.9) all lost, so next round must use a different move set rather than more of the same.",
+     "Hard feasibility gating (agent 1, +1.9) and a tight evaluation cap (agent 3, +2.0) were the closest attempts, so keep route()-based validation and a deterministic budget as invariants.",
+     "Emergency-first wait minimization (agent 4, 1217.3) was neutral, confirming emergency_wait is already priced into route_cost and cannot be reduced in isolation without hurting other terms.",
+     "The champion's high-cost days still have 10-14 unscheduled jobs (day 4 = 3463 with 14 unscheduled), but inserting a p1 job only saves 150, so any coverage move must beat that by the exact marginal travel+lateness+overtime it adds.",
+     "Agent 0's seed-from-exact-delta search remains the right engine, but its insertion loop added nothing, so the missing mechanism is a stronger within-tech or swap optimizer (e.g., exact per-tech DP) rather than more insertions."
+    ],
+    "strategies": [
+     "Start from the champion (or exact-delta seed) and run a deterministic iterated local search: apply a fixed-seed perturbation (swap two jobs or move one job to another tech), re-optimize with exact-delta, and accept only strict full-objective improvements; run a fixed number of iterations under 1s.",
+     "For each tech independently, compute the exact optimal sequence of its currently assigned jobs via bitmask DP over permutations (pruned by time windows and overtime), then accept if the total route_cost improves; this can find within-tech orderings that insertion/2-opt miss.",
+     "For each tech, consider adding one unscheduled job and recompute the exact optimal sequence via DP; accept if the full objective decreases, i.e., 150*priority saved exceeds added travel/lateness/overtime/emergency wait.",
+     "Try a priority-swap move: if an unscheduled job has higher 150*priority than a scheduled job that can be dropped to free capacity, drop the low-priority job, insert the high-priority one, and re-optimize both techs with exact DP; accept only if the net full objective decreases.",
+     "Before coverage moves, run a targeted overtime-reduction pass: for each tech over shift_end, try moving its latest job to a tech with idle time if overtime saved > 20*moved + extra travel, validating with route().",
+     "For emergencies, test forcing each emergency to the earliest feasible start by swapping it with preceding jobs on the same tech, scored by the full objective including the emergency_wait change; accept only strict improvements.",
+     "Cache route_cost and route() results by (tech_id, tuple(sequence)) and reuse them across DP, insertion, and swap evaluations, since the same sequences are re-evaluated many times.",
+     "Always recompute the tech's route end via route() and reject if end > shift_end + max_overtime, and cap DP to techs with <=12 jobs and total move evaluations to a few thousand per day to stay deterministic and under 1s."
+    ],
+    "tokens": 10630,
+    "seconds": 49.0,
+    "provider": "LLM:deepseek-ai/DeepSeek-V4.1-Flash",
+    "error": ""
+   }
+  },
+  {
+   "round": 7,
+   "seconds": 163.2,
+   "accepted": true,
+   "promoted_agent": 0,
+   "wall_seconds": 202.3,
+   "elapsed_seconds": 1603.0,
+   "champion_dev": 1199.4,
+   "champion_val": 1251.2,
+   "champion": {
+    "mean_cost": 1251.2,
+    "infeasible": 0,
+    "on_time_pct": 69.38,
+    "emergency_response": 43.67,
+    "travel": 371.85,
+    "moved": 3.17,
+    "unassigned": 3.47,
+    "emergencies": 57,
+    "missed_promises": 1
+   },
+   "tokens": 1320105,
+   "round_tokens": 165092,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Start from the champion (or exact-delta seed) and run a deterministic iterated local search: apply a fixed-seed perturbation (swap two jobs or move one job to another tech), re-optimize with exact-delta, and accept only strict full-objective improvements; run a fixed number of iterations under 1s.",
+     "dev_cost": 1199.4,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | For each tech independently, compute the exact optimal sequence of its currently assigned jobs via bitmask DP over permutations (pruned by time windows and overtime), then accept if the total route_cost improves; this can find within-tech orderings that insertion/2-opt miss.",
+     "dev_cost": 1217.3,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 2,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | For each tech, consider adding one unscheduled job and recompute the exact optimal sequence via DP; accept if the full objective decreases, i.e., 150*priority saved exceeds added travel/lateness/overtime/emergency wait.",
+     "dev_cost": 1217.3,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 3,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Try a priority-swap move: if an unscheduled job has higher 150*priority than a scheduled job that can be dropped to free capacity, drop the low-priority job, insert the high-priority one, and re-optimize both techs with exact DP; accept only if the net full objective decreases.",
+     "dev_cost": 1217.3,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Before coverage moves, run a targeted overtime-reduction pass: for each tech over shift_end, try moving its latest job to a tech with idle time if overtime saved > 20*moved + extra travel, validating with route().",
+     "dev_cost": 1217.9,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | For emergencies, test forcing each emergency to the earliest feasible start by swapping it with preceding jobs on the same tech, scored by the full objective including the emergency_wait change; accept only strict improvements.",
+     "dev_cost": 1217.3,
+     "infeasible": 0,
+     "error": ""
+    }
+   ],
+   "critic": {
+    "lessons": [
+     "Agent 0's fixed-seed perturbation with exact-delta re-optimisation was the round's only gain (-17.9), while exhaustive within-tech DP (agent 1, 1217.3) and exact single-job insertion (agent 2, 1217.3) returned exactly zero accepted moves, proving the champion's within-tech order and single-insertion",
+     "Three separate agents finished at precisely 1217.3, so any remaining budget must go to multi-tech / multi-job moves (ruin-and-recreate, ejection chains) instead of more per-tech or single-insertion search.",
+     "The 150*priority drop penalty dominates the expensive days (day 4: cost 3434 with 14 unscheduled), so coverage is the main prize, but since both exact insertion and exact DP fail, the residual jobs are only reachable by combined moves that change several sequences at once.",
+     "Agent 4's overtime-reduction pass lost (+0.6): overtime is billed at 1/min while leaving a p2+ job unscheduled costs at least 300, so never trade a covered job for a few overtime minutes.",
+     "Every attempt stayed feasible (0 infeasible days), confirming that strict full-objective acceptance plus route()-validated candidates is what prevents the hard-rule failures that sank earlier rounds."
+    ],
+    "strategies": [
+     "Ruin-and-recreate ILS: from the champion, remove k=2..4 jobs chosen by a fixed seed (preferring jobs near unscheduled ones), reinsert each removed job at its best full-objective position across all techs, re-optimise the touched techs, and accept only strict full-objective improvements within a fixe",
+     "Ejection chain: take the unscheduled job with the largest 150*priority, force it in by evicting the cheapest scheduled job on a feasible tech (comparing drop penalties, not lateness), re-optimise both techs, and accept only a net full-objective decrease.",
+     "Cross-tech job swap: exchange one job between two healthy techs to fix skill/window mismatches, scoring the full objective including the 20-per-move penalty, since only two-job exchanges (not single moves) can beat it.",
+     "Targeted coverage finale: after the ILS, process unscheduled jobs in descending 150*priority and for each run exhaustive best-insertion with exact re-optimisation of the receiving tech, accepting strict gains until none remain.",
+     "Never re-derive the champion's within-tech ordering (agent 1's exact DP already proved it optimal); always start from the champion's per-tech sequences and restrict every move to those that change the assignment set.",
+     "Treat emergency-to-tech assignment as an ILS neighbourhood rather than a standalone earliest-start pass (agent 5 was neutral), because emergency_wait is already priced inside route_cost.",
+     "Cache route()/route_cost keyed by (tech_id, tuple(seq)) and share the cache across ruin, reinsert, and swap evaluations so the larger neighbourhoods still fit the deterministic budget.",
+     "Fix iteration counts deterministically (a constant number of perturbations sized to finish well under 1s) rather than timing the loop, and reject any candidate whose end exceeds shift_end + max_overtime."
+    ],
+    "tokens": 6346,
+    "seconds": 26.4,
+    "provider": "LLM:deepseek-ai/DeepSeek-V4.1-Flash",
+    "error": ""
+   }
+  },
+  {
+   "round": 8,
+   "seconds": 237.8,
+   "accepted": false,
+   "promoted_agent": null,
+   "wall_seconds": 254.4,
+   "elapsed_seconds": 1857.4,
+   "champion_dev": 1199.4,
+   "champion_val": 1251.2,
+   "champion": {
+    "mean_cost": 1251.2,
+    "infeasible": 0,
+    "on_time_pct": 69.38,
+    "emergency_response": 43.67,
+    "travel": 371.85,
+    "moved": 3.17,
+    "unassigned": 3.47,
+    "emergencies": 57,
+    "missed_promises": 1
+   },
+   "tokens": 1550887,
+   "round_tokens": 230782,
+   "candidates": [
+    {
+     "agent": 0,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Ruin-and-recreate ILS: from the champion, remove k=2..4 jobs chosen by a fixed seed (preferring jobs near unscheduled ones), reinsert each removed job at its best full-objective position across all techs, re-optimise the touched techs, and accept only strict full-objective improvements within a fixe",
+     "dev_cost": 1219.3,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 1,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Ejection chain: take the unscheduled job with the largest 150*priority, force it in by evicting the cheapest scheduled job on a feasible tech (comparing drop penalties, not lateness), re-optimise both techs, and accept only a net full-objective decrease.",
+     "dev_cost": 1206.3,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 2,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Cross-tech job swap: exchange one job between two healthy techs to fix skill/window mismatches, scoring the full objective including the 20-per-move penalty, since only two-job exchanges (not single moves) can beat it.",
+     "dev_cost": 1202.2,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 3,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Targeted coverage finale: after the ILS, process unscheduled jobs in descending 150*priority and for each run exhaustive best-insertion with exact re-optimisation of the receiving tech, accepting strict gains until none remain.",
+     "dev_cost": 1220.7,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 4,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Never re-derive the champion's within-tech ordering (agent 1's exact DP already proved it optimal); always start from the champion's per-tech sequences and restrict every move to those that change the assignment set.",
+     "dev_cost": 1209.3,
+     "infeasible": 0,
+     "error": ""
+    },
+    {
+     "agent": 5,
+     "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Treat emergency-to-tech assignment as an ILS neighbourhood rather than a standalone earliest-start pass (agent 5 was neutral), because emergency_wait is already priced inside route_cost.",
+     "dev_cost": 1213.5,
+     "infeasible": 0,
+     "error": ""
+    }
+   ],
+   "critic": {
+    "lessons": [
+     "All six attempts lost (best +2.8), so the champion is a deep local optimum and next round needs structurally different coupled moves, not more insertion/swap variants.",
+     "The smallest gaps came from assignment-changing moves (cross-tech swap +2.8, ejection chain +6.9), while coverage-only and reordering passes lost by +20, so widen across techs rather than within one.",
+     "Repeated exhaustive best-insertion of unscheduled jobs (agent 3, +21.3) failed, confirming the 10-14 residual jobs on expensive days are blocked by combined skill/window/overtime coupling, not by a small marginal cost.",
+     "Standalone emergency-wait optimization is neutral again (agent 5, +14.1), so emergency_wait must stay priced inside route_cost and never be optimized in isolation.",
+     "Every attempt stayed feasible (0 infeasible days), so strict route()-validation plus strict full-objective acceptance is the invariant to keep while widening neighbourhoods."
+    ],
+    "strategies": [
+     "Multi-tech 3-job cycle: exchange 2-3 jobs among 2-3 techs (allowing a previously untouched tech) and accept only a strict full-objective gain, because single swap and single insertion moves already fail.",
+     "Block relocation: move a contiguous block of 2-3 consecutive jobs from one tech to another to free a slot for the highest-priority unscheduled job, then re-optimize the receiving tech.",
+     "Depth-2 ejection chain: force in the top-priority unscheduled job, evict up to two scheduled jobs ranked by full drop cost, reinsert the evictees elsewhere, and accept only a net decrease.",
+     "Seed-diversified ruin-and-recreate with k=5..8 and multi-tech reinsertion (fixed seed, deterministic), since the k=2..4 single-job reinsertion version lost.",
+     "Overtime-slack targeting: only attempt moves that send work into a tech with remaining capacity under shift_end+max_overtime, and never trade a covered job for overtime minutes.",
+     "Spend no budget re-deriving the champion's within-tech order (exact DP already proved it optimal) or on single-job insertion; restrict all moves to assignments that change the job-to-tech set.",
+     "Keep emergency_wait inside the full route cost only; no standalone emergency pass, because that angle was neutral in two rounds.",
+     "Cache route()/route_cost by (tech_id, tuple(seq)), fix a constant perturbation count for determinism, and validate every candidate with route(), rejecting any end beyond shift_end + max_overtime."
+    ],
+    "tokens": 4296,
+    "seconds": 16.6,
+    "provider": "LLM:deepseek-ai/DeepSeek-V4.1-Flash",
+    "error": ""
+   }
+  }
+ ],
+ "champion_code": "import time\nfrom dispatchiq.helpers import route_cost, drop_until_feasible\n\n\ndef replan(state):\n    t_start = time.time()\n    TIME_LIMIT = 0.42\n\n    def time_left():\n        return (time.time() - t_start) < TIME_LIMIT\n\n    jobs = state[\"jobs\"]\n    techs = state[\"techs\"]\n    healthy = [t for t in techs if not t[\"sick\"]]\n    result = {t[\"id\"]: [] for t in techs}\n    if not healthy:\n        return result\n\n    sick_ids = {t[\"id\"] for t in techs if t[\"sick\"]}\n    tech_by_id = {t[\"id\"]: t for t in healthy}\n    healthy_ids = [t[\"id\"] for t in healthy]\n    tech_skills = {t[\"id\"]: set(t[\"skills\"]) for t in healthy}\n    INFEAS = 1e6\n\n    all_ids = sorted(jobs.keys())\n    priority = {j: jobs[j][\"priority\"] for j in all_ids}\n    jskill = {j: jobs[j][\"skill\"] for j in all_ids}\n    pen = {j: 150.0 * jobs[j][\"priority\"] for j in all_ids}\n    is_em = {j: bool(jobs[j].get(\"emergency\")) for j in all_ids}\n    morning = {j: jobs[j].get(\"morning_tech\") for j in all_ids}\n\n    elig = {j: [t[\"id\"] for t in healthy if jskill[j] in tech_skills[t[\"id\"]]]\n            for j in all_ids}\n\n    def moved_cost(jid, tid):\n        mt = morning[jid]\n        if mt is None or mt in sick_ids:\n            return 0.0\n        return 20.0 if mt != tid else 0.0\n\n    _cache = {}\n\n    def rc(tid, seq):\n        if not seq:\n            return 0.0\n        key = (tid, tuple(seq))\n        v = _cache.get(key)\n        if v is None:\n            v = route_cost(state, tech_by_id[tid], seq)\n            _cache[key] = v\n        return v\n\n    def moved_sum(tid, seq):\n        s = 0.0\n        for x in seq:\n            s += moved_cost(x, tid)\n        return s\n\n    def tech_cost(tid, seq):\n        c = rc(tid, seq)\n        if c >= INFEAS:\n            return INFEAS\n        return c + moved_sum(tid, seq)\n\n    def total_cost(plan):\n        c = 0.0\n        sched = set()\n        for tid in healthy_ids:\n            seq = plan[tid]\n            tc = tech_cost(tid, seq)\n            if tc >= INFEAS:\n                tc = 1e9\n            c += tc\n            sched.update(seq)\n        for j in all_ids:\n            if j not in sched:\n                c += pen[j]\n        return c\n\n    # ------------------------------------------------------------------\n    # insertion / ejection helpers (from champion)\n    # ------------------------------------------------------------------\n    def best_insertion(plan, jid):\n        p = pen[jid]\n        skill = jskill[jid]\n        best = None\n        for tid in healthy_ids:\n            if skill not in tech_skills[tid]:\n                continue\n            seq = plan[tid]\n            base_c = rc(tid, seq)\n            if base_c >= INFEAS:\n                continue\n            base_m = moved_sum(tid, seq)\n            old = base_c + base_m\n            add_m = moved_cost(jid, tid)\n            for pos in range(len(seq) + 1):\n                ns = seq[:pos] + [jid] + seq[pos:]\n                nc = rc(tid, ns)\n                if nc >= INFEAS:\n                    continue\n                delta = (nc + base_m + add_m) - old - p\n                if best is None or delta < best[0]:\n                    best = (delta, tid, ns)\n        return best\n\n    def compute_reinsert_deltas(plan):\n        d = {}\n        for tid in healthy_ids:\n            for v in plan[tid]:\n                bv = None\n                skill = jskill[v]\n                for tid2 in healthy_ids:\n                    if tid2 == tid:\n                        continue\n                    if skill not in tech_skills[tid2]:\n                        continue\n                    seq2 = plan[tid2]\n                    base_c = rc(tid2, seq2)\n                    if base_c >= INFEAS:\n                        continue\n                    base_m = moved_sum(tid2, seq2)\n                    old = base_c + base_m\n                    add_m = moved_cost(v, tid2)\n                    for pos in range(len(seq2) + 1):\n                        ns = seq2[:pos] + [v] + seq2[pos:]\n                        nc = rc(tid2, ns)\n                        if nc >= INFEAS:\n                            continue\n                        delta = (nc + base_m + add_m) - old - pen[v]\n                        if bv is None or delta < bv[0]:\n                            bv = (delta, tid2, ns)\n                d[(v, tid)] = bv\n        return d\n\n    def try_eject(plan, u, max_drop, re_delta):\n        if not time_left():\n            return None\n        u_pen = pen[u]\n        skill = jskill[u]\n        best = None\n        for tid in healthy_ids:\n            if skill not in tech_skills[tid]:\n                continue\n            seq = plan[tid]\n            n = len(seq)\n            if n == 0:\n                continue\n            base_c = rc(tid, seq)\n            if base_c >= INFEAS:\n                continue\n            base_m = moved_sum(tid, seq)\n            old = base_c + base_m\n            combos = [(i,) for i in range(n)]\n            if max_drop >= 2:\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        combos.append((i, j))\n            if max_drop >= 3 and n <= 8:\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        for k in range(j + 1, n):\n                            combos.append((i, j, k))\n            for combo in combos:\n                if not time_left():\n                    return best\n                ok = True\n                for i in combo:\n                    if is_em[seq[i]]:\n                        ok = False\n                        break\n                if not ok:\n                    continue\n                cs = set(combo)\n                v_pen = 0.0\n                tot_re = 0.0\n                for i in combo:\n                    v = seq[i]\n                    v_pen += pen[v]\n                    rd = re_delta.get((v, tid))\n                    if rd is not None and rd[0] < -1e-9:\n                        tot_re += rd[0]\n                base = [seq[i] for i in range(n) if i not in cs]\n                add_m = moved_cost(u, tid)\n                bm = moved_sum(tid, base)\n                for pos in range(len(base) + 1):\n                    ns = base[:pos] + [u] + base[pos:]\n                    nc = rc(tid, ns)\n                    if nc >= INFEAS:\n                        continue\n                    tot = (nc + bm + add_m) - old - u_pen + v_pen + tot_re\n                    if tot < -1e-9 and (best is None or tot < best[0]):\n                        best = (tot, tid, ns, [seq[i] for i in combo])\n        return best\n\n    def apply_eject(plan, tid, ns, victims):\n        plan[tid] = ns\n        for v in victims:\n            bv = None\n            skill = jskill[v]\n            for tid2 in healthy_ids:\n                if tid2 == tid:\n                    continue\n                if skill not in tech_skills[tid2]:\n                    continue\n                seq2 = plan[tid2]\n                base_c = rc(tid2, seq2)\n                if base_c >= INFEAS:\n                    continue\n                base_m = moved_sum(tid2, seq2)\n                old = base_c + base_m\n                add_m = moved_cost(v, tid2)\n                for pos in range(len(seq2) + 1):\n                    n2 = seq2[:pos] + [v] + seq2[pos:]\n                    nc = rc(tid2, n2)\n                    if nc >= INFEAS:\n                        continue\n                    delta = (nc + base_m + add_m) - old - pen[v]\n                    if delta < -1e-9 and (bv is None or delta < bv[0]):\n                        bv = (delta, tid2, n2)\n            if bv is not None:\n                plan[bv[1]] = bv[2]\n\n    def coverage(plan):\n        while time_left():\n            sched = set()\n            for tid in healthy_ids:\n                sched.update(plan[tid])\n            unsched = [j for j in all_ids if j not in sched]\n            if not unsched:\n                return\n            unsched.sort(key=lambda j: (-priority[j], j))\n            improved = False\n            for u in unsched:\n                r = best_insertion(plan, u)\n                if r is not None and r[0] < -1e-9:\n                    plan[r[1]] = r[2]\n                    improved = True\n                    break\n            if improved:\n                continue\n            re_delta = compute_reinsert_deltas(plan)\n            for u in unsched:\n                if not time_left():\n                    return\n                r = try_eject(plan, u, 2, re_delta)\n                if r is not None:\n                    apply_eject(plan, r[1], r[2], r[3])\n                    improved = True\n                    break\n            if improved:\n                continue\n            for u in unsched:\n                if not time_left():\n                    return\n                r = try_eject(plan, u, 3, re_delta)\n                if r is not None:\n                    apply_eject(plan, r[1], r[2], r[3])\n                    improved = True\n                    break\n            if improved:\n                continue\n            return\n\n    # ------------------------------------------------------------------\n    # local search (champion's moves)\n    # ------------------------------------------------------------------\n    def try_relocate(plan):\n        for tida in healthy_ids:\n            sa = plan[tida]\n            if not sa:\n                continue\n            ca = tech_cost(tida, sa)\n            if ca >= INFEAS:\n                continue\n            ma = moved_sum(tida, sa)\n            for i in range(len(sa)):\n                if not time_left():\n                    return False\n                jid = sa[i]\n                na = sa[:i] + sa[i + 1:]\n                nca = rc(tida, na)\n                if nca >= INFEAS:\n                    continue\n                costa = nca + ma - moved_cost(jid, tida)\n                da = costa - ca\n                skill = jskill[jid]\n                for tidb in healthy_ids:\n                    if tidb == tida:\n                        continue\n                    if skill not in tech_skills[tidb]:\n                        continue\n                    sb = plan[tidb]\n                    cb = tech_cost(tidb, sb)\n                    if cb >= INFEAS:\n                        continue\n                    mb = moved_sum(tidb, sb)\n                    add_m = moved_cost(jid, tidb)\n                    for pos in range(len(sb) + 1):\n                        nb = sb[:pos] + [jid] + sb[pos:]\n                        ncb = rc(tidb, nb)\n                        if ncb >= INFEAS:\n                            continue\n                        if da + ((ncb + mb + add_m) - cb) < -1e-9:\n                            plan[tida] = na\n                            plan[tidb] = nb\n                            return True\n        return False\n\n    def try_swap(plan):\n        for ai in range(len(healthy_ids)):\n            tida = healthy_ids[ai]\n            sa = plan[tida]\n            if not sa:\n                continue\n            ca = tech_cost(tida, sa)\n            if ca >= INFEAS:\n                continue\n            ma = moved_sum(tida, sa)\n            for bi in range(ai + 1, len(healthy_ids)):\n                tidb = healthy_ids[bi]\n                sb = plan[tidb]\n                if not sb:\n                    continue\n                cb = tech_cost(tidb, sb)\n                if cb >= INFEAS:\n                    continue\n                mb = moved_sum(tidb, sb)\n                for i in range(len(sa)):\n                    if not time_left():\n                        return False\n                    ja = sa[i]\n                    if jskill[ja] not in tech_skills[tidb]:\n                        continue\n                    for j in range(len(sb)):\n                        jb = sb[j]\n                        if jskill[jb] not in tech_skills[tida]:\n                            continue\n                        na = sa[:i] + [jb] + sa[i + 1:]\n                        nb = sb[:j] + [ja] + sb[j + 1:]\n                        nca = rc(tida, na)\n                        if nca >= INFEAS:\n                            continue\n                        ncb = rc(tidb, nb)\n                        if ncb >= INFEAS:\n                            continue\n                        costa = nca + ma - moved_cost(ja, tida) + moved_cost(jb, tida)\n                        costb = ncb + mb - moved_cost(jb, tidb) + moved_cost(ja, tidb)\n                        if (costa - ca) + (costb - cb) < -1e-9:\n                            plan[tida] = na\n                            plan[tidb] = nb\n                            return True\n        return False\n\n    def try_2opt(plan):\n        for ai in range(len(healthy_ids)):\n            tida = healthy_ids[ai]\n            sa = plan[tida]\n            if not sa:\n                continue\n            ca = tech_cost(tida, sa)\n            if ca >= INFEAS:\n                continue\n            for bi in range(ai + 1, len(healthy_ids)):\n                tidb = healthy_ids[bi]\n                sb = plan[tidb]\n                if not sb:\n                    continue\n                cb = tech_cost(tidb, sb)\n                if cb >= INFEAS:\n                    continue\n                for i in range(len(sa) + 1):\n                    if not time_left():\n                        return False\n                    head_a = sa[:i]\n                    tail_a = sa[i:]\n                    ok = True\n                    for x in tail_a:\n                        if jskill[x] not in tech_skills[tidb]:\n                            ok = False\n                            break\n                    if not ok:\n                        continue\n                    for j in range(len(sb) + 1):\n                        tail_b = sb[j:]\n                        ok2 = True\n                        for x in tail_b:\n                            if jskill[x] not in tech_skills[tida]:\n                                ok2 = False\n                                break\n                        if not ok2:\n                            continue\n                        na = head_a + tail_b\n                        nb = sb[:j] + tail_a\n                        nca = rc(tida, na)\n                        if nca >= INFEAS:\n                            continue\n                        ncb = rc(tidb, nb)\n                        if ncb >= INFEAS:\n                            continue\n                        costa = nca + moved_sum(tida, na)\n                        costb = ncb + moved_sum(tidb, nb)\n                        if (costa - ca) + (costb - cb) < -1e-9:\n                            plan[tida] = na\n                            plan[tidb] = nb\n                            return True\n        return False\n\n    def try_or_opt(plan):\n        for tid in healthy_ids:\n            seq = plan[tid]\n            n = len(seq)\n            if n < 3:\n                continue\n            old = tech_cost(tid, seq)\n            if old >= INFEAS:\n                continue\n            ms = moved_sum(tid, seq)\n            best = None\n            for seglen in (1, 2, 3):\n                for i in range(n - seglen + 1):\n                    if not time_left():\n                        if best is not None:\n                            plan[tid] = best[1]\n                            return True\n                        return False\n                    seg = seq[i:i + seglen]\n                    rest = seq[:i] + seq[i + seglen:]\n                    for pos in range(len(rest) + 1):\n                        if pos == i:\n                            continue\n                        ns = rest[:pos] + seg + rest[pos:]\n                        nc = rc(tid, ns)\n                        if nc >= INFEAS:\n                            continue\n                        c = nc + ms\n                        if c < old - 1e-9 and (best is None or c < best[0]):\n                            best = (c, ns)\n            if best is not None:\n                plan[tid] = best[1]\n                return True\n        return False\n\n    def local_search(plan):\n        while time_left():\n            if try_relocate(plan):\n                continue\n            if try_swap(plan):\n                continue\n            if try_2opt(plan):\n                continue\n            if try_or_opt(plan):\n                continue\n            break\n\n    # ------------------------------------------------------------------\n    # emergency-first seed\n    # ------------------------------------------------------------------\n    emergencies = [j for j in all_ids if is_em[j]]\n    em_sorted = sorted(emergencies, key=lambda j: (-priority[j], j))\n\n    plan = {tid: [] for tid in healthy_ids}\n    if emergencies:\n        m = len(em_sorted)\n        best_plan = [None]\n        best_cost = [float(\"inf\")]\n\n        def dfs(idx, acc):\n            if acc >= best_cost[0] or not time_left():\n                return\n            if idx == m:\n                best_cost[0] = acc\n                best_plan[0] = {tid: list(s) for tid, s in plan.items()}\n                return\n            jid = em_sorted[idx]\n            for tid in elig[jid]:\n                seq = plan[tid]\n                bg = rc(tid, seq) + moved_sum(tid, seq)\n                for pos in range(len(seq) + 1):\n                    ns = seq[:pos] + [jid] + seq[pos:]\n                    nc = rc(tid, ns)\n                    if nc >= INFEAS:\n                        continue\n                    d = (nc + moved_sum(tid, seq) + moved_cost(jid, tid)) - bg\n                    plan[tid] = ns\n                    dfs(idx + 1, acc + d)\n                    plan[tid] = seq\n\n        dfs(0, 0.0)\n        if best_plan[0] is not None:\n            for tid in healthy_ids:\n                plan[tid] = best_plan[0][tid]\n\n    for _round in range(6):\n        if not time_left():\n            break\n        coverage(plan)\n        local_search(plan)\n        sched = set()\n        for tid in healthy_ids:\n            sched.update(plan[tid])\n        if all(j in sched for j in all_ids):\n            break\n\n    best_plan = {tid: list(plan[tid]) for tid in healthy_ids}\n    best_cost = total_cost(best_plan)\n\n    # ------------------------------------------------------------------\n    # deterministic ILS: swap / move / ruin perturbations + re-optimise\n    # ------------------------------------------------------------------\n    rng = [987654321]\n\n    def rnd(n):\n        rng[0] = (rng[0] * 1103515245 + 12345) & 0x7fffffff\n        return rng[0] % n\n\n    it = 0\n    while time_left():\n        it += 1\n        plan = {tid: list(best_plan[tid]) for tid in healthy_ids}\n        mode = it % 3\n\n        if mode == 0:\n            # swap two scheduled jobs between two techs\n            sched = [(tid, j) for tid in healthy_ids for j in plan[tid]]\n            if len(sched) >= 2:\n                a = rnd(len(sched))\n                b = rnd(len(sched))\n                if a != b:\n                    ta, ja = sched[a]\n                    tb, jb = sched[b]\n                    if (ta != tb\n                            and jskill[ja] in tech_skills[tb]\n                            and jskill[jb] in tech_skills[ta]):\n                        if ja in plan[ta]:\n                            plan[ta].remove(ja)\n                        if jb in plan[tb]:\n                            plan[tb].remove(jb)\n                        plan[ta].append(jb)\n                        plan[tb].append(ja)\n        elif mode == 1:\n            # move one scheduled job to another eligible tech\n            sched = [(tid, j) for tid in healthy_ids for j in plan[tid]]\n            if sched:\n                a = rnd(len(sched))\n                ta, ja = sched[a]\n                cands = [tid for tid in healthy_ids\n                         if tid != ta and jskill[ja] in tech_skills[tid]]\n                if cands:\n                    tb = cands[rnd(len(cands))]\n                    if ja in plan[ta]:\n                        plan[ta].remove(ja)\n                    plan[tb].append(ja)\n        else:\n            # ruin: drop a few non-emergency jobs\n            sched = [(tid, j) for tid in healthy_ids\n                     for j in plan[tid] if not is_em[j]]\n            k = 1 + (it % 3)\n            for _ in range(min(k, len(sched))):\n                if not sched:\n                    break\n                a = rnd(len(sched))\n                ta, ja = sched.pop(a)\n                if ja in plan[ta]:\n                    plan[ta].remove(ja)\n\n        # repair any infeasible routes the perturbation created\n        for tid in healthy_ids:\n            seq = plan[tid]\n            if seq and rc(tid, seq) >= INFEAS:\n                kept, _dropped = drop_until_feasible(state, tech_by_id[tid], seq)\n                plan[tid] = kept\n\n        coverage(plan)\n        local_search(plan)\n        c = total_cost(plan)\n        if c < best_cost - 1e-9:\n            best_cost = c\n            best_plan = {tid: list(plan[tid]) for tid in healthy_ids}\n\n    # ------------------------------------------------------------------\n    # safety net: every emergency must be assigned\n    # ------------------------------------------------------------------\n    sched = set()\n    for tid in healthy_ids:\n        sched.update(best_plan[tid])\n    for jid in emergencies:\n        if jid in sched:\n            continue\n        best = None\n        for tid in elig[jid]:\n            seq = best_plan[tid]\n            for pos in range(len(seq) + 1):\n                ns = seq[:pos] + [jid] + seq[pos:]\n                nc = rc(tid, ns)\n                if nc >= INFEAS:\n                    continue\n                if best is None or nc < best[0]:\n                    best = (nc, tid, ns)\n        if best is None:\n            for tid in elig[jid]:\n                seq = best_plan[tid]\n                for pos in range(len(seq) + 1):\n                    ns = seq[:pos] + [jid] + seq[pos:]\n                    nc = rc(tid, ns)\n                    if best is None or nc < best[0]:\n                        best = (nc, tid, ns)\n        if best is not None:\n            best_plan[best[1]] = best[2]\n            sched.add(jid)\n\n    for tid in healthy_ids:\n        result[tid] = best_plan[tid]\n    return result\n",
+ "round0_code": "\"\"\"Round-0 seed policy: what a busy human dispatcher does.\n\nEveryone keeps their remaining jobs. Each orphaned job (from the sick tech) and each\nemergency goes to the nearest healthy tech with the right skill: emergencies to the\nfront of that tech's list, other jobs to the end. If that would push the tech past the\novertime limit, the job is left for tomorrow; an emergency instead bumps that\ntech's lowest-priority jobs to tomorrow.\n\"\"\"\n\nfrom dispatchiq.helpers import drop_until_feasible, route, travel_min\n\n\ndef replan(state):\n    plan = {t[\"id\"]: ([] if t[\"sick\"] else list(t[\"remaining\"])) for t in state[\"techs\"]}\n    healthy = [t for t in state[\"techs\"] if not t[\"sick\"]]\n    orphans = [j for t in state[\"techs\"] if t[\"sick\"] for j in t[\"remaining\"]]\n    emergencies = [jid for jid, j in state[\"jobs\"].items() if j[\"emergency\"]]\n    for jid in emergencies + orphans:\n        job = state[\"jobs\"][jid]\n        options = sorted((travel_min(state, t[\"loc\"], job[\"loc\"]), t[\"id\"]) for t in healthy\n                         if job[\"skill\"] in t[\"skills\"])\n        for _, tid in options:\n            tech = next(t for t in healthy if t[\"id\"] == tid)\n            seq = [jid] + plan[tid] if job[\"emergency\"] else plan[tid] + [jid]\n            if job[\"emergency\"]:\n                seq, _ = drop_until_feasible(state, tech, seq)  # bump routine jobs to tomorrow\n            if route(state, tech, seq)[\"feasible\"]:\n                plan[tid] = seq\n                break\n    return plan\n",
+ "team": true,
+ "memory": [
+  {
+   "round": 1,
+   "agent": 0,
+   "strategy": "Make emergencies faster: choose the tech who can START the emergency soonest, not the nearest one.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Make emergencies faster: choose the tech who can START the emergency soonest, not the nearest one.",
+   "dev_cost": 1398.5,
+   "gap_to_champion": -512.9,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 1,
+   "agent": 1,
+   "strategy": "Add a local-search pass after insertion: try relocating and swapping open jobs within and between healthy techs, keeping a move only if total estimated cost (including the churn penalty) drops.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Add a local-search pass after insertion: try relocating and swapping open jobs within and between healthy techs, keeping a move only if total estimated cost (including the churn penalty) drops.",
+   "dev_cost": 1390.5,
+   "gap_to_champion": -520.9,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 1,
+   "agent": 2,
+   "strategy": "Use regret insertion: insert first the job whose best and second-best insertion costs differ most.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Use regret insertion: insert first the job whose best and second-best insertion costs differ most.",
+   "dev_cost": null,
+   "gap_to_champion": null,
+   "infeasible_days": 2,
+   "errors": [
+    "RuntimeError: Set changed size during iteration",
+    "RuntimeError: Set changed size during iteration"
+   ],
+   "promoted": false
+  },
+  {
+   "round": 1,
+   "agent": 3,
+   "strategy": "Re-sequence each healthy tech's remaining jobs (e.g. by time window and 2-opt) to cut lateness and travel.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Re-sequence each healthy tech's remaining jobs (e.g. by time window and 2-opt) to cut lateness and travel.",
+   "dev_cost": 1450.8,
+   "gap_to_champion": -460.6,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 1,
+   "agent": 4,
+   "strategy": "Reduce unscheduled high-priority jobs: allow bumping a priority-1 job to tomorrow to fit a priority-3 job.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Reduce unscheduled high-priority jobs: allow bumping a priority-1 job to tomorrow to fit a priority-3 job.",
+   "dev_cost": 1364.1,
+   "gap_to_champion": -547.3,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": true
+  },
+  {
+   "round": 1,
+   "agent": 5,
+   "strategy": "Balance load: prefer techs with slack before shift_end; avoid stacking overtime on one tech.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Balance load: prefer techs with slack before shift_end; avoid stacking overtime on one tech.",
+   "dev_cost": 1370.5,
+   "gap_to_champion": -540.9,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 2,
+   "agent": 0,
+   "strategy": "Coverage-first construction: sort open jobs by descending priority (5\u21921) and insert each at the best feasible position across all healthy techs, using route_cost; only leave a job unscheduled if no insertion fits within the overtime cap.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Coverage-first construction: sort open jobs by descending priority (5\u21921) and insert each at the best feasible position across all healthy techs, using route_cost; only leave a job unscheduled if no insertion fits within the overtime cap.",
+   "dev_cost": 1344.4,
+   "gap_to_champion": -19.7,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 2,
+   "agent": 1,
+   "strategy": "Generalize the champion's bump rule: when a priority-3/5 job has no feasible insertion, remove from one tech the job with the smallest (150\u00d7its_priority - saved travel/lateness by dropping it) and retry inserting the high-priority job.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Generalize the champion's bump rule: when a priority-3/5 job has no feasible insertion, remove from one tech the job with the smallest (150\u00d7its_priority - saved travel/lateness by dropping it) and retry inserting the high-priority job.",
+   "dev_cost": 1364.1,
+   "gap_to_champion": -0.0,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 2,
+   "agent": 2,
+   "strategy": "Respect overtime exactly: after each route is built, run route() or drop_until_feasible per tech so end \u2264 shift_end + max_overtime, then try to re-insert any dropped job on another tech rather than discarding it.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Respect overtime exactly: after each route is built, run route() or drop_until_feasible per tech so end \u2264 shift_end + max_overtime, then try to re-insert any dropped job on another tech rather than discarding it.",
+   "dev_cost": 1370.5,
+   "gap_to_champion": 6.4,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 2,
+   "agent": 3,
+   "strategy": "Treat emergencies as hard constraints but budget their response wait: assign each emergency to a feasible tech, and only accept extra wait if it avoids dropping jobs whose 150\u00d7priority penalty is larger than the wait difference.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Treat emergencies as hard constraints but budget their response wait: assign each emergency to a feasible tech, and only accept extra wait if it avoids dropping jobs whose 150\u00d7priority penalty is larger than the wait difference.",
+   "dev_cost": 1315.9,
+   "gap_to_champion": -48.2,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": true
+  },
+  {
+   "round": 2,
+   "agent": 4,
+   "strategy": "Add a bounded (\u22641s) local search of relocate/swap moves accepted only when the full checker-style cost (travel + priority\u00d7lateness + overtime + 150\u00d7unscheduled + 20\u00d7moved + emergency wait) strictly improves.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Add a bounded (\u22641s) local search of relocate/swap moves accepted only when the full checker-style cost (travel + priority\u00d7lateness + overtime + 150\u00d7unscheduled + 20\u00d7moved + emergency wait) strictly improves.",
+   "dev_cost": 1364.5,
+   "gap_to_champion": 0.4,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 2,
+   "agent": 5,
+   "strategy": "Avoid mutation-during-iteration bugs by building every candidate sequence in a fresh list and replacing plan entries only after the loop finishes; never modify the collection you are iterating over.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Avoid mutation-during-iteration bugs by building every candidate sequence in a fresh list and replacing plan entries only after the loop finishes; never modify the collection you are iterating over.",
+   "dev_cost": 1383.8,
+   "gap_to_champion": 19.7,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 3,
+   "agent": 0,
+   "strategy": "Start from the promoted wait-aware emergency policy: build coverage in descending priority order and allow an emergency to start later only when the added wait is less than the 150\u00d7priority penalty of a job it saves.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Start from the promoted wait-aware emergency policy: build coverage in descending priority order and allow an emergency to start later only when the added wait is less than the 150\u00d7priority penalty of a job it saves.",
+   "dev_cost": 1291.6,
+   "gap_to_champion": -24.3,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 3,
+   "agent": 1,
+   "strategy": "Before optimizing travel, explicitly count and minimize unscheduled jobs: schedule every priority-3/5 job first, then fit priority-2/1 jobs, because dropping a p5 costs 750 and a p1 costs 150.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Before optimizing travel, explicitly count and minimize unscheduled jobs: schedule every priority-3/5 job first, then fit priority-2/1 jobs, because dropping a p5 costs 750 and a p1 costs 150.",
+   "dev_cost": 1264.8,
+   "gap_to_champion": -51.1,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 3,
+   "agent": 2,
+   "strategy": "When a high-priority job has no feasible insertion, extend the bump rule: remove the job minimizing (150\u00d7its_priority + its route/lateness contribution - emergency-wait increase it causes), then retry the insertion.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | When a high-priority job has no feasible insertion, extend the bump rule: remove the job minimizing (150\u00d7its_priority + its route/lateness contribution - emergency-wait increase it causes), then retry the insertion.",
+   "dev_cost": 1256.5,
+   "gap_to_champion": -59.4,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 3,
+   "agent": 3,
+   "strategy": "Treat max_overtime as usable budget: accept overtime minutes to schedule a job when its 150\u00d7priority penalty exceeds the extra overtime cost; do not drop it merely to end exactly at shift_end.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Treat max_overtime as usable budget: accept overtime minutes to schedule a job when its 150\u00d7priority penalty exceeds the extra overtime cost; do not drop it merely to end exactly at shift_end.",
+   "dev_cost": 1313.0,
+   "gap_to_champion": -2.9,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 3,
+   "agent": 4,
+   "strategy": "For every insertion, relocation, or swap, compare exact checker-style deltas including travel, priority\u00d7lateness, overtime, 150\u00d7unscheduled, 20\u00d7jobs moved, and emergency response minutes.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | For every insertion, relocation, or swap, compare exact checker-style deltas including travel, priority\u00d7lateness, overtime, 150\u00d7unscheduled, 20\u00d7jobs moved, and emergency response minutes.",
+   "dev_cost": 1253.5,
+   "gap_to_champion": -62.4,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": true
+  },
+  {
+   "round": 3,
+   "agent": 5,
+   "strategy": "Re-insert any job dropped by overtime or bumping onto a different healthy tech immediately, in descending priority order, before considering it unscheduled.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Re-insert any job dropped by overtime or bumping onto a different healthy tech immediately, in descending priority order, before considering it unscheduled.",
+   "dev_cost": 1331.7,
+   "gap_to_champion": 15.8,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 4,
+   "agent": 0,
+   "strategy": "Seed from the promoted exact-delta search: build coverage priority-descending with wait-aware emergency placement, then run insertion/relocation/swap moves scored by the full checker objective.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Seed from the promoted exact-delta search: build coverage priority-descending with wait-aware emergency placement, then run insertion/relocation/swap moves scored by the full checker objective.",
+   "dev_cost": 1250.2,
+   "gap_to_champion": -3.3,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 4,
+   "agent": 1,
+   "strategy": "For each unscheduled job in descending priority, try inserting on every healthy tech and, if infeasible, apply the cost-minimizing bump rule (evict the job minimizing 150\u00d7its_priority + its route/lateness contribution \u2212 emergency-wait increase).",
+   "note": "",
+   "dev_cost": null,
+   "gap_to_champion": null,
+   "infeasible_days": null,
+   "errors": [
+    "proposal failed: all providers failed: no replan() in model output"
+   ],
+   "promoted": false
+  },
+  {
+   "round": 4,
+   "agent": 2,
+   "strategy": "Treat overtime as budget only when the exact delta (overtime minutes added vs 150\u00d7priority saved plus lateness change) is negative; never drop a p3/p5 job merely to end exactly at shift_end.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Treat overtime as budget only when the exact delta (overtime minutes added vs 150\u00d7priority saved plus lateness change) is negative; never drop a p3/p5 job merely to end exactly at shift_end.",
+   "dev_cost": 1296.7,
+   "gap_to_champion": 43.2,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 4,
+   "agent": 3,
+   "strategy": "Never re-insert a dropped job onto another tech unless the full delta (including 20\u00d7moved and any new overtime/lateness) is negative \u2014 agent 5's blanket reinsertion lost 78 points.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Never re-insert a dropped job onto another tech unless the full delta (including 20\u00d7moved and any new overtime/lateness) is negative \u2014 agent 5's blanket reinsertion lost 78 points.",
+   "dev_cost": 1235.4,
+   "gap_to_champion": -18.1,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": true
+  },
+  {
+   "round": 4,
+   "agent": 4,
+   "strategy": "Keep mutation safety: build candidate sequences in fresh lists and only assign after evaluation; never mutate a list or set being iterated.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Keep mutation safety: build candidate sequences in fresh lists and only assign after evaluation; never mutate a list or set being iterated.",
+   "dev_cost": 1277.0,
+   "gap_to_champion": 23.5,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 4,
+   "agent": 5,
+   "strategy": "After coverage is maximized, run a bounded 2-opt/relocate pass per tech scored by exact route deltas, since travel is now a small share (255\u2013456) but still worth trimming.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | After coverage is maximized, run a bounded 2-opt/relocate pass per tech scored by exact route deltas, since travel is now a small share (255\u2013456) but still worth trimming.",
+   "dev_cost": 1278.1,
+   "gap_to_champion": 24.6,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 5,
+   "agent": 0,
+   "strategy": "Seed from the promoted exact-delta search and add a coverage-first pass: for each unscheduled job in descending priority, try every insertion position on every healthy tech, accepting lateness and overtime as long as the full delta (including 150\u00d7priority saved) is negative.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Seed from the promoted exact-delta search and add a coverage-first pass: for each unscheduled job in descending priority, try every insertion position on every healthy tech, accepting lateness and overtime as long as the full delta (including 150\u00d7priority saved) is negative.",
+   "dev_cost": 1235.4,
+   "gap_to_champion": 0.0,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 5,
+   "agent": 1,
+   "strategy": "Treat 'latest' as soft: never drop a job merely because it would be late; only drop if the resulting lateness cost (minutes \u00d7 priority) exceeds 150\u00d7priority.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Treat 'latest' as soft: never drop a job merely because it would be late; only drop if the resulting lateness cost (minutes \u00d7 priority) exceeds 150\u00d7priority.",
+   "dev_cost": 1217.3,
+   "gap_to_champion": -18.1,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": true
+  },
+  {
+   "round": 5,
+   "agent": 2,
+   "strategy": "Use the full overtime budget: since overtime costs 1/min but scheduling a p1 job saves 150, accept any overtime up to max_overtime if it seats a job.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Use the full overtime budget: since overtime costs 1/min but scheduling a p1 job saves 150, accept any overtime up to max_overtime if it seats a job.",
+   "dev_cost": null,
+   "gap_to_champion": null,
+   "infeasible_days": 3,
+   "errors": [
+    "T0 ends 290 min past shift (max 90)",
+    "T0 ends 91 min past shift (max 90)"
+   ],
+   "promoted": false
+  },
+  {
+   "round": 5,
+   "agent": 3,
+   "strategy": "Apply the cost-minimizing bump rule: when no direct insertion is feasible, evict the job minimizing 150\u00d7its_priority + its route/lateness contribution \u2212 emergency-wait increase, then re-insert the bumped job elsewhere if delta negative.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Apply the cost-minimizing bump rule: when no direct insertion is feasible, evict the job minimizing 150\u00d7its_priority + its route/lateness contribution \u2212 emergency-wait increase, then re-insert the bumped job elsewhere if delta negative.",
+   "dev_cost": 1235.4,
+   "gap_to_champion": 0.0,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 5,
+   "agent": 4,
+   "strategy": "Be willing to move jobs between healthy techs: the 20-per-move penalty is tiny compared to 150\u00d7priority, so reassign jobs if it enables one more scheduled job.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Be willing to move jobs between healthy techs: the 20-per-move penalty is tiny compared to 150\u00d7priority, so reassign jobs if it enables one more scheduled job.",
+   "dev_cost": 1249.9,
+   "gap_to_champion": 14.5,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 5,
+   "agent": 5,
+   "strategy": "Score every move with the full checker objective including 20\u00d7moved and 150\u00d7priority unscheduled, and never accept a move with positive delta.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Score every move with the full checker objective including 20\u00d7moved and 150\u00d7priority unscheduled, and never accept a move with positive delta.",
+   "dev_cost": 1244.6,
+   "gap_to_champion": 9.2,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 6,
+   "agent": 0,
+   "strategy": "Seed from the promoted soft-latest exact-delta search, then loop: pick the unscheduled job with largest 150\u00d7priority, try every (tech, position) insertion, and accept only strictly negative full-objective deltas until no move improves.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Seed from the promoted soft-latest exact-delta search, then loop: pick the unscheduled job with largest 150\u00d7priority, try every (tech, position) insertion, and accept only strictly negative full-objective deltas until no move improves.",
+   "dev_cost": 1237.5,
+   "gap_to_champion": 20.2,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 6,
+   "agent": 1,
+   "strategy": "Before accepting any candidate, recompute the tech's route end via route() and reject if end > shift_end + max_overtime; treat the schedule as feasible only when this hard check passes.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Before accepting any candidate, recompute the tech's route end via route() and reject if end > shift_end + max_overtime; treat the schedule as feasible only when this hard check passes.",
+   "dev_cost": 1219.2,
+   "gap_to_champion": 1.9,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 6,
+   "agent": 2,
+   "strategy": "When no direct insertion is negative, run a bounded bump chain: evict the job minimizing (its 150\u00d7priority + route/lateness contribution \u2212 emergency-wait increase), re-insert the bumped job elsewhere, and keep the chain only if the total delta is negative.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | When no direct insertion is negative, run a bounded bump chain: evict the job minimizing (its 150\u00d7priority + route/lateness contribution \u2212 emergency-wait increase), re-insert the bumped job elsewhere, and keep the chain only if the total delta is negative.",
+   "dev_cost": 1239.3,
+   "gap_to_champion": 22.0,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 6,
+   "agent": 3,
+   "strategy": "Cap the search: limit bump depth to 2 evictions and total candidate evaluations to a few thousand per day so runtime stays far under 1 second.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Cap the search: limit bump depth to 2 evictions and total candidate evaluations to a few thousand per day so runtime stays far under 1 second.",
+   "dev_cost": 1219.3,
+   "gap_to_champion": 2.0,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 6,
+   "agent": 4,
+   "strategy": "Schedule emergencies first by minimising each one's release-to-start wait (nearest feasible tech/position), since emergency_wait is billed as extra minutes and currently runs 54\u201394 min per day.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Schedule emergencies first by minimising each one's release-to-start wait (nearest feasible tech/position), since emergency_wait is billed as extra minutes and currently runs 54\u201394 min per day.",
+   "dev_cost": 1217.3,
+   "gap_to_champion": -0.0,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 6,
+   "agent": 5,
+   "strategy": "Only allow cross-tech moves when the full objective strictly decreases after adding 20\u00d7moved and the recomputed travel/overtime of both techs \u2014 otherwise leave the job where it is.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Only allow cross-tech moves when the full objective strictly decreases after adding 20\u00d7moved and the recomputed travel/overtime of both techs \u2014 otherwise leave the job where it is.",
+   "dev_cost": 1228.2,
+   "gap_to_champion": 10.9,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 7,
+   "agent": 0,
+   "strategy": "Start from the champion (or exact-delta seed) and run a deterministic iterated local search: apply a fixed-seed perturbation (swap two jobs or move one job to another tech), re-optimize with exact-delta, and accept only strict full-objective improvements; run a fixed number of iterations under 1s.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Start from the champion (or exact-delta seed) and run a deterministic iterated local search: apply a fixed-seed perturbation (swap two jobs or move one job to another tech), re-optimize with exact-delta, and accept only strict full-objective improvements; run a fixed number of iterations under 1s.",
+   "dev_cost": 1199.4,
+   "gap_to_champion": -17.9,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": true
+  },
+  {
+   "round": 7,
+   "agent": 1,
+   "strategy": "For each tech independently, compute the exact optimal sequence of its currently assigned jobs via bitmask DP over permutations (pruned by time windows and overtime), then accept if the total route_cost improves; this can find within-tech orderings that insertion/2-opt miss.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | For each tech independently, compute the exact optimal sequence of its currently assigned jobs via bitmask DP over permutations (pruned by time windows and overtime), then accept if the total route_cost improves; this can find within-tech orderings that insertion/2-opt miss.",
+   "dev_cost": 1217.3,
+   "gap_to_champion": -0.0,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 7,
+   "agent": 2,
+   "strategy": "For each tech, consider adding one unscheduled job and recompute the exact optimal sequence via DP; accept if the full objective decreases, i.e., 150*priority saved exceeds added travel/lateness/overtime/emergency wait.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | For each tech, consider adding one unscheduled job and recompute the exact optimal sequence via DP; accept if the full objective decreases, i.e., 150*priority saved exceeds added travel/lateness/overtime/emergency wait.",
+   "dev_cost": 1217.3,
+   "gap_to_champion": -0.0,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 7,
+   "agent": 3,
+   "strategy": "Try a priority-swap move: if an unscheduled job has higher 150*priority than a scheduled job that can be dropped to free capacity, drop the low-priority job, insert the high-priority one, and re-optimize both techs with exact DP; accept only if the net full objective decreases.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Try a priority-swap move: if an unscheduled job has higher 150*priority than a scheduled job that can be dropped to free capacity, drop the low-priority job, insert the high-priority one, and re-optimize both techs with exact DP; accept only if the net full objective decreases.",
+   "dev_cost": 1217.3,
+   "gap_to_champion": -0.0,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 7,
+   "agent": 4,
+   "strategy": "Before coverage moves, run a targeted overtime-reduction pass: for each tech over shift_end, try moving its latest job to a tech with idle time if overtime saved > 20*moved + extra travel, validating with route().",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Before coverage moves, run a targeted overtime-reduction pass: for each tech over shift_end, try moving its latest job to a tech with idle time if overtime saved > 20*moved + extra travel, validating with route().",
+   "dev_cost": 1217.9,
+   "gap_to_champion": 0.6,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 7,
+   "agent": 5,
+   "strategy": "For emergencies, test forcing each emergency to the earliest feasible start by swapping it with preceding jobs on the same tech, scored by the full objective including the emergency_wait change; accept only strict improvements.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | For emergencies, test forcing each emergency to the earliest feasible start by swapping it with preceding jobs on the same tech, scored by the full objective including the emergency_wait change; accept only strict improvements.",
+   "dev_cost": 1217.3,
+   "gap_to_champion": -0.0,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 8,
+   "agent": 0,
+   "strategy": "Ruin-and-recreate ILS: from the champion, remove k=2..4 jobs chosen by a fixed seed (preferring jobs near unscheduled ones), reinsert each removed job at its best full-objective position across all techs, re-optimise the touched techs, and accept only strict full-objective improvements within a fixe",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Ruin-and-recreate ILS: from the champion, remove k=2..4 jobs chosen by a fixed seed (preferring jobs near unscheduled ones), reinsert each removed job at its best full-objective position across all techs, re-optimise the touched techs, and accept only strict full-objective improvements within a fixe",
+   "dev_cost": 1219.3,
+   "gap_to_champion": 19.9,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 8,
+   "agent": 1,
+   "strategy": "Ejection chain: take the unscheduled job with the largest 150*priority, force it in by evicting the cheapest scheduled job on a feasible tech (comparing drop penalties, not lateness), re-optimise both techs, and accept only a net full-objective decrease.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Ejection chain: take the unscheduled job with the largest 150*priority, force it in by evicting the cheapest scheduled job on a feasible tech (comparing drop penalties, not lateness), re-optimise both techs, and accept only a net full-objective decrease.",
+   "dev_cost": 1206.3,
+   "gap_to_champion": 6.9,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 8,
+   "agent": 2,
+   "strategy": "Cross-tech job swap: exchange one job between two healthy techs to fix skill/window mismatches, scoring the full objective including the 20-per-move penalty, since only two-job exchanges (not single moves) can beat it.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Cross-tech job swap: exchange one job between two healthy techs to fix skill/window mismatches, scoring the full objective including the 20-per-move penalty, since only two-job exchanges (not single moves) can beat it.",
+   "dev_cost": 1202.2,
+   "gap_to_champion": 2.8,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 8,
+   "agent": 3,
+   "strategy": "Targeted coverage finale: after the ILS, process unscheduled jobs in descending 150*priority and for each run exhaustive best-insertion with exact re-optimisation of the receiving tech, accepting strict gains until none remain.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Targeted coverage finale: after the ILS, process unscheduled jobs in descending 150*priority and for each run exhaustive best-insertion with exact re-optimisation of the receiving tech, accepting strict gains until none remain.",
+   "dev_cost": 1220.7,
+   "gap_to_champion": 21.3,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 8,
+   "agent": 4,
+   "strategy": "Never re-derive the champion's within-tech ordering (agent 1's exact DP already proved it optimal); always start from the champion's per-tech sequences and restrict every move to those that change the assignment set.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Never re-derive the champion's within-tech ordering (agent 1's exact DP already proved it optimal); always start from the champion's per-tech sequences and restrict every move to those that change the assignment set.",
+   "dev_cost": 1209.3,
+   "gap_to_champion": 9.9,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  },
+  {
+   "round": 8,
+   "agent": 5,
+   "strategy": "Treat emergency-to-tech assignment as an ILS neighbourhood rather than a standalone earliest-start pass (agent 5 was neutral), because emergency_wait is already priced inside route_cost.",
+   "note": "LLM:deepseek-ai/DeepSeek-V4.1-Flash | Treat emergency-to-tech assignment as an ILS neighbourhood rather than a standalone earliest-start pass (agent 5 was neutral), because emergency_wait is already priced inside route_cost.",
+   "dev_cost": 1213.5,
+   "gap_to_champion": 14.1,
+   "infeasible_days": 0,
+   "errors": [],
+   "promoted": false
+  }
+ ],
+ "lessons": [
+  "Agent 0's fixed-seed perturbation with exact-delta re-optimisation was the round's only gain (-17.9), while exhaustive within-tech DP (agent 1, 1217.3) and exact single-job insertion (agent 2, 1217.3) returned exactly zero accepted moves, proving the champion's within-tech order and single-insertion",
+  "Three separate agents finished at precisely 1217.3, so any remaining budget must go to multi-tech / multi-job moves (ruin-and-recreate, ejection chains) instead of more per-tech or single-insertion search.",
+  "The 150*priority drop penalty dominates the expensive days (day 4: cost 3434 with 14 unscheduled), so coverage is the main prize, but since both exact insertion and exact DP fail, the residual jobs are only reachable by combined moves that change several sequences at once.",
+  "Agent 4's overtime-reduction pass lost (+0.6): overtime is billed at 1/min while leaving a p2+ job unscheduled costs at least 300, so never trade a covered job for a few overtime minutes.",
+  "Every attempt stayed feasible (0 infeasible days), confirming that strict full-objective acceptance plus route()-validated candidates is what prevents the hard-rule failures that sank earlier rounds.",
+  "All six attempts lost (best +2.8), so the champion is a deep local optimum and next round needs structurally different coupled moves, not more insertion/swap variants.",
+  "The smallest gaps came from assignment-changing moves (cross-tech swap +2.8, ejection chain +6.9), while coverage-only and reordering passes lost by +20, so widen across techs rather than within one.",
+  "Repeated exhaustive best-insertion of unscheduled jobs (agent 3, +21.3) failed, confirming the 10-14 residual jobs on expensive days are blocked by combined skill/window/overtime coupling, not by a small marginal cost.",
+  "Standalone emergency-wait optimization is neutral again (agent 5, +14.1), so emergency_wait must stay priced inside route_cost and never be optimized in isolation.",
+  "Every attempt stayed feasible (0 infeasible days), so strict route()-validation plus strict full-objective acceptance is the invariant to keep while widening neighbourhoods."
+ ],
+ "strategies": [
+  "Multi-tech 3-job cycle: exchange 2-3 jobs among 2-3 techs (allowing a previously untouched tech) and accept only a strict full-objective gain, because single swap and single insertion moves already fail.",
+  "Block relocation: move a contiguous block of 2-3 consecutive jobs from one tech to another to free a slot for the highest-priority unscheduled job, then re-optimize the receiving tech.",
+  "Depth-2 ejection chain: force in the top-priority unscheduled job, evict up to two scheduled jobs ranked by full drop cost, reinsert the evictees elsewhere, and accept only a net decrease.",
+  "Seed-diversified ruin-and-recreate with k=5..8 and multi-tech reinsertion (fixed seed, deterministic), since the k=2..4 single-job reinsertion version lost.",
+  "Overtime-slack targeting: only attempt moves that send work into a tech with remaining capacity under shift_end+max_overtime, and never trade a covered job for overtime minutes.",
+  "Spend no budget re-deriving the champion's within-tech order (exact DP already proved it optimal) or on single-job insertion; restrict all moves to assignments that change the job-to-tech set.",
+  "Keep emergency_wait inside the full route cost only; no standalone emergency pass, because that angle was neutral in two rounds.",
+  "Cache route()/route_cost by (tech_id, tuple(seq)), fix a constant perturbation count for determinism, and validate every candidate with route(), rejecting any end beyond shift_end + max_overtime."
+ ],
+ "stop_at": null,
+ "stopped": null
+}
