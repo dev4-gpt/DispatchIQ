@@ -1,0 +1,6 @@
+openai
+streamlit
+plotly
+pandas
+pymongo
+pytest
