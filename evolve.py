@@ -84,9 +84,11 @@ def main() -> None:
         fb = feedback(champ_dev)
         t0 = time.time()
 
+        agent_seeds = [rng.random() for _ in range(args.agents)]  # fixed per agent, independent of thread timing
+
         def one(i: int):
             try:
-                code, note = proposer.propose(i, champ_code, fb, random.Random(rng.random()))
+                code, note = proposer.propose(i, champ_code, fb, random.Random(agent_seeds[i]))
             except Exception as e:
                 return {"agent": i, "error": f"proposal failed: {e}"[:300]}
             ev = evaluate(code, dev)
@@ -99,7 +101,7 @@ def main() -> None:
         best = min(ok, key=lambda c: c["dev"].mean_cost) if ok else None
         if best and best["dev"].mean_cost < champ_dev.mean_cost:
             best_val = evaluate(best["code"], val)
-            if best_val.mean_cost < champ_val.mean_cost:
+            if best_val.infeasible == 0 and best_val.mean_cost < champ_val.mean_cost:
                 champ_code, champ_dev, champ_val, accepted = best["code"], best["dev"], best_val, True
         rec = {
             "round": r, "seconds": round(time.time() - t0, 1), "accepted": accepted,
