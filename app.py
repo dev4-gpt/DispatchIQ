@@ -173,7 +173,7 @@ def research_runs() -> None:
         "missed promises": None if r["missed_promises"] is None else f"{r['missed_promises']}/{r['emergencies']}",
         "booked customers bumped": r["bumped_booked"], "moved between healthy techs": r["moved_healthy"],
         "agents": r.get("agents"), "rounds": r.get("rounds"), "proposals": r.get("proposals"),
-        "proposer tokens": r.get("proposer_tokens"), "critic tokens": r.get("critic_tokens"),
+        "proposer tokens": r.get("proposer_tokens"), "critic tokens": r.get("critic_tokens"), "note": r.get("note"),
     } for r in rows])
     st.dataframe(table, use_container_width=True, hide_index=True)
     st.caption("Missed promises: emergencies that started after their promised latest start, out of all "
@@ -189,7 +189,7 @@ def research_runs() -> None:
     if len(missed):
         st.bar_chart(missed)
 
-    st.subheader("Parallelism: champion vs wall-clock time")
+    st.subheader("Single agent vs LLM team v2: champion vs wall-clock time")
     par = scoreboard.parallelism(runs)
     have = [p for p in par if p["status"] != "not run"]
     if have:
@@ -204,11 +204,31 @@ def research_runs() -> None:
         st.plotly_chart(fig, use_container_width=True)
     st.dataframe(pd.DataFrame([{
         "run": p["run"], "status": p["status"], "agents": p.get("agents"), "rounds": p.get("rounds"),
+        "validation at round 8": p.get("val_at_round_8"), "seconds at round 8": p.get("seconds_at_round_8"),
+        "final validation": p["points"][-1][1] if p.get("points") else None,
         "total seconds": p.get("total_seconds"), "seconds to beat insertion": p.get("seconds_to_beat_insertion"),
         "seconds to beat random search": p.get("seconds_to_beat_random"), "timing": p.get("timing"),
     } for p in par]), use_container_width=True, hide_index=True)
     st.caption("Empty 'seconds to beat' = not beaten in this run. Random search target = its final validation cost. "
                "'recorded' timing is the run's own wall clock including the critic; older files sum per-round seconds.")
+
+    st.subheader("Families per round (critic v2)")
+    fam_runs = [(label, scoreboard.families_per_round(r)) for label, r in runs.items() if r]
+    fam_runs = [(label, rows) for label, rows in fam_runs if rows]
+    if not fam_runs:
+        st.info("No critic v2 run saved yet. Critic v2 keeps six fixed approach families, one per agent slot.")
+    for label, frows in fam_runs:
+        st.markdown(f"**{label}**")
+        grid = pd.DataFrame([{"round": x["round"], "agent": x["agent"],
+                              "cell": f"{x['family']} {x['name']}: " + ("failed" if x["dev_cost"] is None
+                                      else f"{x['dev_cost']:.1f}") + (" (promoted)" if x["promoted"] else "")}
+                             for x in frows]).pivot(index="round", columns="agent", values="cell")
+        grid.columns = [f"agent {c}" for c in grid.columns]
+        st.dataframe(grid, use_container_width=True)
+    if fam_runs:
+        st.caption("Each cell: approach family worked on and its dev cost. Six agents keep one family each; a single "
+                   "agent rotates through the families by round. W<n> marks a wildcard family that replaced the "
+                   "weakest one.")
 
     st.subheader("Loop evidence: where each new champion came from")
     evidence = [{"run": label, **e} for label, r in runs.items() if r and r.get("mode") != "random_search"

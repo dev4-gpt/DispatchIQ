@@ -31,19 +31,20 @@ def write(tmp, name, doc):
 def test_scoreboard_rows_curves_and_missing(tmp_path):
     write(tmp_path, "random", run(6, [190.0, 185.0]))
     write(tmp_path, "llm-team", run(6, [178.0, 170.0], team=True))
-    write(tmp_path, "llm-team-1agent", run(1, [195.0] * 12, team=True))
+    write(tmp_path, "llm-team-v2-1agent", run(1, [195.0] * 12, team=True))
     runs = scoreboard.load_runs(tmp_path)
     assert runs["LLM plain"] is None
     rows = {r["policy"]: r for r in scoreboard.scoreboard(runs)}
     assert rows["insertion (reference)"]["val_cost"] == 180.0 and rows["naive (reference)"]["missed_promises"] == 5
-    assert rows["LLM team"]["val_cost"] == 170.0 and rows["LLM team"]["proposals"] == 12
-    assert rows["LLM team"]["critic_tokens"] == 20 and rows["LLM team"]["proposer_tokens"] == 200
-    assert rows["LLM team, 1 agent x 48 rounds"]["proposals"] == 12
+    assert rows["LLM team v1"]["val_cost"] == 170.0 and rows["LLM team v1"]["proposals"] == 12
+    assert rows["LLM team v1"]["critic_tokens"] == 20 and rows["LLM team v1"]["proposer_tokens"] == 200
+    assert rows["LLM team v2, 1 agent"]["proposals"] == 12
+    assert rows["LLM team v1"]["note"].startswith("critic v1 collapsed")
     assert rows["LLM plain"]["status"] == "not run" and rows["LLM plain"]["val_cost"] is None
     curves = scoreboard.curves(runs)
-    assert curves["LLM team"] == [(0, 200.0), (1, 178.0), (2, 170.0)] and "LLM plain" not in curves
-    assert "LLM team, 1 agent x 48 rounds" not in curves  # ablations are in the table and parallelism chart, not this curve
-    assert [c["lessons"] for c in scoreboard.critic_rounds(runs["LLM team"])] == [["lesson 1"], ["lesson 2"]]
+    assert curves["LLM team v1"] == [(0, 200.0), (1, 178.0), (2, 170.0)] and "LLM plain" not in curves
+    assert "LLM team v2, 1 agent" not in curves  # the single-agent run is compared only with LLM team v2
+    assert [c["lessons"] for c in scoreboard.critic_rounds(runs["LLM team v1"])] == [["lesson 1"], ["lesson 2"]]
 
 
 def test_reference_mismatch_is_flagged(tmp_path):
@@ -79,24 +80,25 @@ def test_improvement_parallelism_and_loop_evidence(tmp_path):
     for r, s in zip(one48["rounds"], (40.0, 40.0, 40.0)):
         r["seconds"] = s
     write(tmp_path, "random", run(6, [186.0]))
-    write(tmp_path, "llm-team", team6)
-    write(tmp_path, "llm-team-1agent", one48)
+    write(tmp_path, "llm-team-v2", team6)
+    write(tmp_path, "llm-team-v2-1agent", one48)
     runs = scoreboard.load_runs(tmp_path)
 
     rows = {r["policy"]: r for r in scoreboard.with_improvement(scoreboard.scoreboard(runs))}
     assert rows["naive (reference)"]["val_vs_naive_pct"] == 0.0
-    assert rows["LLM team"]["val_vs_naive_pct"] == round(100 * (200 - 175) / 200, 1)
+    assert rows["LLM team v2"]["val_vs_naive_pct"] == round(100 * (200 - 175) / 200, 1)
 
     par = {p["run"]: p for p in scoreboard.parallelism(runs)}
-    assert par["LLM team"]["timing"] == "recorded" and par["LLM team"]["points"][-1] == (250.0, 175.0)
+    assert par["LLM team v2"]["timing"] == "recorded" and par["LLM team v2"]["points"][-1] == (250.0, 175.0)
     # insertion = 180: team beats it at 250 s; random final = 186: team beats it at 250 s too (190 is not < 186)
-    assert par["LLM team"]["seconds_to_beat_insertion"] == 250.0 and par["LLM team"]["seconds_to_beat_random"] == 250.0
-    p48 = par["LLM team, 1 agent x 48 rounds"]
+    assert par["LLM team v2"]["seconds_to_beat_insertion"] == 250.0 and par["LLM team v2"]["seconds_to_beat_random"] == 250.0
+    assert par["LLM team v2"]["val_at_round_8"] is None  # only 2 rounds
+    p48 = par["LLM team v2, 1 agent"]
     assert p48["timing"] == "summed per-round seconds" and p48["points"][1:] == [(40.0, 199.0), (80.0, 185.0), (120.0, 170.0)]
     assert p48["seconds_to_beat_random"] == 80.0 and p48["seconds_to_beat_insertion"] == 120.0
-    assert par["LLM team, 1 agent x 8 rounds"]["status"] == "not run"
+    assert list(par) == ["LLM team v2", "LLM team v2, 1 agent"]
 
-    ev = scoreboard.loop_evidence(runs["LLM team"])
+    ev = scoreboard.loop_evidence(runs["LLM team v2"])
     assert [(e["round"], e["agent"], e["hint_rewritten_by_critic"], e["hints_set_in_round"]) for e in ev] == [
         (1, 1, False, None), (2, 0, True, 1)]
     assert ev[0]["strategy"] == scoreboard.STRATEGIES[1] and ev[0]["agent_source"] == "recorded"
@@ -143,10 +145,10 @@ def test_final_pick_follows_readme_rule(tmp_path):
         d["mode"] = "llm"
     write(tmp_path, "llm-plain", plain)
     write(tmp_path, "llm-team", team)
-    write(tmp_path, "llm-team-1agent", one)  # lower cost but 1 agent: not eligible
+    write(tmp_path, "llm-team-v2-1agent", one)  # lower cost but 1 agent: not eligible
     write(tmp_path, "random", {**run(6, [900.0]), "mode": "random_search"})  # not an LLM run
     pick = scoreboard.final_pick(scoreboard.load_runs(tmp_path))
-    assert pick["run"] == "LLM team" and pick["file"] == "runs/llm-team.json" and pick["val_cost"] == 1400.0
+    assert pick["run"] == "LLM team v1" and pick["file"] == "runs/llm-team.json" and pick["val_cost"] == 1400.0
     assert scoreboard.final_pick({}) is None
 
 
@@ -174,3 +176,24 @@ def test_bumped_and_moved_counts_and_backfill(tmp_path):
     write(tmp_path, "llm-plain", new)
     row = {r["policy"]: r for r in scoreboard.scoreboard(scoreboard.load_runs(tmp_path), fresh)}["LLM plain"]
     assert (row["bumped_booked"], row["report_source"]) == (5, "run file")  # run file wins over backfill
+
+
+def test_v2_round8_checkpoint_and_families_table(tmp_path):
+    one = run(1, [190.0 - i for i in range(10)], team=True)
+    one["critic_version"] = "v2"
+    for i, r in enumerate(one["rounds"]):
+        r["elapsed_seconds"] = 60.0 * (i + 1)
+        fam = f"F{i % 6 + 1}"
+        r["families_per_agent"] = [{"agent": 0, "family": fam, "name": "n", "origin": "original", "hint": "h"}]
+    one["memory"] = [{"round": i + 1, "agent": 0, "family": f"F{i % 6 + 1}", "dev_cost": 300.0 - i,
+                      "gap_to_champion": -1.0, "promoted": i == 0} for i in range(10)]
+    one["stopped"] = {"reason": "deadline", "stop_at": "18:30", "rounds_completed": 10}
+    one["rounds_requested"] = 48
+    write(tmp_path, "llm-team-v2-1agent", one)
+    runs = scoreboard.load_runs(tmp_path)
+    p = {x["run"]: x for x in scoreboard.parallelism(runs)}["LLM team v2, 1 agent"]
+    assert p["val_at_round_8"] == 183.0 and p["seconds_at_round_8"] == 480.0 and p["points"][-1] == (600.0, 181.0)
+    assert p["status"] == "stopped at 10 rounds (of 48, deadline 18:30)"
+    fams = scoreboard.families_per_round(runs["LLM team v2, 1 agent"])
+    assert [f["family"] for f in fams] == ["F1", "F2", "F3", "F4", "F5", "F6", "F1", "F2", "F3", "F4"]
+    assert fams[0]["promoted"] and fams[0]["dev_cost"] == 300.0

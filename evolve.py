@@ -24,8 +24,9 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from dispatchiq.generator import heldout_hash, split
+from dispatchiq import team_v2
 from dispatchiq.proposers import STRATEGIES, Critic, LLMProposer, RandomSearchProposer
-from dispatchiq.sandbox import Evaluation, evaluate
+from dispatchiq.sandbox import Evaluation, cost_breakdown, evaluate
 
 ROOT = Path(__file__).resolve().parent
 RUNS = ROOT / "runs"
@@ -66,8 +67,10 @@ def log_mongo(doc: dict) -> None:
         print(f"[mongo] skipped: {e}", file=sys.stderr)
 
 
-def memory_rows(r: int, cands: list[dict], beat: float, strategies: list[str], winner: dict | None) -> list[dict]:
-    """One row per candidate: what was tried, how it scored on dev, and why it failed if it did."""
+def memory_rows(r: int, cands: list[dict], beat: float, strategies: list[str], winner: dict | None,
+                families: list[str] | None = None) -> list[dict]:
+    """One row per candidate: what was tried, how it scored on dev, and why it failed if it did.
+    `strategies` is the hint list (agent i used strategies[i mod n]); `families` the v2 family id per agent."""
     rows = []
     for c in cands:
         ev = c.get("dev")
@@ -81,7 +84,8 @@ def memory_rows(r: int, cands: list[dict], beat: float, strategies: list[str], w
                      "note": c.get("note", ""), "dev_cost": cost,
                      "gap_to_champion": round(cost - beat, 1) if cost is not None else None,
                      "infeasible_days": ev.infeasible if ev is not None else None,
-                     "errors": [e[:200] for e in errors if e], "promoted": c is winner})
+                     "errors": [e[:200] for e in errors if e], "promoted": c is winner,
+                     **({"family": families[c["agent"]]} if families else {})})
     return rows
 
 
@@ -118,6 +122,18 @@ def run_critic(critic: Critic, fb: str, table: str, lessons: list[str], strategi
                 "provider": None, "error": f"critic failed: {e}"[:300]}
 
 
+def run_critic_v2(providers, families, memory, table, fb, breakdown, lessons, r):
+    """Critic v2 call; on failure the families and lessons stay as they were."""
+    t0 = time.time()
+    try:
+        new_families, rec = team_v2.review(providers, families, memory, table, fb, breakdown, lessons, r)
+        rec.update(seconds=round(time.time() - t0, 1), error="")
+        return new_families, rec
+    except Exception as e:
+        return families, {"lessons": [], "refinements": None, "tokens": 0, "seconds": round(time.time() - t0, 1),
+                          "provider": None, "error": f"critic failed: {e}"[:300]}
+
+
 def stop_deadline(hhmm: str) -> float:
     """Today's local HH:MM as a Unix time."""
     try:
@@ -142,7 +158,12 @@ def main(argv: list[str] | None = None) -> None:
                          "(estimated from the slowest round so far); the run records where it stopped")
     ap.add_argument("--team", action="store_true",
                     help="LLM team mode: shared memory of attempts in every prompt, plus a critic call per round")
+    ap.add_argument("--critic", choices=["v1", "v2"], default="v1",
+                    help="team critic: v1 may rewrite all hints; v2 keeps six fixed approach families (one per slot, "
+                         "rotating when agents < 6), one refinement per family, one wildcard (see dispatchiq/team_v2.py)")
     args = ap.parse_args(argv)
+    if args.critic == "v2" and not args.team:
+        sys.exit("--critic v2 needs --team.")
     deadline = stop_deadline(args.stop_at) if args.stop_at else None
     if args.team and args.mode != "llm":
         sys.exit("--team needs --mode llm (the critic is an LLM call).")
@@ -182,7 +203,10 @@ def main(argv: list[str] | None = None) -> None:
     if args.team:
         critic = Critic(proposer.providers)
         lessons, strategies = [], list(STRATEGIES)
-        run.update(memory=[], lessons=lessons, strategies=strategies)
+        run.update(memory=[], lessons=lessons, strategies=strategies, critic_version=args.critic)
+        if args.critic == "v2":
+            families = team_v2.initial_families()
+            run["families"] = families
     print(f"round 0  dev {champ_dev.mean_cost:7.1f}  val {champ_val.mean_cost:7.1f}  (start: {args.start})")
     print("         reference insertion  dev {:7.1f}  val {:7.1f}".format(
         references["insertion"]["dev"]["mean_cost"], references["insertion"]["val"]["mean_cost"]))
@@ -201,12 +225,18 @@ def main(argv: list[str] | None = None) -> None:
         t0, tokens0 = time.time(), proposer.tokens
 
         agent_seeds = [rng.random() for _ in range(args.agents)]  # fixed per agent, independent of thread timing
+        fam_ids = None
+        if args.team and args.critic == "v2":
+            assigned = team_v2.assign(families, args.agents, r)
+            hints, fam_ids = [team_v2.hint(f) for f in assigned], [f["id"] for f in assigned]
+        elif args.team:
+            hints = [strategies[i % len(strategies)] for i in range(args.agents)]
 
         def one(i: int):
             try:
                 if args.team:
                     code, note = proposer.propose(i, champ_code, fb, random.Random(agent_seeds[i]),
-                                                  strategy=strategies[i % len(strategies)],
+                                                  strategy=hints[i],
                                                   team_context=team_context(run["memory"], lessons, r))
                 else:
                     code, note = proposer.propose(i, champ_code, fb, random.Random(agent_seeds[i]))
@@ -228,12 +258,19 @@ def main(argv: list[str] | None = None) -> None:
                 champ_code, champ_dev, champ_val, accepted = best["code"], best["dev"], best_val, True
         critic_rec = None
         if args.team:
-            rows = memory_rows(r, cands, beat, strategies, best if accepted else None)
+            rows = memory_rows(r, cands, beat, hints, best if accepted else None, fam_ids)
             run["memory"].extend(rows)
-            critic_rec = run_critic(critic, feedback(champ_dev), format_memory(rows), lessons, strategies)
+            if args.critic == "v2":
+                breakdown = cost_breakdown(champ_dev)
+                families, critic_rec = run_critic_v2(proposer.providers, families, run["memory"], format_memory(rows),
+                                                     feedback(champ_dev), breakdown, lessons, r)
+                critic_rec["champion_breakdown_dev"] = breakdown
+                run["families"] = families
+            else:
+                critic_rec = run_critic(critic, feedback(champ_dev), format_memory(rows), lessons, strategies)
+                if critic_rec["strategies"]:
+                    strategies = critic_rec["strategies"]
             lessons = (lessons + [x for x in critic_rec["lessons"] if x not in lessons])[-MAX_LESSONS:]
-            if critic_rec["strategies"]:
-                strategies = critic_rec["strategies"]
             run["lessons"], run["strategies"] = lessons, strategies
         rec = {
             "round": r, "seconds": seconds, "accepted": accepted,
@@ -250,6 +287,9 @@ def main(argv: list[str] | None = None) -> None:
         slowest = max(slowest, rec["wall_seconds"])
         if critic_rec is not None:
             rec["critic"] = critic_rec
+        if fam_ids is not None:
+            rec["families_per_agent"] = [{"agent": i, "family": fam_ids[i], "name": assigned[i]["name"],
+                                          "origin": assigned[i]["origin"], "hint": hints[i]} for i in range(args.agents)]
         run["rounds"].append(rec)
         run["champion_code"] = champ_code
         log_mongo({"run": run["id"], **{k: v for k, v in rec.items()}})

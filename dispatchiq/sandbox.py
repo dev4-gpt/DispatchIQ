@@ -81,6 +81,26 @@ class Evaluation:
                 "moved_healthy": sum(s.moved for s in ok)}
 
 
+def cost_breakdown(ev: Evaluation) -> dict[str, float] | None:
+    """Mean per-day cost split into the checker's terms, over feasible days. The parts sum to the
+    checker's cost; computed from the scored routes, so the checker itself is unchanged."""
+    from .simulate import W_CHURN, W_EMERGENCY, W_UNASSIGNED
+    ok = {seed: s for seed, s in ev.per_seed.items() if s.feasible}
+    if not ok:
+        return None
+    tot = dict(travel=0.0, lateness=0.0, unassigned=0.0, churn=0.0, emergency_wait=0.0, overtime=0.0)
+    for seed, s in ok.items():
+        jobs = state(seed)["jobs"]
+        assigned = {stop["job"] for stops in s.routes.values() for stop in stops}
+        tot["travel"] += s.travel
+        tot["lateness"] += s.weighted_late
+        tot["overtime"] += s.overtime
+        tot["churn"] += W_CHURN * s.moved
+        tot["emergency_wait"] += W_EMERGENCY * s.emergency_response * s.emergencies
+        tot["unassigned"] += W_UNASSIGNED * sum(j["priority"] for jid, j in jobs.items() if jid not in assigned)
+    return {k: round(v / len(ok), 1) for k, v in tot.items()}
+
+
 def _bumped_booked(seed: int, score: Score) -> int:
     st = state(seed)
     sick = {t["id"] for t in st["techs"] if t["sick"]}

@@ -20,14 +20,18 @@ RUNS = Path(__file__).resolve().parent.parent / "runs"
 RUN_NAMES = {
     "random search": "random",
     "LLM plain": "llm-plain",
-    "LLM team": "llm-team",
-    "LLM team, 1 agent x 48 rounds": "llm-team-1agent",
-    "LLM team, 1 agent x 8 rounds": "llm-team-1agent-8r",
-    "LLM team, insertion start": "llm-team-insertion",
+    "LLM team v1": "llm-team",
+    "LLM team v2": "llm-team-v2",
+    "LLM team v2, 1 agent": "llm-team-v2-1agent",
 }
-CURVE_RUNS = ("random search", "LLM plain", "LLM team")
-FINAL_RULE_RUNS = ("LLM plain", "LLM team", "LLM team, insertion start")  # README: final-solution rule
-PARALLEL_RUNS = ("LLM team", "LLM team, 1 agent x 8 rounds", "LLM team, 1 agent x 48 rounds")
+RUN_NOTES = {
+    "LLM team v1": "critic v1 collapsed the six approaches into one idea (fewer unscheduled jobs) by round 2",
+    "LLM team v2, 1 agent": "48-round cap, stopped at 18:30; compare only with LLM team v2",
+}
+CURVE_RUNS = ("random search", "LLM plain", "LLM team v1", "LLM team v2")
+FINAL_RULE_RUNS = ("LLM plain", "LLM team v1", "LLM team v2")  # README: final-solution rule
+PARALLEL_RUNS = ("LLM team v2", "LLM team v2, 1 agent")
+ROUND_CHECKPOINT = 8  # the single-agent run is also reported at the same round count as the 6-agent run
 
 
 def run_status(run: dict) -> str:
@@ -102,6 +106,7 @@ def scoreboard(runs: dict[str, dict | None], backfill: dict | None = None) -> li
         entry = (backfill.get("runs") or {}).get(RUN_NAMES[label]) or {}
         matches = entry.get("champion_val") == last.get("champion_val") and entry.get("rounds") == len(rounds)
         rows.append(_row(label, last.get("champion"), entry.get("val") if matches else None, status=run_status(run),
+                         note=RUN_NOTES.get(label),
                          agents=run.get("agents"), rounds=len(rounds),
                          proposals=(run.get("agents") or 0) * len(rounds), start=run.get("start"),
                          proposer_tokens=last.get("tokens"),
@@ -195,7 +200,10 @@ def parallelism(runs: dict[str, dict | None]) -> list[dict]:
             out.append({"run": label, "status": "not run"})
             continue
         pts, source = timeline(run)
+        at = next((r for r in run["rounds"] if r["round"] == ROUND_CHECKPOINT), None)
         out.append({"run": label, "status": run_status(run),
+                    "val_at_round_8": at["champion_val"] if at else None,
+                    "seconds_at_round_8": next((t for (t, _), r in zip(pts[1:], run["rounds"]) if r["round"] == ROUND_CHECKPOINT), None),
                     "agents": run.get("agents"), "rounds": len(run["rounds"]),
                     "points": pts, "timing": source, "total_seconds": pts[-1][0],
                     "seconds_to_beat_insertion": seconds_to_beat(pts, insertion),
@@ -224,11 +232,13 @@ def loop_evidence(run: dict) -> list[dict]:
             cand = next((c for c in r["candidates"] if c["agent"] == agent), {})
             mem = memory.get((r["round"], agent))
             hint = mem["strategy"] if mem else _strategy_from_note(cand.get("note", ""))
-            team = bool(run.get("team"))
+            team, v2 = bool(run.get("team")), run.get("critic_version") == "v2"
+            # v1: the critic replaced hints wholesale. v2: a family keeps its base text; the critic only adds a refinement.
+            rewritten = ("Refinement:" in hint) if v2 else (hint not in STRATEGIES) if team else None
             out.append({"round": r["round"], "agent": agent, "strategy": hint, "dev_cost": cand.get("dev_cost"),
                         "champion_val": r.get("champion_val"), "agent_source": how,
-                        "hint_rewritten_by_critic": (hint not in STRATEGIES) if team else None,
-                        "hints_set_in_round": source if team else None})
+                        "family": (mem or {}).get("family"), "hint_rewritten_by_critic": rewritten,
+                        "hints_set_in_round": source if team and not v2 else None})
         crit = r.get("critic") or {}
         if crit.get("strategies"):
             hints, source = crit["strategies"], r["round"]
@@ -244,6 +254,20 @@ def final_pick(runs: dict[str, dict | None]) -> dict | None:
     val, label, r = min(eligible, key=lambda x: x[0])
     return {"run": label, "file": f"runs/{RUN_NAMES[label]}.json", "val_cost": val, "status": run_status(r),
             "candidates": {lbl: v for v, lbl, _ in eligible}}
+
+
+def families_per_round(run: dict) -> list[dict]:
+    """Critic v2 runs: which approach family each agent worked on, per round, and how it scored."""
+    mem = {(m["round"], m["agent"]): m for m in run.get("memory") or []}
+    out = []
+    for r in run.get("rounds", []):
+        for f in r.get("families_per_agent") or []:
+            m = mem.get((r["round"], f["agent"]), {})
+            out.append({"round": r["round"], "agent": f["agent"], "family": f["family"], "name": f["name"],
+                        "origin": f.get("origin"), "dev_cost": m.get("dev_cost"), "gap": m.get("gap_to_champion"),
+                        "promoted": bool(m.get("promoted")),
+                        "wildcard_accepted": ((r.get("critic") or {}).get("wildcard") or {}).get("new_id")})
+    return out
 
 
 def _fmt(x, spec):
@@ -262,6 +286,8 @@ def main() -> None:
         print(f"{r['policy']:34s} {_fmt(r['val_cost'], '9.1f')} {vs:>9s} {_fmt(r['on_time_pct'], '7.1f')}{'%' if r['on_time_pct'] is not None else ' '} {missed:>8s} "
               f"{_fmt(r['bumped_booked'], '7d')} {_fmt(r['moved_healthy'], '6d')} "
               f"{_fmt(r.get('agents'), '6d')} {_fmt(r.get('rounds'), '6d')} {_fmt(r.get('proposals'), '6d')}  {r['status']}")
+        if r.get("note"):
+            print(f"{'':34s}   note: {r['note']}")
     print("\nValidation days 100-129. vs naive = % lower cost than naive. "
           "missed = emergencies starting after their promised latest start / emergencies.")
     print("bumped = customers booked with a healthy technician this morning but left unscheduled; moved = jobs moved\n"
@@ -274,12 +300,14 @@ def main() -> None:
     for r in held:
         print(f"  {r['policy']:45s} {r['mean_cost']:8.1f}  {r['vs_round0_pct']:+.1f}% vs round 0")
 
-    print("\nParallelism (cumulative wall-clock seconds):")
+    print("\nSingle agent vs LLM team v2 (cumulative wall-clock seconds):")
     for p in parallelism(runs):
         if p["status"] == "not run":
             print(f"  {p['run']:32s} not run")
             continue
-        print(f"  {p['run']:32s} total {p['total_seconds']:7.1f}s  beat insertion at {_fmt(p['seconds_to_beat_insertion'], '7.1f')}s"
+        print(f"  {p['run']:32s} round 8 val {_fmt(p['val_at_round_8'], '7.1f')} at {_fmt(p['seconds_at_round_8'], '7.1f')}s"
+              f"  final val {p['points'][-1][1]:7.1f} at {p['total_seconds']:7.1f}s ({p['rounds']} rounds)"
+              f"  beat insertion at {_fmt(p['seconds_to_beat_insertion'], '7.1f')}s"
               f"  beat random at {_fmt(p['seconds_to_beat_random'], '7.1f')}s  ({p['timing']}; {p['status']})")
 
     pick = final_pick(runs)
@@ -287,6 +315,16 @@ def main() -> None:
     print("  right now: " + ("no eligible run saved" if pick is None else
           f"{pick['run']} -> python heldout.py {pick['file']}  (val {pick['val_cost']:.1f}, {pick['status']}; "
           f"candidates {pick['candidates']})"))
+
+    for label, run in runs.items():
+        rows = families_per_round(run) if run else []
+        if not rows:
+            continue
+        print(f"\nFamilies per round, {label} (family: dev cost, * = promoted, x = failed):")
+        for rnd in sorted({x["round"] for x in rows}):
+            cells = [f"{x['family']} {x['name'][:14]}: " + ("x" if x["dev_cost"] is None else f"{x['dev_cost']:.0f}")
+                     + ("*" if x["promoted"] else "") for x in rows if x["round"] == rnd]
+            print(f"  round {rnd:2d}  " + " | ".join(cells))
 
     print("\nLoop evidence (accepted rounds):")
     for label, run in runs.items():

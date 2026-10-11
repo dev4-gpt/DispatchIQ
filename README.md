@@ -58,11 +58,10 @@ export LLM_BASE_URL=https://flash.luminal.cloud/v1 LLM_MODEL=deepseek-ai/DeepSee
 
 python evolve.py --mode random --rounds 8 --agents 6 --name random              # no LLM
 python evolve.py               --rounds 8 --agents 6 --name llm-plain
-python evolve.py --team        --rounds 8 --agents 6 --name llm-team
-python evolve.py --team        --rounds 48 --agents 1 --name llm-team-1agent    # same 48 proposals, one at a time
-python evolve.py --team        --rounds 8 --agents 1 --name llm-team-1agent-8r  # same rounds, one agent
-python evolve.py --team        --rounds 8 --agents 6 --name llm-team-insertion \
-                 --start dispatchiq/policies/insertion.py                       # only if llm-team does not beat random
+python evolve.py --team        --rounds 8 --agents 6 --name llm-team                    # critic v1 ("LLM team v1")
+python evolve.py --team --critic v2 --rounds 8  --agents 6 --name llm-team-v2
+python evolve.py --team --critic v2 --rounds 48 --agents 1 --name llm-team-v2-1agent \
+                 --stop-at 18:30                                              # single agent, rotates families
 
 python -m dispatchiq.scoreboard        # comparison table from the saved files (runs nothing)
 streamlit run app.py                   # "Research runs" tab: same data as charts
@@ -70,6 +69,14 @@ streamlit run app.py                   # "Research runs" tab: same data as chart
 
 - **Random search is deterministic.** With the same `--seed` (default 0) it reproduces exactly.
 - **LLM runs are not.** Sampling uses temperature 0.7, so a rerun writes different code and gets different scores. The saved file is the record.
+
+**Critic v1 vs v2.** In `llm-team` (v1) the critic was free to rewrite every agent's hint. Within two rounds it had turned six different approaches into variations of one idea (fewer unscheduled jobs), and its hints outnumbered the agents. `--critic v2` (`dispatchiq/team_v2.py`) enforces these rules in code:
+- **Six fixed families.** The six original approaches stay, one per agent slot. A single agent rotates through them by round.
+- **One refinement each.** Every round the critic writes one refinement line per family, from that family's own results. It cannot delete a family.
+- **One wildcard.** Only the weakest family, after at least 2 rounds, may be replaced by a new approach. The new approach must differ from the other five.
+- **Coding fixes are lessons.** Fixes for crashes and similar bugs go into the shared lessons, never into a hint slot.
+- **Numbers, not guesses.** The critic sees the champion's cost breakdown on dev days.
+- **Recorded.** Each round's family per agent is saved in the run file and shown in the "Families per round" table.
 
 **Re-score a saved champion without any LLM.** The code saved in the run file is run through the same sandbox and checker. Dev and validation days are fixed, so the scores must match the file; a mismatch exits non-zero.
 
@@ -83,8 +90,8 @@ python rescore.py runs/llm-team.json --code round0   # the starting policy
 ### Final-solution rule (fixed 2026-10-11, before any held-out scoring)
 
 The held-out run uses **the 6-agent LLM run with the lowest validation cost at 18:30 local time**.
-- **Eligible runs:** `llm-plain`, `llm-team`, and `llm-team-insertion` if it was run. Each must have `--agents 6` and use the LLM.
-- **Not eligible:** random search and the 1-agent runs.
+- **Eligible runs:** `llm-plain`, `llm-team` (critic v1) and `llm-team-v2` (critic v2). Each must have `--agents 6` and use the LLM.
+- **Not eligible:** random search and the single-agent run (`llm-team-v2-1agent`).
 - **Which cost counts:** the champion's validation cost in the run file as saved at 18:30. A run still going at 18:30 counts with the rounds it had saved by then.
 - **One shot:** `heldout.py` is run once, at 18:30, on that file:
 
