@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   Activity,
   AlertTriangle,
@@ -10,6 +17,8 @@ import {
   LayoutDashboard,
   Map as MapIcon,
   Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
   Radio,
   RefreshCw,
   ShieldCheck,
@@ -20,9 +29,10 @@ import { useDispatch } from "@/state/useDispatch";
 import { hhmm, visibleSnapshot, type View } from "@/state/dispatch";
 import { changesByJob, index } from "@/lib/schedule";
 import { Button } from "@/components/ui/button";
+import { Tooltip } from "@/components/ui/tooltip";
+import { OperationalSummary } from "@/components/OperationalSummary";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RouteMap } from "@/components/RouteMap";
 import { ScheduleBoard } from "@/components/ScheduleBoard";
 import { JobInspector } from "@/components/JobInspector";
 import { ProposalPanel } from "@/components/ProposalPanel";
@@ -32,6 +42,12 @@ import {
   TechnicianInspector,
   type Destination,
 } from "@/components/OperationsPages";
+
+const RouteMap = lazy(() =>
+  import("@/components/RouteMap").then((module) => ({
+    default: module.RouteMap,
+  })),
+);
 
 const destinations = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
@@ -74,6 +90,10 @@ export default function App() {
   const [navOpen, setNavOpen] = useState(false);
   const [mobileView, setMobileView] = useState("timeline");
   const [mapExpanded, setMapExpanded] = useState(false);
+  const [timelineFocused, setTimelineFocused] = useState(false);
+  const [railCollapsed, setRailCollapsed] = useState(
+    () => window.innerWidth < 1360,
+  );
   const snapshot = state.snapshot;
   const snap = visibleSnapshot(state);
   const view = useMemo(() => (snap ? index(snap) : null), [snap]);
@@ -106,19 +126,13 @@ export default function App() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") dispatch({ type: "closeInspector" });
+      if (e.key === "Escape" && !e.defaultPrevented)
+        dispatch({ type: "closeInspector" });
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [dispatch]);
 
-  const available =
-    snapshot?.technicians.filter((t) => t.availability === "available")
-      .length ?? 0;
-  const active =
-    snapshot?.jobs.filter((j) => j.status === "in_progress").length ?? 0;
-  const completed =
-    snapshot?.jobs.filter((j) => j.status === "completed").length ?? 0;
   const fixture = transport?.kind === "dev-fixture";
   const pageTitle = destinations.find((d) => d.id === destination)!.label;
   const inspector = committed && (
@@ -214,18 +228,23 @@ export default function App() {
       </div>
       <nav aria-label="Main navigation" className="product-nav">
         {destinations.map((d) => (
-          <button
-            key={d.id}
-            className={destination === d.id ? "nav-link selected" : "nav-link"}
-            aria-current={destination === d.id ? "page" : undefined}
-            onClick={() => navigate(d.id)}
-          >
-            <d.icon />
-            {d.label}
-            {d.id === "jobs" && snapshot && (
-              <span className="nav-count">{snapshot.jobs.length}</span>
-            )}
-          </button>
+          <Tooltip key={d.id} content={d.label}>
+            <button
+              key={d.id}
+              className={
+                destination === d.id ? "nav-link selected" : "nav-link"
+              }
+              aria-current={destination === d.id ? "page" : undefined}
+              aria-label={d.label}
+              onClick={() => navigate(d.id)}
+            >
+              <d.icon />
+              <span className="nav-label">{d.label}</span>
+              {d.id === "jobs" && snapshot && (
+                <span className="nav-count">{snapshot.jobs.length}</span>
+              )}
+            </button>
+          </Tooltip>
         ))}
       </nav>
       <div className="rail-footer">
@@ -269,7 +288,26 @@ export default function App() {
       <a href="#main" className="skip-link">
         Skip to workspace
       </a>
-      <aside className="product-rail">{nav}</aside>
+      <aside
+        className={`product-rail ${railCollapsed ? "rail-collapsed" : ""}`}
+      >
+        {nav}
+        <Tooltip
+          content={railCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          <Button
+            className="rail-toggle"
+            variant="ghost"
+            size="sm"
+            aria-label={railCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-expanded={!railCollapsed}
+            onClick={() => setRailCollapsed(!railCollapsed)}
+          >
+            {railCollapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
+            <span className="nav-label">Collapse sidebar</span>
+          </Button>
+        </Tooltip>
+      </aside>
       <div className="application-body">
         {fixture && (
           <div
@@ -417,70 +455,10 @@ export default function App() {
             <>
               {destination === "dispatch" ? (
                 <>
-                  <div
-                    className="operational-strip"
-                    data-testid="metrics-strip"
-                    aria-label="Current approved operations"
-                  >
-                    <div>
-                      <Users />
-                      <span>
-                        On shift
-                        <strong>
-                          {available}
-                          <small>
-                            {" "}
-                            / {snapshot.technicians.length} technicians
-                          </small>
-                        </strong>
-                      </span>
-                    </div>
-                    <div>
-                      <Radio />
-                      <span>
-                        In progress
-                        <strong>
-                          {active}
-                          <small> appointments</small>
-                        </strong>
-                      </span>
-                    </div>
-                    <div className="secondary-metric">
-                      <CheckCheck />
-                      <span>
-                        Completed
-                        <strong>
-                          {completed}
-                          <small> / {snapshot.jobs.length} jobs</small>
-                        </strong>
-                      </span>
-                    </div>
-                    <div className="secondary-metric">
-                      <ClipboardList />
-                      <span>
-                        Needs assignment
-                        <strong
-                          className={
-                            snapshot.metrics.unassigned_jobs
-                              ? "text-proposed"
-                              : ""
-                          }
-                        >
-                          {snapshot.metrics.unassigned_jobs}
-                          <small> jobs</small>
-                        </strong>
-                      </span>
-                    </div>
-                    <span className="strip-validation">
-                      <ShieldCheck size={14} />
-                      {snapshot.validation.valid
-                        ? "Schedule checked"
-                        : "Needs review"}
-                      <small className="tabular" data-testid="revision">
-                        rev {snapshot.revision}
-                      </small>
-                    </span>
-                  </div>
+                  <OperationalSummary
+                    snapshot={snapshot}
+                    pending={state.proposal?.status === "ready"}
+                  />
                   <div
                     className={`dispatch-layout ${layout === "desktop" && inspectorOpen ? "with-inspector" : ""}`}
                   >
@@ -504,7 +482,24 @@ export default function App() {
                                 : "Approved schedule"}
                           </small>
                         </div>
-                        {versionTabs}
+                        <div className="board-view-controls">
+                          {layout !== "mobile" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              aria-pressed={timelineFocused}
+                              onClick={() => {
+                                setTimelineFocused(!timelineFocused);
+                                setMapExpanded(false);
+                              }}
+                            >
+                              {timelineFocused
+                                ? "Show map & timeline"
+                                : "Focus timeline"}
+                            </Button>
+                          )}
+                          {versionTabs}
+                        </div>
                       </div>
                       {layout === "mobile" && (
                         <Tabs value={mobileView} onValueChange={setMobileView}>
@@ -528,20 +523,29 @@ export default function App() {
                           </TabsList>
                         </Tabs>
                       )}
-                      {(layout !== "mobile" || mobileView === "map") && (
+                      {((layout !== "mobile" && !timelineFocused) ||
+                        (layout === "mobile" && mobileView === "map")) && (
                         <section
                           className={`service-map ${mapExpanded ? "expanded" : ""}`}
                           aria-label="Service map"
                         >
-                          <RouteMap
-                            view={view}
-                            changes={changes}
-                            showChanges={showChanges}
-                            selectedTech={state.selectedTech}
-                            selectedJob={state.selectedJob}
-                            onSelectTech={selectTech}
-                            onSelectJob={selectJob}
-                          />
+                          <Suspense
+                            fallback={
+                              <div role="status" className="map-loading">
+                                Loading service map…
+                              </div>
+                            }
+                          >
+                            <RouteMap
+                              view={view}
+                              changes={changes}
+                              showChanges={showChanges}
+                              selectedTech={state.selectedTech}
+                              selectedJob={state.selectedJob}
+                              onSelectTech={selectTech}
+                              onSelectJob={selectJob}
+                            />
+                          </Suspense>
                           <div className="map-caption">
                             <span className="map-title">
                               <MapIcon size={14} />

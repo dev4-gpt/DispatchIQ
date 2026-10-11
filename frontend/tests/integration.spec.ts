@@ -98,6 +98,136 @@ test("job and technician selection links map, row and one contextual mode", asyn
   await expect(page.getByTestId("technician-inspector")).toContainText("John");
 });
 
+test("current/proposed comparison shows backend intervals and can include unchanged jobs", async ({
+  page,
+  request,
+}) => {
+  const original = await snapshot(request);
+  const response = page.waitForResponse(
+    (r) =>
+      r.url().endsWith("/api/events/preview") &&
+      r.request().method() === "POST",
+  );
+  await introduceEmergency(page, "No heat at a clinic");
+  const p: Proposal = await (await response).json();
+  expect(p.status).toBe("ready");
+  const comparison = page.getByTestId("schedule-comparison");
+  await expect(comparison.locator("tbody tr")).toHaveCount(p.changes.length);
+  for (const change of p.changes) {
+    const row = page.getByTestId(`change-${change.job_id}`);
+    const expectedTime = (min: number) =>
+      `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
+    if (change.before) {
+      await expect(row.locator("td").nth(0)).toContainText(
+        original.technicians.find((t) => t.id === change.before!.technician_id)!
+          .name,
+      );
+      await expect(row.locator("td").nth(0)).toContainText(
+        expectedTime(change.before.start_min),
+      );
+    } else await expect(row.locator("td").nth(0)).toContainText("Not assigned");
+    if (change.after) {
+      await expect(row.locator("td").nth(1)).toContainText(
+        original.technicians.find((t) => t.id === change.after!.technician_id)!
+          .name,
+      );
+      await expect(row.locator("td").nth(1)).toContainText(
+        expectedTime(change.after.start_min),
+      );
+      await expect(row.locator("td").nth(1)).toContainText(
+        expectedTime(change.after.end_min),
+      );
+    }
+  }
+  await comparison.getByRole("button", { name: "Show all jobs" }).click();
+  await expect(comparison.locator("tbody tr")).toHaveCount(
+    p.proposed_snapshot!.jobs.length,
+  );
+  await expect(page.getByTestId("unchanged-J01")).toContainText("Unchanged");
+  await comparison.getByRole("button", { name: "Show changed jobs" }).click();
+  await expect(comparison.locator("tbody tr")).toHaveCount(p.changes.length);
+  expect(await snapshot(request)).toEqual(original);
+  await page.getByText("Why this recommendation", { exact: true }).click();
+  const candidate = p.candidates.find((c) => c.id === p.selected_candidate_id)!;
+  await expect(page.getByTestId("travel-impact")).toContainText(
+    `${candidate.ranking!.added_travel_min} min`,
+  );
+  await expect(page.getByTestId("kpi-emergencies")).toContainText(
+    "1 pending review",
+  );
+  await page.getByTestId("approve").click();
+  await expect.poll(() => revision(page)).toBe(original.revision + 1);
+  const approved = await snapshot(request);
+  await expect(
+    page.getByTestId("kpi-scheduled").locator("strong"),
+  ).toContainText(String(approved.schedule.assignments.length));
+  await expect(page.getByTestId("kpi-risk").locator("strong")).toHaveText(
+    `${approved.metrics.soft_sla_violations} appointments`,
+  );
+  await page.getByRole("button", { name: "At risk", exact: true }).focus();
+  await expect(
+    page.getByRole("tooltip", { name: /Unique jobs that are unassigned/ }),
+  ).toContainText("future start after a promised time");
+  await expect(
+    page.getByTestId("kpi-emergencies").locator("strong"),
+  ).toHaveText("1 · no pending review");
+});
+
+test("clustered map appointments remain selectable in the compact map", async ({
+  page,
+}) => {
+  await page.locator(".job-J12").click();
+  const chooser = page.getByRole("dialog", {
+    name: "Appointments in this area",
+  });
+  await expect(chooser).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(chooser).toHaveCount(0);
+  await expect(page.getByTestId("route-map")).toBeFocused();
+  await page.locator(".job-J12").click();
+  await chooser.getByRole("button", { name: /J12/ }).click();
+  await expect(chooser).toHaveCount(0);
+  await expect(page.getByTestId("job-inspector")).toContainText("J12");
+  await expect(page.locator(".map-job-marker.selected")).toHaveCount(1);
+  await expect(page.getByTestId("tech-T03")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+});
+
+test("sidebar collapse and timeline focus preserve navigation and linked selection", async ({
+  page,
+}) => {
+  await page
+    .getByRole("button", { name: "Collapse sidebar", exact: true })
+    .click();
+  await expect(page.locator(".product-rail")).toHaveClass(/rail-collapsed/);
+  const nav = page.getByRole("navigation", { name: "Main navigation" });
+  await nav.getByRole("button", { name: "Jobs", exact: true }).focus();
+  await expect(page.getByRole("tooltip")).toHaveText("Jobs");
+  await page.keyboard.press("Enter");
+  await expect(page.locator("tbody tr")).toHaveCount(25);
+  await nav
+    .getByRole("button", { name: "Dispatch Board", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Focus timeline", exact: true })
+    .click();
+  await expect(page.getByTestId("route-map")).toHaveCount(0);
+  await expect(page.locator('[data-testid^="row-T"]')).toHaveCount(10);
+  await page.getByTestId("bar-J12").click();
+  await expect(page.getByTestId("job-inspector")).toContainText("J12");
+  await page.keyboard.press("Escape");
+  await page
+    .getByRole("button", { name: "Show map & timeline", exact: true })
+    .click();
+  await expect(page.locator(".map-job-marker.selected")).toHaveCount(1);
+  await page
+    .getByRole("button", { name: "Expand sidebar", exact: true })
+    .click();
+  await expect(page.locator(".product-rail")).not.toHaveClass(/rail-collapsed/);
+});
+
 test("real no-plan and rejected invalid input preserve the approved schedule", async ({
   page,
   request,
@@ -228,6 +358,36 @@ test("server error after load keeps the approved board; retry does not create fi
   await expect(page.getByTestId("fixture-banner")).toHaveCount(0);
 });
 
+test("optimization loading follows the pending real request and retains committed state", async ({
+  page,
+  request,
+}) => {
+  const original = await snapshot(request);
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/events/preview", async (route) => {
+    await gate;
+    await route.continue();
+  });
+  try {
+    await introduceEmergency(page, "No heat at a clinic");
+    await expect(
+      page
+        .getByRole("status")
+        .filter({ hasText: "Finding a place in the day" }),
+    ).toBeVisible();
+    await expect(page.getByTestId("introduce-emergency")).toBeDisabled();
+    await expect(page.getByTestId("bar-E01")).toHaveCount(0);
+    expect(await snapshot(request)).toEqual(original);
+  } finally {
+    release();
+  }
+  await expect(page.getByTestId("approve")).toBeEnabled();
+  expect(await snapshot(request)).toEqual(original);
+});
+
 for (const [width, height] of [
   [1440, 900],
   [1280, 800],
@@ -248,13 +408,23 @@ for (const [width, height] of [
     }));
     expect(dimensions.width).toBe(width);
     expect(dimensions.height).toBe(height);
-    await page.screenshot({ path: `evidence/after/${width}x${height}.png` });
+    if (width >= 768) await expect(page.getByTestId("route-map")).toBeVisible();
+    for (const kpi of [
+      "kpi-available",
+      "kpi-scheduled",
+      "kpi-risk",
+      "kpi-emergencies",
+    ])
+      await expect(page.getByTestId(kpi)).toBeVisible();
+    await page.screenshot({
+      path: `evidence/redesign-v2-after/${width}x${height}.png`,
+    });
     const original = await snapshot(request);
     await introduceEmergency(page, "No heat at a clinic");
     await expect(page.getByTestId("approve")).toBeEnabled();
     if (width < 1360) await expect(page.getByRole("dialog")).toBeVisible();
     await page.screenshot({
-      path: `evidence/after/${width}x${height}-proposal.png`,
+      path: `evidence/redesign-v2-after/${width}x${height}-proposal.png`,
     });
     await page.getByTestId("approve").click();
     await expect.poll(() => revision(page)).toBe(original.revision + 1);

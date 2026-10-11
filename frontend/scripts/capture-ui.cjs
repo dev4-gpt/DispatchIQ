@@ -23,6 +23,7 @@ const stage = process.argv[2] || "before";
     page.on("pageerror", (e) => errors.push(e.message));
     await page.goto(process.env.DISPATCHIQ_UI || "http://127.0.0.1:5173");
     await page.getByTestId("row-T00").waitFor();
+    if (width >= 768) await page.locator(".map-base-marker").first().waitFor();
     await page.screenshot({
       path: path.join(out, `${width}x${height}.png`),
       fullPage: true,

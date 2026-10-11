@@ -4,6 +4,10 @@ React / TypeScript / Vite / Tailwind command center connected to the existing co
 
 Overview, searchable Jobs, searchable Technicians and Activity all use committed server data. Details appear contextually. Desktop uses a side inspector; smaller screens use accessible Radix sheets, with map/timeline tabs on mobile. There are no empty navigation destinations.
 
+The sidebar can collapse manually. Focus timeline hides the map; restore the split view or expand the map when geography matters. Map clusters open a keyboard-accessible appointment chooser. Closing details preserves selection. Proposal comparison defaults to changed appointments and can show every job, with explicit current/proposed technician and time intervals.
+
+Four summaries show the committed day's available technicians, scheduled/unassigned jobs, observed at-risk appointments, and active emergencies with this client's pending review. The risk tooltip explains the source; preview does not replace committed KPI values. Runtime, travel and displacement appear in expandable review details.
+
 ## Run from the repository root
 
 First terminal:
@@ -50,16 +54,18 @@ $env:DISPATCHIQ_UI='http://127.0.0.1:5180'
 npx.cmd playwright test
 ```
 
-Three projects: ten fixture UI tests, one API-unavailable test and eleven real API integration tests. They cover evidence equality, visible changes, preview/reject immutability, commit/reset, selection linkage, stale approval, keyboard/focus return, expiry protection, server error recovery, navigation/search/empty states, and all four screen sizes.
+Three projects: ten fixture UI tests, one API-unavailable test and fifteen real API integration tests. All 26 passed in the latest complete run. They cover evidence equality, all-jobs comparison, compact-map cluster selection, collapse/focus controls, real request loading, visible changes, preview/reject immutability, commit/reset, selection linkage, stale approval, keyboard/focus return, expiry protection, server error recovery, navigation/search/empty states, and all four screen sizes.
 
 ## Design and evidence
 
+- [Latest refinement audit, changed files, validation and limits](evidence/REDESIGN_V2.md)
+- [Latest before/after browser screenshots](evidence/redesign-v2-comparison.html)
 - [Prioritized audit, design direction and verified MCP availability](evidence/AUDIT.md)
 - [Visual refinements, tests, files changed and limitations](evidence/QA.md)
 - [Before/after browser screenshot comparison](evidence/comparison.html)
 - [Design system](evidence/DESIGN_SYSTEM.md)
 
-`evidence/before/` and `evidence/after/` are actual API captures at 1440×900, 1280×800, 1024×768 and 390×844, with proposal views. `first-pass/` preserves the initial redesign critique. `test-results/screenshots/` comes from the labeled frontend fixture and must not be presented as backend evidence.
+`evidence/redesign-v2-before/` and `evidence/redesign-v2-after/` are the latest actual API captures at 1440×900, 1280×800, 1024×768 and 390×844, with proposal views. `redesign-v2-first-pass/` preserves the refinement critique. Original `before/`, `after/` and `first-pass/` capture the previous redesign. `test-results/screenshots/` comes from the labeled frontend fixture and must not be presented as backend evidence.
 
 ## Fixture and static demo
 
@@ -67,6 +73,6 @@ Three projects: ten fixture UI tests, one API-unavailable test and eleven real A
 
 ## Limits
 
-Synthetic km-grid locations and estimated visit-order routes are not live GPS, traffic or roads. Nearby jobs cluster at the current map zoom; emergencies and selected jobs remain individual. Expand/zoom the map or open a cluster’s job list. All appointment timings, changes, metrics, options and explanations in real API mode come from server state.
+Synthetic km-grid locations and estimated visit-order routes are not live GPS, traffic or roads. Nearby jobs cluster at the current map zoom; emergencies and selected jobs remain individual. Expand/zoom the map or open a cluster’s appointment dialog. All appointment timings, changes, metrics, options and explanations in real API mode come from server state. At-risk counts describe observed commitments, not predictive scoring. Pending review is the one ready proposal held by this client, not a server-wide approval queue.
 
 The backend supplies the initial daily fixture; there is no endpoint for creating a custom morning schedule. Activity exposes only committed disruption events, with no actor/wall-clock audit timestamps or rejection history. Authentication, production hosting and a backend migration are outside this frontend change. Scheduling algorithms, API fields and independent validation are preserved.

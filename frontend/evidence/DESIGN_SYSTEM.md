@@ -27,3 +27,7 @@ Operational summary always describes **approved** state. The board’s Loaded sn
 Proposal review prioritizes emergency site, response deadline, recommended technician, estimated start, actual impact and old/new placements. Explanation, strategy comparison and evaluated options are disclosed on demand. Approve and Reject remain accessible at the bottom. Invalid, expired and stale proposals cannot be approved. Color is paired with status text, icons, selected outlines or dashed borders.
 
 Use native labels, searchable list inputs, native selects, accessible buttons, `aria-current` navigation, `aria-pressed` technician selection, announcements and Radix dialogs. Reduced-motion overrides disable continuous animation. No unnecessary component library was added.
+
+The refinement adds manual rail collapse/expand, named icon tooltips, timeline focus/restore, and a Radix cluster appointment chooser outside the compact map canvas. All four operational summaries remain visible on mobile. The risk label discloses its precise source. Closing detail panels preserves selection.
+
+Proposal facts form three paired rows. Current/proposed comparison comes first, with changed rows by default and an all-jobs toggle. Explicit unchanged/time-shift/reassignment/added labels accompany restrained colors; full start/end intervals use tabular numerals. Travel, total displacement, response and runtime remain in details. The map module/CSS loads separately; product background specificity survives the lazy stylesheet.

@@ -177,7 +177,7 @@ export function reducer(s: DispatchState, a: Action): DispatchState {
     case "openInspector":
       return { ...s, inspectorOpen: true };
     case "closeInspector":
-      return { ...s, inspectorOpen: false, selectedJob: null };
+      return { ...s, inspectorOpen: false };
   }
 }
 

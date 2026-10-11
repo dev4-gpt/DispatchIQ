@@ -1,18 +1,14 @@
 import { useEffect, useState } from "react";
 import {
-  ArrowRight,
-  ArrowRightLeft,
   CheckCircle2,
-  CircleSlash,
-  Clock,
   Loader2,
-  Plus,
   RefreshCw,
   ShieldAlert,
   Siren,
   XCircle,
 } from "lucide-react";
-import type { Change, ComparisonEntry, Proposal, Strategy } from "@/api/types";
+import type { ComparisonEntry, Proposal, Strategy } from "@/api/types";
+import { ScheduleComparison } from "@/components/ScheduleComparison";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { hhmm, type Busy } from "@/state/dispatch";
@@ -29,19 +25,8 @@ interface Props {
   onRefresh: () => void;
   onSelectJob: (id: string) => void;
 }
-const KIND = {
-  added: { icon: Plus, text: "Added" },
-  reassigned: { icon: ArrowRightLeft, text: "Reassigned" },
-  shifted: { icon: Clock, text: "Time shifted" },
-  unassigned: { icon: CircleSlash, text: "Unassigned" },
-};
 const strategyName = (s: string) =>
   s === "stable_insertion" ? "Least disruption" : "First feasible";
-function placement(p: Change["before"], idx: Indexed) {
-  return p
-    ? `${idx.techs.get(p.technician_id)?.name ?? p.technician_id} · ${hhmm(p.start_min)}–${hhmm(p.end_min)}`
-    : "Not assigned";
-}
 
 export function ProposalPanel({
   proposal: p,
@@ -84,6 +69,10 @@ export function ProposalPanel({
   const rejected = p.candidates.filter((c) => !c.valid);
   const selected = p.comparison.find((c) => c.strategy === strategy);
   const diff = selected?.diff_metrics;
+  const selectedCandidate = p.candidates.find(
+    (c) => c.id === p.selected_candidate_id,
+  );
+  const assignedTech = committed.techs.get(assignment?.technician_id ?? "");
   return (
     <section
       className="proposal-review"
@@ -127,6 +116,18 @@ export function ProposalPanel({
       {event && (
         <dl className="proposal-facts">
           <div>
+            <dt>Priority</dt>
+            <dd>
+              {event.priority === 5 ? "Critical" : `Priority ${event.priority}`}
+            </dd>
+          </div>
+          <div>
+            <dt>Synthetic location</dt>
+            <dd className="tabular">
+              ({event.location.x_km}, {event.location.y_km}) km
+            </dd>
+          </div>
+          <div>
             <dt>Response deadline</dt>
             <dd>
               {event.deadline_start_min !== null
@@ -145,6 +146,14 @@ export function ProposalPanel({
                 <dd>
                   {committed.techs.get(assignment.technician_id)?.name ??
                     assignment.technician_id}
+                  {assignedTech &&
+                    event.required_skills.every((skill) =>
+                      assignedTech.skills.includes(skill),
+                    ) && (
+                      <span className="deadline-met">
+                        <CheckCircle2 size={12} /> Required skills matched
+                      </span>
+                    )}
                 </dd>
               </div>
               <div>
@@ -175,63 +184,47 @@ export function ProposalPanel({
           </Button>
         </div>
       )}
-      {diff && (
-        <div className="proposal-impact">
-          <div>
-            <strong>{diff.changed_existing_jobs}</strong>
-            <span>existing jobs changed</span>
-          </div>
-          <div>
-            <strong>
-              {diff.absolute_start_shift_min}
-              <small> min</small>
-            </strong>
-            <span>total start shift</span>
-          </div>
-          {emergency && (
-            <div>
-              <strong>
-                {emergency.response_min ?? "—"}
-                <small> min</small>
-              </strong>
-              <span>emergency response</span>
-            </div>
-          )}
-        </div>
-      )}
-      {p.changes.length > 0 && (
-        <div className="changes-section">
-          <h3>
-            What changes <span>{p.changes.length}</span>
-          </h3>
-          <ul>
-            {p.changes.map((c) => {
-              const K = KIND[c.kind];
-              return (
-                <li key={c.job_id} data-testid={`change-${c.job_id}`}>
-                  <button onClick={() => onSelectJob(c.job_id)}>
-                    <K.icon size={14} />
-                    <strong>{c.job_id}</strong>
-                    <span>{K.text}</span>
-                  </button>
-                  <div className="change-placements">
-                    <span>{placement(c.before, committed)}</span>
-                    <ArrowRight size={12} />
-                    <span>{placement(c.after, committed)}</span>
-                  </div>
-                  <details>
-                    <summary>Why this changes</summary>
-                    <p>{c.explanation}</p>
-                  </details>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
+      <ScheduleComparison
+        key={p.proposal_id}
+        proposal={p}
+        committed={committed}
+        onSelectJob={onSelectJob}
+      />
       <details className="review-disclosure" open={!ready}>
         <summary>Why this recommendation</summary>
+        {diff && (
+          <div className="proposal-impact">
+            <div>
+              <strong>{diff.changed_existing_jobs}</strong>
+              <span>existing jobs changed</span>
+            </div>
+            <div>
+              <strong>
+                {diff.absolute_start_shift_min}
+                <small> min</small>
+              </strong>
+              <span>total start shift</span>
+            </div>
+            {emergency && (
+              <div>
+                <strong>
+                  {emergency.response_min ?? "—"}
+                  <small> min</small>
+                </strong>
+                <span>emergency response</span>
+              </div>
+            )}
+          </div>
+        )}
         <p data-testid="proposal-explanation">{p.explanation}</p>
+        {selectedCandidate?.ranking && (
+          <p data-testid="travel-impact">
+            Future travel change:{" "}
+            {selectedCandidate.ranking.added_travel_min > 0 ? "+" : ""}
+            {selectedCandidate.ranking.added_travel_min} min, as measured by the
+            backend for this candidate.
+          </p>
+        )}
         {!ready && (
           <p>
             {p.search.feasibility_proven_impossible

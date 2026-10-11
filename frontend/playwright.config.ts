@@ -34,7 +34,7 @@ export default defineConfig({
       use: { baseURL: "http://127.0.0.1:5175" },
     },
     {
-      // Full integration against Developer 1's FastAPI on 127.0.0.1:8000. Skips itself if the API is down.
+      // Real API integration. A missing API fails the suite; fixture tests cannot substitute.
       name: "integration",
       testMatch: /integration\.spec\.ts/,
       use: { baseURL: integrationUrl },

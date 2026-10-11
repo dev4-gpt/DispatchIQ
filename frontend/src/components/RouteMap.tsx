@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import type { Change, Job } from "@/api/types";
 import { hhmm } from "@/state/dispatch";
 import type { Indexed } from "@/lib/schedule";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface Props {
   view: Indexed;
@@ -40,6 +41,8 @@ export function RouteMap({
   const layer = useRef<L.LayerGroup | null>(null);
   const fitted = useRef(false);
   const [zoom, setZoom] = useState(0);
+  const [clusterJobs, setClusterJobs] = useState<string[] | null>(null);
+  const pickedClusterJob = useRef(false);
 
   useEffect(() => {
     if (!el.current || map.current) return;
@@ -216,19 +219,13 @@ export function RouteMap({
         offset: [0, -10],
         permanent: j.emergency || chosen,
       });
-      const popup = document.createElement("div");
-      popup.className = "map-popup-jobs";
-      for (const job of jobs) {
-        const button = document.createElement("button");
-        button.textContent = `${job.id} · ${job.customer.name}`;
-        button.addEventListener("click", () => {
-          onSelectJob(job.id);
-          m.closePopup();
-        });
-        popup.appendChild(button);
-      }
-      marker.bindPopup(popup);
-      if (jobs.length === 1) marker.on("click", () => onSelectJob(j.id));
+      marker.on("click", () => {
+        if (jobs.length === 1) onSelectJob(j.id);
+        else {
+          pickedClusterJob.current = false;
+          setClusterJobs(jobs.map((job) => job.id));
+        }
+      });
     }
 
     // Base labels sit to the left of each point; alternating offsets avoid dense-label collisions.
@@ -305,6 +302,46 @@ export function RouteMap({
         Square: technician base · Circle: jobs (grouped nearby) · Estimated
         visit order
       </div>
+      <Dialog
+        open={clusterJobs !== null}
+        onOpenChange={(open) => !open && setClusterJobs(null)}
+      >
+        <DialogContent
+          title="Appointments in this area"
+          description="Nearby points are grouped at this map zoom. Select an appointment to see its exact location and schedule."
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            if (!pickedClusterJob.current) el.current?.focus();
+          }}
+        >
+          <div className="map-popup-jobs cluster-job-list">
+            {clusterJobs?.map((id) => {
+              const job = view.jobs.get(id);
+              const assignment = view.byJob.get(id);
+              if (!job) return null;
+              return (
+                <button
+                  key={id}
+                  onClick={() => {
+                    pickedClusterJob.current = true;
+                    setClusterJobs(null);
+                    onSelectJob(id);
+                  }}
+                >
+                  <span>
+                    <strong>{id}</strong> · {job.customer.name}
+                  </span>
+                  <small>
+                    {assignment
+                      ? `${view.techs.get(assignment.technician_id)?.name ?? assignment.technician_id} · ${hhmm(assignment.start_min)}–${hhmm(assignment.end_min)}`
+                      : "Not assigned"}
+                  </small>
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

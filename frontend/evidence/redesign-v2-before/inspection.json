@@ -1,0 +1,46 @@
+[
+  {
+    "width": 1440,
+    "height": 900,
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1440,
+      "scrollHeight": 900,
+      "viewport": 1440
+    },
+    "text": "Loaded schedule revision 0.\nSkip to workspace\nDispatchIQ\nOPERATIONS WORKSPACE\nD\nDemo service team\nSynthetic operations\nOverview\nDispatch Board\nJobs\n25\nTechnicians\nActivity\nHuman-approved dispatch\n\nEvery change stays a proposal until you approve it.\n\nSynthetic demo · v1\nWorkspace\nDispatch Board\nConnected\n11:30 · Simulated day\nDispatch Board\n\nKeep the day moving. Handle the unexpected.\n\nReset\nNew Emergency\nOn shift\n10 / 10 technicians\nIn progress\n5 appointments\nCompleted\n10 / 25 jobs\nNeeds assignment\n0 jobs\nSchedule checked\nrev 0\nOct 11, 2026\nApproved schedule\nLoaded snapshot\nApproved\nProposed\n7\n12\n2\n4\nJ\nS\nM\nP\nL\nA\nO\nM\nD\nZ\n+\n−\nSquare: technician base · Circle: jobs (grouped nearby) · Estimated visit order\nService area\nSynthetic city · estimated travel\nSelect a job or technician to explore\nExpand map\nTechnician schedule\n10 technicians · 25 assigned jobs\nTECHNICIAN\n08:00\n09:00\n10:00\n11:00\n12:00\n13:00\n14:00\n15:00\n16:00\n17:00\nJohn\nHVAC\nJ01\nCustomer 1\nJ02\nCustomer 2\nJ03\nCustomer 3\nSarah\nPlumbing\nJ04\nCustomer 4\nJ05\nCustomer 5\nJ06\nCustomer 6\nMike\nHVAC · Electrical\nJ07\nCustomer 7\nJ08\nCustomer 8\nJ09\nCustomer 9\nPriya\nHVAC · Plumbing\nJ10\nCustomer 10\nJ11\nCustomer 11\nJ12\nCustomer 12\nLuis\nElectrical\nJ13\nCustomer 13\nJ14\nCustomer 14\nJ15\nCustomer 15\nAva\nHVAC\nJ16\nCustomer 16\nJ17\nCustomer 17\nOmar\nPlumbing\nJ18\nCustomer 18\nJ19\nCustomer 19\nMei\nHVAC · Plumbing · Electrical\nJ20\nCustomer 20\nJ21\nCustomer 21\nDan\nElectrical\nJ22\nCustomer 22\nJ23\nCustomer 23\nZoe\nPlumbing\nJ24\nCustomer 24\nJ25\nCustomer 25\nAll jobs assigned\nComplete\nIn progress\nNow 11:30"
+  },
+  {
+    "width": 1280,
+    "height": 800,
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1280,
+      "scrollHeight": 800,
+      "viewport": 1280
+    },
+    "text": "Loaded schedule revision 0.\nSkip to workspace\nOverview\nDispatch Board\nJobs\nTechnicians\nActivity\nWorkspace\nDispatch Board\nConnected\n11:30 · Simulated day\nDispatch Board\n\nKeep the day moving. Handle the unexpected.\n\nReset\nNew Emergency\nOn shift\n10 / 10 technicians\nIn progress\n5 appointments\nCompleted\n10 / 25 jobs\nNeeds assignment\n0 jobs\nSchedule checked\nrev 0\nOct 11, 2026\nLoaded snapshot\nApproved\nProposed\n7\n14\n4\nJ\nS\nM\nP\nL\nA\nO\nM\nD\nZ\n+\n−\nSquare: technician base · Circle: jobs (grouped nearby) · Estimated visit order\nService area\nSynthetic city · estimated travel\nSelect a job or technician to explore\nExpand map\nTechnician schedule\n10 technicians · 25 assigned jobs\nTECHNICIAN\n08:00\n09:00\n10:00\n11:00\n12:00\n13:00\n14:00\n15:00\n16:00\n17:00\nJohn\nHVAC\nJ01\nCustomer 1\nJ02\nCustomer 2\nJ03\nCustomer 3\nSarah\nPlumbing\nJ04\nCustomer 4\nJ05\nCustomer 5\nJ06\nCustomer 6\nMike\nHVAC · Electrical\nJ07\nCustomer 7\nJ08\nCustomer 8\nJ09\nCustomer 9\nPriya\nHVAC · Plumbing\nJ10\nCustomer 10\nJ11\nCustomer 11\nJ12\nCustomer 12\nLuis\nElectrical\nJ13\nCustomer 13\nJ14\nCustomer 14\nJ15\nCustomer 15\nAva\nHVAC\nJ16\nCustomer 16\nJ17\nCustomer 17\nOmar\nPlumbing\nJ18\nCustomer 18\nJ19\nCustomer 19\nMei\nHVAC · Plumbing · Electrical\nJ20\nCustomer 20\nJ21\nCustomer 21\nDan\nElectrical\nJ22\nCustomer 22\nJ23\nCustomer 23\nZoe\nPlumbing\nJ24\nCustomer 24\nJ25\nCustomer 25\nAll jobs assigned\nComplete\nIn progress\nNow 11:30"
+  },
+  {
+    "width": 1024,
+    "height": 768,
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1024,
+      "scrollHeight": 768,
+      "viewport": 1024
+    },
+    "text": "Loaded schedule revision 0.\nSkip to workspace\nWorkspace\nDispatch Board\nConnected\n11:30 · Simulated day\nDispatch Board\n\nKeep the day moving. Handle the unexpected.\n\nReset\nNew Emergency\nOn shift\n10 / 10 technicians\nIn progress\n5 appointments\nCompleted\n10 / 25 jobs\nNeeds assignment\n0 jobs\nSchedule checked\nrev 0\nOct 11, 2026\nLoaded snapshot\nApproved\nProposed\n7\n14\n4\nJ\nS\nM\nP\nL\nA\nO\nM\nD\nZ\n+\n−\nSquare: technician base · Circle: jobs (grouped nearby) · Estimated visit order\nService area\nSynthetic city · estimated travel\nSelect a job or technician to explore\nExpand map\nTechnician schedule\nTECHNICIAN\n08:00\n09:00\n10:00\n11:00\n12:00\n13:00\n14:00\n15:00\n16:00\n17:00\nJohn\nHVAC\nJ01\nCustomer 1\nJ02\nCustomer 2\nJ03\nCustomer 3\nSarah\nPlumbing\nJ04\nCustomer 4\nJ05\nCustomer 5\nJ06\nCustomer 6\nMike\nHVAC · Electrical\nJ07\nCustomer 7\nJ08\nCustomer 8\nJ09\nCustomer 9\nPriya\nHVAC · Plumbing\nJ10\nCustomer 10\nJ11\nCustomer 11\nJ12\nCustomer 12\nLuis\nElectrical\nJ13\nCustomer 13\nJ14\nCustomer 14\nJ15\nCustomer 15\nAva\nHVAC\nJ16\nCustomer 16\nJ17\nCustomer 17\nOmar\nPlumbing\nJ18\nCustomer 18\nJ19\nCustomer 19\nMei\nHVAC · Plumbing · Electrical\nJ20\nCustomer 20\nJ21\nCustomer 21\nDan\nElectrical\nJ22\nCustomer 22\nJ23\nCustomer 23\nZoe\nPlumbing\nJ24\nCustomer 24\nJ25\nCustomer 25\nAll jobs assigned\nComplete\nIn progress\nNow 11:30"
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "errors": [],
+    "layout": {
+      "scrollWidth": 390,
+      "scrollHeight": 844,
+      "viewport": 390
+    },
+    "text": "Loaded schedule revision 0.\nSkip to workspace\nDispatch Board\nConnected\n11:30 · Simulated day\nDispatch Board\n\nKeep the day moving. Handle the unexpected.\n\nReset\nNew Emergency\nOn shift\n10\nIn progress\n5\nSchedule checked\nrev 0\nOct 11, 2026\nApproved schedule\nLoaded snapshot\nApproved\nProposed\nTimeline\nMap\nDetails\nTechnician schedule\nTECHNICIAN\n08:00\n09:00\n10:00\n11:00\n12:00\n13:00\n14:00\n15:00\n16:00\n17:00\nJohn\nHVAC\nJ01\nCustomer 1\nJ02\nCustomer 2\nJ03\nCustomer 3\nSarah\nPlumbing\nJ04\nCustomer 4\nJ05\nCustomer 5\nJ06\nCustomer 6\nMike\nHVAC · Electrical\nJ07\nCustomer 7\nJ08\nCustomer 8\nJ09\nCustomer 9\nPriya\nHVAC · Plumbing\nJ10\nCustomer 10\nJ11\nCustomer 11\nJ12\nCustomer 12\nLuis\nElectrical\nJ13\nCustomer 13\nJ14\nCustomer 14\nJ15\nCustomer 15\nAva\nHVAC\nJ16\nCustomer 16\nJ17\nCustomer 17\nOmar\nPlumbing\nJ18\nCustomer 18\nJ19\nCustomer 19\nMei\nHVAC · Plumbing · Electrical\nJ20\nCustomer 20\nJ21\nCustomer 21\nDan\nElectrical\nJ22\nCustomer 22\nJ23\nCustomer 23\nZoe\nPlumbing\nJ24\nCustomer 24\nJ25\nCustomer 25\nAll jobs assigned\nComplete\nIn progress\nNow 11:30"
+  }
+]
