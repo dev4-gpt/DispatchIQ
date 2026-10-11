@@ -38,6 +38,49 @@ All numbers below are read from the saved run files in `runs/` by `python -m dis
 | LLM team v2 | _pending_ | | | | | | | |
 <!-- END heldout-table -->
 
+## Where the score comes from
+
+Every re-planned day gets one number: its cost. Lower is better. The cost is computed by a rule checker (`dispatchiq/simulate.py`), which is plain code with no AI in it. The agents never score their own work.
+
+**Step 1: hard rules.** If a plan breaks any of these, the whole day fails:
+
+- a sick technician is given a job
+- a technician lacks the skill a job needs
+- a job is assigned twice
+- an emergency is left unassigned
+- a technician works more than 90 minutes past the end of their shift
+
+**Step 2: cost.** For a plan that passes, the checker adds up:
+
+| Part | How it's counted |
+|---|---|
+| Travel | 1 per minute of driving |
+| Lateness | minutes late × the job's priority |
+| Overtime | 1 per minute past shift end |
+| Unscheduled jobs | 150 × priority for each job left undone |
+| Moved jobs | 20 for each job moved between healthy technicians |
+| Emergency wait | 1 per minute from the emergency call to the start of work |
+
+**Step 3: average.** The score in our tables is the average cost per day across a set of simulated days. A failed day counts as 100,000, so a policy can't hide one; every run in the tables above had zero failed validation days. "vs naive" is how much lower that score is than the baseline dispatcher's.
+
+**Example: the baseline vs the run the final-solution rule picks (team v1), average per validation day**
+
+| Part | Baseline | Team v1 |
+|---|---|---|
+| Travel | 370.6 | 372.2 |
+| Lateness | 599.2 | 89.7 |
+| Unscheduled jobs | 830.0 | 560.0 |
+| Moved jobs | 0.0 | 64.0 |
+| Emergency wait | 113.3 | 80.9 |
+| Overtime | 126.6 | 84.1 |
+| **Total** | **2039.7** | **1251.0** |
+
+Most of the gain is fewer late jobs. The rest is mainly fewer skipped jobs.
+
+The breakdown comes from re-scoring the saved champion, which gives 1251.0. The results table shows 1251.2, the value saved during the run. The champion stops its search on a wall-clock budget, so its score moves slightly with machine load (see [Honest limits](#honest-limits)).
+
+**The weights are our choices.** 150, 20 and 1 reflect what we think a shop cares about. Different weights would produce a different "best" plan. One known gap: a booked customer who gets bumped costs the same as a job that was never scheduled.
+
 ## The problem, and why it is hard
 
 A small HVAC, plumbing and electrical shop has its day planned. Between 11:00 and 14:00 one or two technicians call in sick and one to three emergencies arrive, each promised a technician within 2 hours. Someone has to re-plan the whole crew, now.
@@ -47,16 +90,7 @@ Each simulated day (`dispatchiq/generator.py`) has:
 - **Booked jobs:** 30–50, each needing one skill, with a 2–4 hour arrival window and priority 1, 2 or 3.
 - **A disruption:** 1–2 technicians out sick and 1–3 priority-5 emergencies, all at one moment between 11:00 and 14:00. Work already started stays where it is.
 
-A re-plan policy gets that moment's state and returns, for each technician, an ordered list of jobs. The checker (`dispatchiq/simulate.py`) then decides.
-
-**Hard rules:** any violation makes the **whole day infeasible**, and a policy with an infeasible validation day is never promoted.
-- A sick technician gets no jobs.
-- Every job's skill matches its technician.
-- No job is assigned twice.
-- Every emergency is assigned.
-- No technician finishes more than 90 minutes past shift end.
-
-**Cost** (published weights): travel minutes, plus lateness minutes × priority, plus overtime minutes, plus 150 × priority for each job left for tomorrow, plus 20 per job moved between healthy technicians, plus minutes from each emergency call to its start.
+A re-plan policy gets that moment's state and returns, for each technician, an ordered list of jobs. The checker then decides, using the hard rules and cost in [Where the score comes from](#where-the-score-comes-from). A policy with any failed validation day is never promoted.
 
 What makes it hard:
 - Every term pulls against another. Moving a job to fit an emergency adds travel, makes later customers late, can push overtime past the cap, and may leave a job unscheduled.
